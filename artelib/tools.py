@@ -8,6 +8,7 @@ A number of useful functions
 """
 import numpy as np
 
+
 def compute_w_between_orientations(orientation, targetorientation):
     R1 = euler2Rot(orientation)
     R2 = euler2Rot(targetorientation)
@@ -16,7 +17,6 @@ def compute_w_between_orientations(orientation, targetorientation):
     # compute the angular speed w that rotates from Q1 to Q2
     w = angular_w_between_quaternions(Q1, Q2, 1)
     return w
-
 
 
 def R2quaternion(R):
@@ -62,6 +62,7 @@ def R2quaternion(R):
         Q[3] = Q2[2]
     return Q
 
+
 def angular_w_between_quaternions(Q0, Q1, total_time):
     epsilon_len = 0.000001
     # Let's first find quaternion q so q*q0=q1 it is q=q1/q0
@@ -80,6 +81,7 @@ def angular_w_between_quaternions(Q0, Q1, total_time):
     w = np.dot(angle/total_time, axis)
     return w
 
+
 def qprod(q1, q2):
     """
     quaternion product
@@ -93,11 +95,13 @@ def qprod(q1, q2):
     Q = np.hstack((s, v))
     return Q
 
+
 def qconj(q):
     s = q[0]
     v = q[1:4]
     Q = np.hstack((s, -v))
     return Q
+
 
 def euler2Rot(abg):
     calpha = np.cos(abg[0])

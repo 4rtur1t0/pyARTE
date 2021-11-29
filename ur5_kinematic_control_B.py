@@ -12,7 +12,7 @@ import sim
 import sys
 import numpy as np
 # standard delta time for Coppelia, please modify if necessary
-from artelib.artelib import compute_w_between_orientations, euler2Rot
+from artelib.tools import compute_w_between_orientations, euler2Rot
 from jacobians.jacobians_ur5 import eval_symbolic_jacobian_UR5
 import matplotlib.pyplot as plt
 

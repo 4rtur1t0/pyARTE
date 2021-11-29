@@ -63,7 +63,6 @@ def eval_symbolic_jacobian_UR5(q):
                  823 * np.sin(q2 + q3 + q4 - q5)) / 20000,
      (823 * np.sin(q2 + q3 + q4 + q5)) / 20000 + (823 * np.sin(q2 + q3 + q4 - q5)) / 20000, 0]])
 
-
     Jw = np.array([[0, -np.cos(q1), -np.cos(q1), -np.cos(q1), np.cos(q1 + q2 + q3 + q4) / 2 - np.cos(q2 - q1 + q3 + q4) / 2,
      np.cos(q2) * np.cos(q3) * np.cos(q4) * np.sin(q1) * np.sin(q5) - np.cos(q1) * np.cos(q5) - np.cos(q2) * np.sin(q1) * np.sin(q3) * np.sin(q4) * np.sin(
          q5) - np.cos(q3) * np.sin(q1) * np.sin(q2) * np.sin(q4) * np.sin(q5) - np.cos(q4) * np.sin(q1) * np.sin(q2) * np.sin(q3) * np.sin(q5)],
