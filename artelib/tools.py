@@ -8,6 +8,14 @@ A number of useful functions
 """
 import numpy as np
 
+def buildT(position, orientation):
+    T = np.zeros((4, 4))
+    R = euler2Rot(orientation)
+    T[0:3, 0:3] = R
+    T[3, 3] = 1
+    T[0:3, 3] = np.array(position).T
+    return T
+
 
 def compute_w_between_orientations(orientation, targetorientation):
     R1 = euler2Rot(orientation)
@@ -19,47 +27,62 @@ def compute_w_between_orientations(orientation, targetorientation):
     return w
 
 
+def compute_w_between_R(Rcurrent, Rtarget):
+    R1 = Rcurrent[0:3, 0:3]
+    R2 = Rtarget[0:3, 0:3]
+    Q1 = R2quaternion(R1)
+    Q2 = R2quaternion(R2)
+    # compute the angular speed w that rotates from Q1 to Q2
+    w = angular_w_between_quaternions(Q1, Q2, 1)
+    return w
+
+
+def T2quaternion(T):
+    """
+    Transforms a homogeneous matrix T into a quaternion. The R submatrix is extracted and the R2quaternion function is
+    used.
+    """
+    R = T[0:3, 0:3]
+    return R2quaternion(R)
+
+
+
 def R2quaternion(R):
     """
     Transforms a rotation matrix R into a quaternion
+
+    The method implemented here was extracted from:
+    Accurate Computation of Quaternions from Rotation Matrices. Soheil Sarabandi and Federico Thomas
+          http://www.iri.upc.edu/files/scidoc/2068-Accurate-Computation-of-Quaternions-from-Rotation-Matrices.pdf
     """
     Q = np.zeros(4)
-    Q[0] = np.sqrt(np.trace(R))/2
-
-    Lx = R[2, 1] - R[1, 2]
-    Ly = R[0, 2] - R[2, 0]
-    Lz = R[1, 0] - R[0, 1]
-
-    if (R[0, 0] >= R[1, 1]) and (R[0, 0] >= R[2, 2]):
-        Lx1 = R[0, 0] - R[1, 1] - R[2, 2] + 1
-        Ly1 = R[1, 0] + R[0, 1]
-        Lz1 = R[2, 0] + R[0, 2]
-    elif R[1,1] >= R[2,2]:
-        Lx1 = R[1, 0] + R[0, 1]
-        Ly1 = R[1, 1] - R[0, 0] - R[2, 2] + 1
-        Lz1 = R[2, 1] + R[1, 2]
+    if R[0, 0] + R[1, 1] + R[2, 2] > 0:
+        Q[0] = 0.5 * np.sqrt(1 + R[0, 0] + R[1, 1] + R[2, 2])
     else:
-        Lx1 = R[2, 0] + R[0, 2]
-        Ly1 = R[2, 1] + R[1, 2]
-        Lz1 = R[2, 2] - R[0, 0] - R[1, 1] + 1
+        num = (R[2, 1] - R[1, 2])**2 + (R[0, 2] - R[2, 0])**2 + (R[1, 0] - R[0, 1])**2
+        den = 3 - R[0, 0] - R[1, 1] - R[2, 2]
+        Q[0] = 0.5 * np.sqrt(num / den)
 
-    if (Lx >= 0) or (Ly >= 0) or (Lz >= 0):
-        Lx = Lx + Lx1
-        Ly = Ly + Ly1
-        Lz = Lz + Lz1
+    if R[0, 0] - R[1, 1] - R[2, 2] > 0:
+        Q[1] = 0.5 * np.sqrt(1 + R[0, 0] - R[1, 1] - R[2, 2])
     else:
-        Lx = Lx - Lx1
-        Ly = Ly - Ly1
-        Lz = Lz - Lz1
+        num = (R[2, 1] - R[1, 2])**2 + (R[0, 2] + R[2, 0])**2 + (R[1, 0] + R[0, 1])**2
+        den = 3 - R[0, 0] + R[1, 1] + R[2, 2]
+        Q[1] = 0.5 * np.sqrt(num / den)
 
-    if np.linalg.norm([Lx, Ly, Lz]) == 0:
-        Q = np.array([1, 0, 0, 0])
+    if -R[0, 0] + R[1, 1] - R[2, 2] > 0:
+        Q[2] = 0.5 * np.sqrt(1 - R[0, 0] + R[1, 1] - R[2, 2])
     else:
-        s = np.sqrt(1-Q[0]**2)/np.linalg.norm(np.array([Lx, Ly, Lz]))
-        Q2 = s*np.array([Lx, Ly, Lz])
-        Q[1] = Q2[0]
-        Q[2] = Q2[1]
-        Q[3] = Q2[2]
+        num = (R[2, 1] + R[1, 2])**2 + (R[0, 2] - R[2, 0])**2 + (R[1, 0] + R[0, 1])**2
+        den = 3 + R[0, 0] - R[1, 1] + R[2, 2]
+        Q[2] = 0.5 * np.sqrt(num / den)
+
+    if -R[0, 0] - R[1, 1] + R[2, 2] > 0:
+        Q[3] = 0.5 * np.sqrt(1 - R[0, 0] - R[1, 1] + R[2, 2])
+    else:
+        num = (R[2, 1] + R[1, 2])**2 + (R[0, 2] + R[2, 0])**2 + (R[1, 0] - R[0, 1])**2
+        den = 3 + R[0, 0] + R[1, 1] + R[2, 2]
+        Q[3] = 0.5 * np.sqrt(num / den)
     return Q
 
 
@@ -113,7 +136,6 @@ def euler2Rot(abg):
     Rx = np.array([[1, 0, 0], [0, calpha, -salpha], [0, salpha, calpha]])
     Ry = np.array([[cbeta, 0, sbeta], [0, 1, 0], [-sbeta, 0, cbeta]])
     Rz = np.array([[cgamma, -sgamma, 0], [sgamma, cgamma, 0], [0, 0, 1]])
-
     R = np.matmul(Rx, Ry)
     R = np.matmul(R, Rz)
     return R

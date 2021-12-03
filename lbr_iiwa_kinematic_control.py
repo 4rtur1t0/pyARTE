@@ -12,7 +12,7 @@ import sim
 import sys
 import numpy as np
 # standard delta time for Coppelia, please modify if necessary
-from jacobians.jacobians import eval_symbolic_jacobian_UR10, eval_symbolic_jacobian_lbr_kuka
+from kinematics.kinematics_ur10 import eval_symbolic_jacobian_UR10, eval_symbolic_jacobian_lbr_kuka
 import matplotlib.pyplot as plt
 
 

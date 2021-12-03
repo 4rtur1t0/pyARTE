@@ -75,5 +75,56 @@ def eval_symbolic_jacobian_UR5(q):
     return J, Jv, Jw
 
 
+def eval_symbolic_T_UR5(q):
+    q1 = q[0]
+    q2 = q[1]
+    q3 = q[2]
+    q4 = q[3]
+    q5 = q[4]
+    q6 = q[5]
+
+    T = np.array([[-np.cos(q6) * (np.cos(q2) *np.cos(q5) *np.sin(q1) *np.sin(q3) *np.sin(q4) -np.cos(q2) *np.cos(q3) *np.cos(q4) *np.cos(q5) *np.sin(q1) -np.cos(
+            q1) *np.sin(q5) +np.cos(q3) *np.cos(q5) *np.sin(q1) *np.sin(q2) *np.sin(q4) +np.cos(q4) *np.cos(q5) *np.sin(q1) *np.sin(
+            q2) *np.sin(q3)) -np.sin(q2 + q3 + q4) *np.sin(q1) *np.sin(q6),np.sin(q6) * (
+                np.cos(q2) *np.cos(q5) *np.sin(q1) *np.sin(q3) *np.sin(q4) -np.cos(q2) *np.cos(q3) *np.cos(q4) *np.cos(q5) *np.sin(
+             q1) -np.cos(q1) *np.sin(q5) +np.cos(q3) *np.cos(q5) *np.sin(q1) *np.sin(q2) *np.sin(q4) +np.cos(q4) *np.cos(q5) *np.sin(
+             q1) *np.sin(q2) *np.sin(q3)) -np.sin(q2 + q3 + q4) *np.cos(q6) *np.sin(q1),
+    np.cos(q2) *np.cos(q3) *np.cos(q4) *np.sin(q1) *np.sin(q5) -np.cos(q1) *np.cos(q5) -np.cos(q2) *np.sin(q1) *np.sin(q3) *np.sin(q4) *np.sin(
+         q5) -np.cos(q3) *np.sin(q1) *np.sin(q2) *np.sin(q4) *np.sin(q5) -np.cos(q4) *np.sin(q1) *np.sin(q2) *np.sin(q3) *np.sin(q5),
+     (1893 *np.sin(q1) *np.sin(q2) *np.sin(q3) *np.sin(q4)) / 20000 - (823 *np.cos(q1) *np.cos(q5)) / 10000 - (
+                 17 *np.sin(q1) *np.sin(q2)) / 40 - (1569 *np.cos(q2) *np.sin(q1) *np.sin(q3)) / 4000 - (
+                 1569 *np.cos(q3) *np.sin(q1) *np.sin(q2)) / 4000 - (1893 *np.cos(q2) *np.cos(q3) *np.sin(q1) *np.sin(q4)) / 20000 - (
+                 1893 *np.cos(q2) *np.cos(q4) *np.sin(q1) *np.sin(q3)) / 20000 - (
+                 1893 *np.cos(q3) *np.cos(q4) *np.sin(q1) *np.sin(q2)) / 20000 - (2183 *np.cos(q1)) / 20000 + (
+                 823 *np.cos(q2) *np.cos(q3) *np.cos(q4) *np.sin(q1) *np.sin(q5)) / 10000 - (
+                 823 *np.cos(q2) *np.sin(q1) *np.sin(q3) *np.sin(q4) *np.sin(q5)) / 10000 - (
+                 823 *np.cos(q3) *np.sin(q1) *np.sin(q2) *np.sin(q4) *np.sin(q5)) / 10000 - (
+                 823 *np.cos(q4) *np.sin(q1) *np.sin(q2) *np.sin(q3) *np.sin(q5)) / 10000],
+            [np.cos(q6) * (np.sin(q1) *np.sin(q5) -np.cos(q1) *np.cos(q2) *np.cos(q3) *np.cos(q4) *np.cos(q5) +np.cos(q1) *np.cos(q2) *np.cos(q5) *np.sin(
+        q3) *np.sin(q4) +np.cos(q1) *np.cos(q3) *np.cos(q5) *np.sin(q2) *np.sin(q4) +np.cos(q1) *np.cos(q4) *np.cos(q5) *np.sin(q2) *np.sin(
+        q3)) +np.sin(q2 + q3 + q4) *np.cos(q1) *np.sin(q6),np.sin(q2 + q3 + q4) *np.cos(q1) *np.cos(q6) -np.sin(q6) * (
+                np.sin(q1) *np.sin(q5) -np.cos(q1) *np.cos(q2) *np.cos(q3) *np.cos(q4) *np.cos(q5) +np.cos(q1) *np.cos(q2) *np.cos(
+             q5) *np.sin(q3) *np.sin(q4) +np.cos(q1) *np.cos(q3) *np.cos(q5) *np.sin(q2) *np.sin(q4) +np.cos(q1) *np.cos(q4) *np.cos(
+             q5) *np.sin(q2) *np.sin(q3)),
+    np.cos(q1) *np.cos(q2) *np.sin(q3) *np.sin(q4) *np.sin(q5) -np.cos(q1) *np.cos(q2) *np.cos(q3) *np.cos(q4) *np.sin(q5) -np.cos(q5) *np.sin(
+         q1) +np.cos(q1) *np.cos(q3) *np.sin(q2) *np.sin(q4) *np.sin(q5) +np.cos(q1) *np.cos(q4) *np.sin(q2) *np.sin(q3) *np.sin(q5),
+     (17 *np.cos(q1) *np.sin(q2)) / 40 - (2183 *np.sin(q1)) / 20000 - (823 *np.cos(q5) *np.sin(q1)) / 10000 + (
+                 1569 *np.cos(q1) *np.cos(q2) *np.sin(q3)) / 4000 + (1569 *np.cos(q1) *np.cos(q3) *np.sin(q2)) / 4000 + (
+                 1893 *np.cos(q1) *np.cos(q2) *np.cos(q3) *np.sin(q4)) / 20000 + (
+                 1893 *np.cos(q1) *np.cos(q2) *np.cos(q4) *np.sin(q3)) / 20000 + (
+                 1893 *np.cos(q1) *np.cos(q3) *np.cos(q4) *np.sin(q2)) / 20000 - (
+                 1893 *np.cos(q1) *np.sin(q2) *np.sin(q3) *np.sin(q4)) / 20000 - (
+                 823 *np.cos(q1) *np.cos(q2) *np.cos(q3) *np.cos(q4) *np.sin(q5)) / 10000 + (
+                 823 *np.cos(q1) *np.cos(q2) *np.sin(q3) *np.sin(q4) *np.sin(q5)) / 10000 + (
+                 823 *np.cos(q1) *np.cos(q3) *np.sin(q2) *np.sin(q4) *np.sin(q5)) / 10000 + (
+                 823 *np.cos(q1) *np.cos(q4) *np.sin(q2) *np.sin(q3) *np.sin(q5)) / 10000],
+        [np.sin(q2 + q3 + q4 + q6) / 2 -np.sin(q2 + q3 + q4 - q6) / 2 +np.sin(q2 + q3 + q4) *np.cos(q5) *np.cos(q6),
+    np.cos(q2 + q3 + q4 + q6) / 2 +np.cos(q2 + q3 + q4 - q6) / 2 -np.sin(q2 + q3 + q4) *np.cos(q5) *np.sin(q6),
+    np.cos(q2 + q3 + q4 - q5) / 2 -np.cos(q2 + q3 + q4 + q5) / 2,
+     (1893 *np.cos(q2 + q3 + q4)) / 20000 - (823 *np.cos(q2 + q3 + q4 + q5)) / 20000 + (1569 *np.cos(q2 + q3)) / 4000 + (
+                 17 *np.cos(q2)) / 40 + (823 *np.cos(q2 + q3 + q4 - q5)) / 20000 + 6424583026827617 / 72057594037927936],
+            [0, 0, 0, 1]])
+    return T
+
 
 

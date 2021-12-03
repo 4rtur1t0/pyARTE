@@ -3,8 +3,21 @@
 """
 Please open the scenes/ur5.ttt scene before running this script.
 
-@Authors: Arturo Gil
-@Time: April 2021
+The script is used to freely move the UR5 robot based on:
+1) joint commands. Use the keys
+    (1, q) to increment/decrement joint 1
+    (2, w) to increment/decrement joint 2
+    (3, e) to increment/decrement joint 3
+    (4, r) to increment/decrement joint 4
+    (5, t) to increment/decrement joint 5
+    (6, y) to increment/decrement joint 6
+
+2) v, w commands. Please specify a speedjoint commands. Use the keys
+
+@Authors: Arturo Gil. arturo.gil@umh.es
+          Universidad Miguel Hernandez de Elche
+
+@Time: November 2021
 
 """
 import time
@@ -16,13 +29,29 @@ from artelib.tools import R2quaternion, compute_w_between_R
 from artelib.ur5 import RobotUR5
 from artelib.scene import Scene
 import matplotlib.pyplot as plt
+from pynput import keyboard
 
 # standard delta time for Coppelia, please modify if necessary
 DELTA_TIME = 50.0/1000.0
 
+actions = {'1': '0+',
+           'q': '0-',
+           '2': '1+',
+           'w': '1-',
+           '3': '2+',
+           'e': '2-',
+           '4': '3+',
+           'r': '3-',
+           '5': '4+',
+           't': '4-',
+           '6': '5+',
+           'y': '5-',
+           'o': 'open_gripper',
+           'c': 'close_gripper'
+           }
+
 
 def init_simulation():
-    # global pathpositions
     # Python connect to the V-REP client
     sim.simxFinish(-1)
     clientID = sim.simxStart('127.0.0.1', 19997, True, True, 5000, 5)
@@ -35,7 +64,6 @@ def init_simulation():
         sim.simxStartSimulation(clientID=clientID, operationMode=sim.simx_opmode_blocking)
         # enable the synchronous mode
         sim.simxSynchronous(clientID=clientID, enable=True)
-        # time.sleep(3)
     else:
         print("Connection not successful")
         sys.exit("Connection failed,program ended!")
@@ -53,25 +81,16 @@ def init_simulation():
     errorCode, q4 = sim.simxGetObjectHandle(clientID, 'UR5_joint4', sim.simx_opmode_oneshot_wait)
     errorCode, q5 = sim.simxGetObjectHandle(clientID, 'UR5_joint5', sim.simx_opmode_oneshot_wait)
     errorCode, q6 = sim.simxGetObjectHandle(clientID, 'UR5_joint6', sim.simx_opmode_oneshot_wait)
-
     errorCode, gripper1 = sim.simxGetObjectHandle(clientID, 'RG2_openCloseJoint', sim.simx_opmode_oneshot_wait)
-
-    # errorCode, gripper1 = sim.simxGetObjectHandle(clientID, 'MicoHand_fingers12_motor1', sim.simx_opmode_oneshot_wait)
-    # errorCode, gripper2 = sim.simxGetObjectHandle(clientID, 'MicoHand_fingers12_motor2', sim.simx_opmode_oneshot_wait)
-
     errorCode, target = sim.simxGetObjectHandle(clientID, 'target', sim.simx_opmode_oneshot_wait)
-
     # errorCode, sphere = sim.simxGetObjectHandle(clientID, 'Sphere', sim.simx_opmode_oneshot_wait)
-
     armjoints.append(q1)
     armjoints.append(q2)
     armjoints.append(q3)
     armjoints.append(q4)
     armjoints.append(q5)
     armjoints.append(q6)
-
     gripper.append(gripper1)
-    # gripper.append(gripper2)
 
     # objects.append(sphere)
     robot = RobotUR5(clientID=clientID, wheeljoints=[],
@@ -79,6 +98,14 @@ def init_simulation():
                     end_effector=end_effector, gripper=gripper, target=target)
     scene = Scene(clientID=clientID, objects=objects)
     return robot, scene
+
+
+delta_increment = 0.05  # rad
+q = np.zeros(6)
+press_exit = False
+robot, scene = init_simulation()
+# set initial position of robot
+robot.set_arm_joint_target_positions(q, wait=True)
 
 
 def plot_trajectories(q_rs):
@@ -91,55 +118,55 @@ def plot_trajectories(q_rs):
     plt.show(block=True)
 
 
+def on_press(key):
+    try:
+        print('Key pressed: {0} '.format(key.char))
+        caracter = key.char
+        if caracter == 'o':
+            robot.open_gripper(wait=True)
+            return True
+        elif caracter == 'c':
+            robot.close_gripper(wait=True)
+            return True
+        # for the rest of actions, decode  decode action from actions dictionary
+        acti = actions[key.char]
+        index = int(acti[0])
+        sign = acti[1]
+        if sign == '+':
+            q[index] += delta_increment
+        else:
+            q[index] -= delta_increment
+        robot.set_arm_joint_target_positions(q, wait=False)
+        robot.wait(1)
+        [position, orientation] = robot.get_end_effector_position_orientation()
+        print('Current q is: ', q)
+        print('End effector position is: ', position)
+        print('End effector orientation is: ', orientation)
+        # time.sleep(0.1)
+
+    except (AttributeError, KeyError):
+        print('special key pressed: {0}'.format(
+            key))
+    return True
 
 
-
-
-
-
-
-def main_loop():
-    robot, scene = init_simulation()
-
-    # TRY TO REACH DIFFERENT TARGETS
-    target_positions = [[0.5, 0.27, 0.25],
-                        [0.61, 0.27, 0.25],
-                        [0.3, -0.45, 0.5],
-                        [0.3, -0.45, 0.25]]
-    target_orientations = [[0, np.pi / 2, 0],
-                           [0, np.pi / 2, 0],
-                           [0, np.pi / 2, 0],
-                           [0, np.pi, 0]]
-
-    q0 = np.array([-np.pi / 4, np.pi / 4, np.pi / 4, np.pi / 4, -np.pi/4, -np.pi/4])
-    q0 = np.zeros(6)
-
-    # plan trajectories
-    [q1_path, _] = robot.inversekinematics(target_position=target_positions[0],
-                                           target_orientation=target_orientations[0], q0=q0)
-    [q2_path, _] = robot.inversekinematics(target_position=target_positions[1],
-                                           target_orientation=target_orientations[1], q0=q1_path[-1])
-    [q3_path, _] = robot.inversekinematics(target_position=target_positions[2],
-                                           target_orientation=target_orientations[2], q0=q2_path[-1])
-    [q4_path, _] = robot.inversekinematics(target_position=target_positions[3],
-                                           target_orientation=target_orientations[3], q0=q3_path[-1])
-
-    robot.set_target_position_orientation(target_positions[3], target_orientations[3])
-
-    # set initial position of robot
-    robot.set_arm_joint_target_positions(q0)
-    # execute trajectories
-    robot.open_gripper()
-    robot.follow_q_trajectory(q1_path, 3)
-    robot.follow_q_trajectory(q2_path, 3)
-    robot.close_gripper(wait=True)
-    robot.follow_q_trajectory(q3_path, 3)
-    robot.follow_q_trajectory(q4_path, 3)
-    #
-    plot_trajectories(q1_path)
-    robot.stop_arm()
-    scene.stop_simulation()
+def on_release(key):
+    print('Key released: {0}'.format(
+        key))
+    if key == keyboard.Key.esc:
+        print('Exiting')
+        exit()
+        return False
 
 
 if __name__ == "__main__":
-    main_loop()
+    print('Use: 1, 2, 3, 4, 5, 6 to increment q_i')
+    print('Use: q, w, e, r, t, y to decrement q_i')
+    print('Use: o, c to open/close gripper')
+    print('Use ESC to exit')
+    # Collect events until released
+    with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
+        listener.join()
+
+    robot.stop_arm()
+    scene.stop_simulation()

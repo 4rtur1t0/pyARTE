@@ -12,7 +12,7 @@ import sim
 import sys
 import numpy as np
 # standard delta time for Coppelia, please modify if necessary
-from jacobians.jacobians import eval_symbolic_jacobian_UR10
+from kinematics.kinematics_ur10 import eval_symbolic_jacobian_UR10
 
 DELTA_TIME = 50.0/1000.0
 
