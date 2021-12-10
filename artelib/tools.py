@@ -34,6 +34,9 @@ def compute_w_between_R(Rcurrent, Rtarget):
     Q2 = R2quaternion(R2)
     # compute the angular speed w that rotates from Q1 to Q2
     w = angular_w_between_quaternions(Q1, Q2, 1)
+    # print('Q1: ', Q1)
+    # print('Q2: ', Q2)
+    # print('w: ', w)
     return w
 
 
@@ -46,44 +49,101 @@ def T2quaternion(T):
     return R2quaternion(R)
 
 
-
 def R2quaternion(R):
     """
-    Transforms a rotation matrix R into a quaternion
+    R2quaternion(R)
+    Computes a quaternion Q from a rotation matrix R.
 
-    The method implemented here was extracted from:
-    Accurate Computation of Quaternions from Rotation Matrices. Soheil Sarabandi and Federico Thomas
-          http://www.iri.upc.edu/files/scidoc/2068-Accurate-Computation-of-Quaternions-from-Rotation-Matrices.pdf
+    This implementation has been translated from The Robotics Toolbox for Matlab (Peter  Corke),
+    https://github.com/petercorke/spatial-math
     """
-    Q = np.zeros(4)
-    if R[0, 0] + R[1, 1] + R[2, 2] > 0:
-        Q[0] = 0.5 * np.sqrt(1 + R[0, 0] + R[1, 1] + R[2, 2])
-    else:
-        num = (R[2, 1] - R[1, 2])**2 + (R[0, 2] - R[2, 0])**2 + (R[1, 0] - R[0, 1])**2
-        den = 3 - R[0, 0] - R[1, 1] - R[2, 2]
-        Q[0] = 0.5 * np.sqrt(num / den)
+    s = np.sqrt(np.trace(R) + 1) / 2.0
+    kx = R[2, 1] - R[1, 2] # Oz - Ay
+    ky = R[0, 2] - R[2, 0] # Ax - Nz
+    kz = R[1, 0] - R[0, 1] # Ny - Ox
 
-    if R[0, 0] - R[1, 1] - R[2, 2] > 0:
-        Q[1] = 0.5 * np.sqrt(1 + R[0, 0] - R[1, 1] - R[2, 2])
-    else:
-        num = (R[2, 1] - R[1, 2])**2 + (R[0, 2] + R[2, 0])**2 + (R[1, 0] + R[0, 1])**2
-        den = 3 - R[0, 0] + R[1, 1] + R[2, 2]
-        Q[1] = 0.5 * np.sqrt(num / den)
+    # equation(7)
+    k = np.argmax(np.diag(R))
+    if k == 0: # Nx dominates
+        kx1 = R[0, 0] - R[1, 1] - R[2, 2] + 1 # Nx - Oy - Az + 1
+        ky1 = R[1, 0] + R[0, 1] # Ny + Ox
+        kz1 = R[2, 0] + R[0, 2]  # Nz + Ax
+        sgn = mod_sign(kx)
+    elif k == 1: # Oy dominates
+        kx1 = R[1, 0] + R[0, 1] # % Ny + Ox
+        ky1 = R[1, 1] - R[0, 0] - R[2, 2] + 1  # Oy - Nx - Az + 1
+        kz1 = R[2, 1] + R[1, 2] # % Oz + Ay
+        sgn = mod_sign(ky)
+    elif k == 2: # Az dominates
+        kx1 = R[2, 0] + R[0, 2] # Nz + Ax
+        ky1 = R[2, 1] + R[1, 2] # Oz + Ay
+        kz1 = R[2, 2] - R[0, 0] - R[1, 1] + 1 # Az - Nx - Oy + 1
+        # add = (kz >= 0)
+        sgn = mod_sign(kz)
+    # equation(8)
+    kx = kx + sgn * kx1
+    ky = ky + sgn * ky1
+    kz = kz + sgn * kz1
 
-    if -R[0, 0] + R[1, 1] - R[2, 2] > 0:
-        Q[2] = 0.5 * np.sqrt(1 - R[0, 0] + R[1, 1] - R[2, 2])
+    nm = np.linalg.norm([kx, ky, kz])
+    if nm == 0:
+        # handle special case of null quaternion
+        Q = np.array([1, 0, 0, 0])
     else:
-        num = (R[2, 1] + R[1, 2])**2 + (R[0, 2] - R[2, 0])**2 + (R[1, 0] + R[0, 1])**2
-        den = 3 + R[0, 0] - R[1, 1] + R[2, 2]
-        Q[2] = 0.5 * np.sqrt(num / den)
-
-    if -R[0, 0] - R[1, 1] + R[2, 2] > 0:
-        Q[3] = 0.5 * np.sqrt(1 - R[0, 0] - R[1, 1] + R[2, 2])
-    else:
-        num = (R[2, 1] + R[1, 2])**2 + (R[0, 2] + R[2, 0])**2 + (R[1, 0] - R[0, 1])**2
-        den = 3 + R[0, 0] + R[1, 1] + R[2, 2]
-        Q[3] = 0.5 * np.sqrt(num / den)
+        v = np.dot(np.sqrt(1 - s**2)/nm, np.array([kx, ky, kz])) # equation(10)
+        Q = np.hstack((s, v))
     return Q
+
+
+
+def mod_sign(x):
+    """
+       modified  version of sign() function as per   the    paper
+        sign(x) = 1 if x >= 0
+    """
+    if x >= 0:
+        return 1
+    else:
+        return -1
+
+
+# def R2quaternion(R):
+#     """
+#     Transforms a rotation matrix R into a quaternion
+#
+#     The method implemented here was extracted from:
+#     Accurate Computation of Quaternions from Rotation Matrices. Soheil Sarabandi and Federico Thomas
+#           http://www.iri.upc.edu/files/scidoc/2068-Accurate-Computation-of-Quaternions-from-Rotation-Matrices.pdf
+#     """
+#     Q = np.zeros(4)
+#     if R[0, 0] + R[1, 1] + R[2, 2] > 0:
+#         Q[0] = 0.5 * np.sqrt(1 + R[0, 0] + R[1, 1] + R[2, 2])
+#     else:
+#         num = (R[2, 1] - R[1, 2])**2 + (R[0, 2] - R[2, 0])**2 + (R[1, 0] - R[0, 1])**2
+#         den = 3 - R[0, 0] - R[1, 1] - R[2, 2]
+#         Q[0] = 0.5 * np.sqrt(num / den)
+#
+#     if R[0, 0] - R[1, 1] - R[2, 2] > 0:
+#         Q[1] = 0.5 * np.sqrt(1 + R[0, 0] - R[1, 1] - R[2, 2])
+#     else:
+#         num = (R[2, 1] - R[1, 2])**2 + (R[0, 2] + R[2, 0])**2 + (R[1, 0] + R[0, 1])**2
+#         den = 3 - R[0, 0] + R[1, 1] + R[2, 2]
+#         Q[1] = 0.5 * np.sqrt(num / den)
+#
+#     if -R[0, 0] + R[1, 1] - R[2, 2] > 0:
+#         Q[2] = 0.5 * np.sqrt(1 - R[0, 0] + R[1, 1] - R[2, 2])
+#     else:
+#         num = (R[2, 1] + R[1, 2])**2 + (R[0, 2] - R[2, 0])**2 + (R[1, 0] + R[0, 1])**2
+#         den = 3 + R[0, 0] - R[1, 1] + R[2, 2]
+#         Q[2] = 0.5 * np.sqrt(num / den)
+#
+#     if -R[0, 0] - R[1, 1] + R[2, 2] > 0:
+#         Q[3] = 0.5 * np.sqrt(1 - R[0, 0] - R[1, 1] + R[2, 2])
+#     else:
+#         num = (R[2, 1] + R[1, 2])**2 + (R[0, 2] + R[2, 0])**2 + (R[1, 0] - R[0, 1])**2
+#         den = 3 + R[0, 0] + R[1, 1] + R[2, 2]
+#         Q[3] = 0.5 * np.sqrt(num / den)
+#     return Q
 
 
 def angular_w_between_quaternions(Q0, Q1, total_time):
