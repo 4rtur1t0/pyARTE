@@ -66,11 +66,14 @@ class Robot():
         if wait:
             self.wait_till_joint_position_is_met(q_target)
 
-    def follow_q_trajectory(self, q_path, sampling=1):
+    def follow_q_trajectory(self, q_path, sampling=1, wait=True):
         samples = range(0, len(q_path), sampling)
         for i in samples:
             self.set_arm_joint_target_positions(q_path[i])
-            self.wait_till_joint_position_is_met(q_path[i])
+            if wait:
+                self.wait_till_joint_position_is_met(q_path[i])
+            else:
+                self.wait()
         self.q_path.append(q_path)
 
     def wait_till_joint_position_is_met(self, q_target):
@@ -129,7 +132,7 @@ class Robot():
             errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=armj,
                                                        targetVelocity=0.0, operationMode=sim.simx_opmode_oneshot)
 
-    def wait(self, steps):
+    def wait(self, steps=1):
         for i in range(0, steps):
             sim.simxSynchronousTrigger(clientID=self.clientID)
 

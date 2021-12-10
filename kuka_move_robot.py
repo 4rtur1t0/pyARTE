@@ -25,7 +25,7 @@ from artelib.tools import T2quaternion
 import matplotlib.pyplot as plt
 from pynput import keyboard
 # standard delta time for Coppelia, please modify if necessary
-from sceneconfig.scene_configs import init_simulation_UR5
+from sceneconfig.scene_configs import init_simulation_KUKALBR
 
 DELTA_TIME = 50.0/1000.0
 
@@ -50,7 +50,7 @@ actions = {'1': '0+',
 delta_increment = 0.05  # rad
 q = np.zeros(7)
 press_exit = False
-robot, scene = init_simulation_UR5()
+robot, scene = init_simulation_KUKALBR()
 # set initial position of robot
 robot.set_arm_joint_target_positions(q, wait=True)
 

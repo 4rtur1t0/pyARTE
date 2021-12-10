@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/ur5.ttt scene before using this class.
+Please open the scenes/kuka_lbr_14_R820.ttt scene before using this class.
 
-RobotUR5 is a derived class of the Robot base class that
+RobotKUKALBR is a derived class of the Robot base class that particularizes some details of the robot
 
 @Authors: Arturo Gil
 @Time: April 2021
@@ -12,17 +12,17 @@ RobotUR5 is a derived class of the Robot base class that
 import sim
 import numpy as np
 from artelib.robot import Robot
-from kinematics.kinematics_ur5 import eval_symbolic_jacobian_UR5, eval_symbolic_T_UR5
+from kinematics.kinematics_kukalbr import eval_symbolic_jacobian_KUKALBR, eval_symbolic_T_KUKALBR
 
 
-class RobotUR5(Robot):
+class RobotKUKALBR(Robot):
     def __init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target):
         # maximum joint speeds (rad/s)
-        max_joint_speeds = np.array([180, 180, 180, 180, 180, 180, 180])
+        max_joint_speeds = np.array([180, 180, 180, 180, 180, 180, 180, 180])
         max_joint_speeds = max_joint_speeds * np.pi / 180.0
         # max and min joint ranges
-        joint_ranges = np.array([[-360, -360, -360, -360, -360, -360],
-                                 [360,   360,  360,  360,  360,  360]])
+        joint_ranges = np.array([[-360, -360, -360, -360, -360, -360, -360],
+                                 [360,   360,  360,  360,  360,  360, 360]])
         joint_ranges = joint_ranges * np.pi / 180.0
 
         Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target,
@@ -45,9 +45,9 @@ class RobotUR5(Robot):
             self.wait(10)
 
     def get_jacobian(self, q):
-        J, Jv, Jw = eval_symbolic_jacobian_UR5(q)
+        J, Jv, Jw = eval_symbolic_jacobian_KUKALBR(q)
         return J, Jv, Jw
 
     def direct_kinematics(self, q):
-        T = eval_symbolic_T_UR5(q)
+        T = eval_symbolic_T_KUKALBR(q)
         return T

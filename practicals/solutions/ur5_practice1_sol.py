@@ -8,7 +8,7 @@ Please open the scenes/ur5.ttt scene before running this script.
 """
 import numpy as np
 from artelib.tools import buildT
-from sceneconfig.ur5_scene import init_simulation_UR5
+from sceneconfig.scene_configs import init_simulation_UR5
 
 # standard delta time for Coppelia, please modify if necessary
 DELTA_TIME = 50.0/1000.0
