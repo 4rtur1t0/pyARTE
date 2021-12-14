@@ -11,13 +11,15 @@ import sim
 import numpy as np
 from artelib.tools import compute_w_between_orientations, euler2Rot, R2quaternion, buildT, compute_w_between_R
 import matplotlib.pyplot as plt
+import time
+from PIL import Image, ImageOps
 
 
 DELTA_TIME = 50.0/1000.0
 
 
 class Robot():
-    def __init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target,
+    def __init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera,
                  max_joint_speeds, joint_ranges):
         self.clientID = clientID
         self.wheeljoints = wheeljoints
@@ -25,6 +27,7 @@ class Robot():
         self.base = base
         self.gripper = gripper
         self.end_effector = end_effector
+        self.camera = camera
 
         # self.max_iterations = 1500
         self.target = target
@@ -293,37 +296,37 @@ class Robot():
         vwref = np.hstack((vref, wref))
         return vwref
 
-    def move_to_target(self, target_position, target_orientation):
-        max_iterations = 500
-        total_error = 0.002
-        # draw current target on Coppelia
-        self.set_target_position_orientation(target_position, target_orientation)
-        # q_rs = []
-        for i in range(0, max_iterations):
-            print('Iteration number: ', i)
-            vwref, vref, wref = self.compute_vref_wref(target_position, target_orientation)
-            error_dist, error_orient = self.compute_target_error(target_position, target_orientation)
-            vwref = self.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient)
-
-            print('errordist, error orient: ', error_dist, error_orient)
-            if error_dist + error_orient < total_error:
-                print('Converged!!')
-                break
-            # get current coordinates of the arm
-            q = self.get_arm_joint_positions()
-            J, Jv, Jw = self.get_jacobian(q)
-            # compute joint speed to achieve the reference
-            qd = self.moore_penrose_damped(J, vwref)
-            # check joint speed and correct if necessary
-            [qd, _, _] = self.check_speed(qd)
-            # integrate movement. Please check that Delta_time matches coppelia simulation time step
-            qd = np.dot(DELTA_TIME, qd)
-            q = q + qd
-            # check joints ranges
-            self.check_joints(q)
-            self.set_arm_joint_target_positions(q)
-            self.wait_till_joint_position_is_met(q)
-            # q_rs.append(q)
+    # def move_to_target(self, target_position, target_orientation):
+    #     max_iterations = 500
+    #     total_error = 0.002
+    #     # draw current target on Coppelia
+    #     self.set_target_position_orientation(target_position, target_orientation)
+    #     # q_rs = []
+    #     for i in range(0, max_iterations):
+    #         print('Iteration number: ', i)
+    #         vwref, vref, wref = self.compute_vref_wref(target_position, target_orientation)
+    #         error_dist, error_orient = self.compute_target_error(target_position, target_orientation)
+    #         vwref = self.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient)
+    #
+    #         print('errordist, error orient: ', error_dist, error_orient)
+    #         if error_dist + error_orient < total_error:
+    #             print('Converged!!')
+    #             break
+    #         # get current coordinates of the arm
+    #         q = self.get_arm_joint_positions()
+    #         J, Jv, Jw = self.get_jacobian(q)
+    #         # compute joint speed to achieve the reference
+    #         qd = self.moore_penrose_damped(J, vwref)
+    #         # check joint speed and correct if necessary
+    #         [qd, _, _] = self.check_speed(qd)
+    #         # integrate movement. Please check that Delta_time matches coppelia simulation time step
+    #         qd = np.dot(DELTA_TIME, qd)
+    #         q = q + qd
+    #         # check joints ranges
+    #         self.check_joints(q)
+    #         self.set_arm_joint_target_positions(q)
+    #         self.wait_till_joint_position_is_met(q)
+    #         # q_rs.append(q)
 
     def inversekinematics_line(self, target_position, target_orientation, q0, fine=True, vmax=1):
         """
@@ -367,6 +370,41 @@ class Robot():
             qd_path.append(qd)
         return q_path, qd_path
 
+    def get_image(self):
+        print('Capturing image of vision sensor ')
+        # boolean, fov = sim.simxGetObjectFloatParameter(clientID, visionSensorHandle,
+        #                                       sim.sim_visionfloatparam_perspective_angle,
+        #                                       sim.simx_opmode_oneshot_wait)
+        # define here fov
+        fov = 60 # degrees
+        # change fov to rad
+        fov = fov * np.pi / 180.0
+        sim.simxSetObjectFloatParameter(self.clientID, self.camera,
+                                        sim.sim_visionfloatparam_perspective_angle,
+                                        fov,
+                                        sim.simx_opmode_oneshot_wait)
+        # Get the image of vision sensor
+        errorCode, resolution, image = sim.simxGetVisionSensorImage(self.clientID, self.camera, 0,
+                                                                    sim.simx_opmode_streaming)
+        time.sleep(0.5)
+        errorCode, resolution, image = sim.simxGetVisionSensorImage(self.clientID, self.camera, 0,
+                                                                    sim.simx_opmode_buffer)
+        print('Image captured!')
+        return image, resolution
+
+    def save_image(self, image, resolution, filename):
+        sensorImage = np.array(image, dtype=np.uint8)
+        sensorImage.resize([resolution[1], resolution[0], 3])
+        img = Image.fromarray(sensorImage)
+        img = ImageOps.flip(img)
+
+        print('Saving to file: ', filename)
+        img.save(filename)
+        # caution--> tell python to release memory now or a kill will be issued by the system!
+        del img
+        del sensorImage
+        print('Image saved!')
+
     def plot_trajectories(self):
         plt.figure()
         # flatten self.q_path
@@ -381,6 +419,7 @@ class Robot():
             plt.plot(whole_q_path[:, i], label='q' + str(i + 1))
         plt.legend()
         plt.show(block=True)
+
 
 class Scene():
     def __init__(self, clientID, objects):

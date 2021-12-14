@@ -52,19 +52,21 @@ def pick_and_place():
 
     # execute trajectories
     robot.open_gripper()
-    robot.follow_q_trajectory(q1_path)
-    robot.follow_q_trajectory(q2_path)
+    robot.follow_q_trajectory(q1_path, wait=False)
+    # robot.follow_q_trajectory(q2_path)
     robot.close_gripper(wait=True)
-    robot.follow_q_trajectory(q3_path)
-    robot.follow_q_trajectory(q4_path)
-    robot.follow_q_trajectory(q5_path)
+    # robot.follow_q_trajectory(q3_path)
+    # robot.follow_q_trajectory(q4_path)
+    # robot.follow_q_trajectory(q5_path)
     robot.open_gripper(wait=True)
     # robot.follow_q_trajectory([q4])
 
-    robot.plot_trajectories()
+    # get an image and save it as an example
+    [image, resolution] = robot.get_image()
+    robot.save_image(image=image, resolution=resolution, filename='test.png')
     robot.stop_arm()
     scene.stop_simulation()
-
+    robot.plot_trajectories()
 
 if __name__ == "__main__":
     pick_and_place()

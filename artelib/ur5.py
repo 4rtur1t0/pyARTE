@@ -16,7 +16,7 @@ from kinematics.kinematics_ur5 import eval_symbolic_jacobian_UR5, eval_symbolic_
 
 
 class RobotUR5(Robot):
-    def __init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target):
+    def __init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera):
         # maximum joint speeds (rad/s)
         max_joint_speeds = np.array([180, 180, 180, 180, 180, 180, 180])
         max_joint_speeds = max_joint_speeds * np.pi / 180.0
@@ -26,7 +26,7 @@ class RobotUR5(Robot):
         joint_ranges = joint_ranges * np.pi / 180.0
 
         Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target,
-                       max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges)
+                       max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges, camera=camera)
 
     def open_gripper(self, wait=False):
         sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.gripper[0],

@@ -102,9 +102,13 @@ def pick_and_place():
     robot.open_gripper(wait=True)
     robot.follow_q_trajectory([q4])
 
-    robot.plot_trajectories()
+    [image, resolution] = robot.get_image()
+    robot.save_image(image=image, resolution=resolution, filename='test.png')
+
+    # Stop arm and simulation
     robot.stop_arm()
     scene.stop_simulation()
+    robot.plot_trajectories()
 
 
 if __name__ == "__main__":

@@ -55,6 +55,7 @@ def init_simulation_UR5():
     errorCode, target = sim.simxGetObjectHandle(clientID, 'target', sim.simx_opmode_oneshot_wait)
 
     # errorCode, sphere = sim.simxGetObjectHandle(clientID, 'Sphere', sim.simx_opmode_oneshot_wait)
+    errorCode, camera = sim.simxGetObjectHandle(clientID, 'camera', sim.simx_opmode_oneshot_wait)
 
     armjoints.append(q1)
     armjoints.append(q2)
@@ -68,7 +69,7 @@ def init_simulation_UR5():
     # objects.append(sphere)
     robot = RobotUR5(clientID=clientID, wheeljoints=[],
                     armjoints=armjoints, base=robotbase,
-                    end_effector=end_effector, gripper=gripper, target=target)
+                    end_effector=end_effector, gripper=gripper, target=target, camera=camera)
     scene = Scene(clientID=clientID, objects=objects)
     return robot, scene
 
@@ -104,11 +105,9 @@ def init_simulation_KUKALBR():
     errorCode, q5 = sim.simxGetObjectHandle(clientID, 'LBR_iiwa_14_R820_joint5', sim.simx_opmode_oneshot_wait)
     errorCode, q6 = sim.simxGetObjectHandle(clientID, 'LBR_iiwa_14_R820_joint6', sim.simx_opmode_oneshot_wait)
     errorCode, q7 = sim.simxGetObjectHandle(clientID, 'LBR_iiwa_14_R820_joint7', sim.simx_opmode_oneshot_wait)
-
     errorCode, gripper1 = sim.simxGetObjectHandle(clientID, 'RG2_openCloseJoint', sim.simx_opmode_oneshot_wait)
-
     errorCode, target = sim.simxGetObjectHandle(clientID, 'target', sim.simx_opmode_oneshot_wait)
-
+    errorCode, camera = sim.simxGetObjectHandle(clientID, 'camera', sim.simx_opmode_oneshot_wait)
     errorCode, sphere = sim.simxGetObjectHandle(clientID, 'Sphere', sim.simx_opmode_oneshot_wait)
 
     armjoints.append(q1)
@@ -122,7 +121,8 @@ def init_simulation_KUKALBR():
 
     robot = RobotKUKALBR(clientID=clientID, wheeljoints=[],
                          armjoints=armjoints, base=robotbase,
-                         end_effector=end_effector, gripper=gripper, target=target)
+                         end_effector=end_effector, gripper=gripper,
+                         target=target, camera=camera)
 
     objects = []
     objects.append(sphere)

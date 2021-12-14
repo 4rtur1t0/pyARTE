@@ -16,7 +16,7 @@ from kinematics.kinematics_kukalbr import eval_symbolic_jacobian_KUKALBR, eval_s
 
 
 class RobotKUKALBR(Robot):
-    def __init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target):
+    def __init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera):
         # maximum joint speeds (rad/s)
         max_joint_speeds = np.array([180, 180, 180, 180, 180, 180, 180, 180])
         max_joint_speeds = max_joint_speeds * np.pi / 180.0
@@ -25,7 +25,7 @@ class RobotKUKALBR(Robot):
                                  [360,   360,  360,  360,  360,  360, 360]])
         joint_ranges = joint_ranges * np.pi / 180.0
 
-        Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target,
+        Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera,
                        max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges)
 
     def open_gripper(self, wait=False):
