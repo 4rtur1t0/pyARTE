@@ -28,7 +28,6 @@ class Robot():
         self.gripper = gripper
         self.end_effector = end_effector
         self.camera = camera
-
         # self.max_iterations = 1500
         self.target = target
         self.max_joint_speeds = max_joint_speeds
@@ -37,14 +36,13 @@ class Robot():
         self.max_iterations_inverse_kinematics = 1500
         self.max_error_dist_inversekinematics = 0.010
         self.max_error_orient_inversekinematics = 0.010
-
         # max iterations to achieve a joint target in coppelia
         self.max_iterations_joint_target = 200
         # admit this error in q
         self.epsilonq = 0.0005
         self.q_path = []
 
-    def set_arm_joint_target_velocities(self, qd):
+    def set_joint_target_velocities(self, qd):
         """
         CAUTION: this function does only work if the position control loop is disabled at every youbot armjoint.
         Set the arm joint speeds
@@ -56,7 +54,7 @@ class Robot():
                                                        targetVelocity=qd[i],
                                                        operationMode=sim.simx_opmode_oneshot)
 
-    def set_arm_joint_target_positions(self, q_target, wait=False):
+    def set_joint_target_positions(self, q_target, wait=False):
         """
         CAUTION: this function may only work if the "position control loop" is enabled at every youbot armjoint.
         :param q:
@@ -68,34 +66,30 @@ class Robot():
                                                        operationMode=sim.simx_opmode_oneshot)
         if wait:
             self.wait_till_joint_position_is_met(q_target)
+        self.q_path.append(q_target)
 
-    def follow_q_trajectory(self, q_path, sampling=1, wait=True):
+    def set_joint_target_trajectory(self, q_path, sampling=1, wait=True):
+        """
+        A repeated call to set_joint_target_positions.
+        param q: a list of qs (joint positions).
+        param sampling: select sampling=1 to reproduce all the joint positions in the path
+                  select sampling=2 to skip one out of two joint positions.
+        param wait: whether wait_till_joint_position_is met should be called for each joint position in the path.
+                    if wait=True, the robot control scheme is making the joints stop and start
+                    for each new joint. It waits until the joints of the robot and the target are equal.
+                    With this option, the movement of the robot may be non-smooth.
+                    if wait=False: the movement is typically smoother, but the trajectory is not followed exaclty.
+        """
         samples = range(0, len(q_path), sampling)
         for i in samples:
-            self.set_arm_joint_target_positions(q_path[i])
+            self.set_joint_target_positions(q_path[i])
             if wait:
                 self.wait_till_joint_position_is_met(q_path[i])
             else:
                 self.wait()
-        self.q_path.append(q_path)
+            self.q_path.append(q_path[i])
 
-    def wait_till_joint_position_is_met(self, q_target):
-        n_iterations = 0
-        while True:
-            # make the simulation go forward 1 step
-            sim.simxSynchronousTrigger(clientID=self.clientID)
-            q_actual = self.get_arm_joint_positions()
-            error = np.linalg.norm(q_target-q_actual)
-            # print('Current error is:', error)
-            # print('n_iterations: ', n_iterations)
-            if error < self.epsilonq:
-                break
-            if n_iterations > self.max_iterations_joint_target:
-                print('ERROR, joint position could not be achieved, try increasing max_iterations')
-                break
-            n_iterations += 1
-
-    def get_arm_joint_positions(self):
+    def get_joint_positions(self):
         q_actual = np.zeros(len(self.armjoints))
         n = len(self.armjoints)
         for i in range(0, n):
@@ -144,8 +138,29 @@ class Robot():
         # should be implemented at the UR5, UR10 classes etc.
         return self.get_jacobian(q)
 
+    def compute_manipulability(self, q):
+        [J, _, _] = self.get_jacobian(q)
+        manip = np.sqrt(np.linalg.det(np.dot(J, J.T)))
+        return manip
+
     def direct_kinematics(self, q):
         return self.direct_kinematics(q)
+
+    def wait_till_joint_position_is_met(self, q_target):
+        n_iterations = 0
+        while True:
+            # make the simulation go forward 1 step
+            sim.simxSynchronousTrigger(clientID=self.clientID)
+            q_actual = self.get_joint_positions()
+            error = np.linalg.norm(q_target-q_actual)
+            # print('Current error is:', error)
+            # print('n_iterations: ', n_iterations)
+            if error < self.epsilonq:
+                break
+            if n_iterations > self.max_iterations_joint_target:
+                print('ERROR, joint position could not be achieved, try increasing max_iterations')
+                break
+            n_iterations += 1
 
     def compute_vref_wref(self, targetposition, targetorientation):
         position, orientation = self.get_end_effector_position_orientation()
@@ -163,7 +178,6 @@ class Robot():
         """
         position, orientation = self.get_end_effector_position_orientation()
         error_dist = np.array(targetposition)-np.array(position)
-
         # transform to rotation matrix and then to quaternion.
         # please, beware that the orientation is not unique using alpha, beta, gamma
         Rorientation = euler2Rot(orientation)
@@ -276,13 +290,11 @@ class Robot():
     def adjust_vwref(self, vwref, error_dist, error_orient):
         vmag = 0.5
         wmag = 0.8
-
         # ACTIVIDAD: vmag and wmag for a linear deceleration and better convergence
         if error_dist < .05:
             vmag = vmag * error_dist + 0.01
         if error_orient < .05:
             wmag = wmag * error_orient + 0.01
-
         # linear speed
         vref = vwref[0:3]
         # angular speed
@@ -296,46 +308,11 @@ class Robot():
         vwref = np.hstack((vref, wref))
         return vwref
 
-    # def move_to_target(self, target_position, target_orientation):
-    #     max_iterations = 500
-    #     total_error = 0.002
-    #     # draw current target on Coppelia
-    #     self.set_target_position_orientation(target_position, target_orientation)
-    #     # q_rs = []
-    #     for i in range(0, max_iterations):
-    #         print('Iteration number: ', i)
-    #         vwref, vref, wref = self.compute_vref_wref(target_position, target_orientation)
-    #         error_dist, error_orient = self.compute_target_error(target_position, target_orientation)
-    #         vwref = self.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient)
-    #
-    #         print('errordist, error orient: ', error_dist, error_orient)
-    #         if error_dist + error_orient < total_error:
-    #             print('Converged!!')
-    #             break
-    #         # get current coordinates of the arm
-    #         q = self.get_arm_joint_positions()
-    #         J, Jv, Jw = self.get_jacobian(q)
-    #         # compute joint speed to achieve the reference
-    #         qd = self.moore_penrose_damped(J, vwref)
-    #         # check joint speed and correct if necessary
-    #         [qd, _, _] = self.check_speed(qd)
-    #         # integrate movement. Please check that Delta_time matches coppelia simulation time step
-    #         qd = np.dot(DELTA_TIME, qd)
-    #         q = q + qd
-    #         # check joints ranges
-    #         self.check_joints(q)
-    #         self.set_arm_joint_target_positions(q)
-    #         self.wait_till_joint_position_is_met(q)
-    #         # q_rs.append(q)
-
     def inversekinematics_line(self, target_position, target_orientation, q0, fine=True, vmax=1):
         """
         fine: whether to reach the target point with precision or not.
         vmax: linear velocity of the planner.
         """
-        # considering
-
-        # draw current target on Coppelia
         Ttarget = buildT(target_position, target_orientation)
         q_path = []
         qd_path = []
@@ -364,7 +341,6 @@ class Robot():
             q = q + qd
             # check joints ranges
             self.check_joints(q)
-            # self.set_arm_joint_target_positions(q, wait=True)
             # append to the computed joint path
             q_path.append(q)
             qd_path.append(qd)
@@ -372,10 +348,7 @@ class Robot():
 
     def get_image(self):
         print('Capturing image of vision sensor ')
-        # boolean, fov = sim.simxGetObjectFloatParameter(clientID, visionSensorHandle,
-        #                                       sim.sim_visionfloatparam_perspective_angle,
-        #                                       sim.simx_opmode_oneshot_wait)
-        # define here fov
+        # define here the fov of the camera
         fov = 60 # degrees
         # change fov to rad
         fov = fov * np.pi / 180.0
@@ -383,7 +356,8 @@ class Robot():
                                         sim.sim_visionfloatparam_perspective_angle,
                                         fov,
                                         sim.simx_opmode_oneshot_wait)
-        # Get the image of vision sensor
+        # Get the image of vision sensor.
+        # to ensure that the image is received, first streaming, then buffer
         errorCode, resolution, image = sim.simxGetVisionSensorImage(self.clientID, self.camera, 0,
                                                                     sim.simx_opmode_streaming)
         time.sleep(0.5)
@@ -408,15 +382,9 @@ class Robot():
     def plot_trajectories(self):
         plt.figure()
         # flatten self.q_path
-        whole_q_path = np.array([])
-        for q_p in self.q_path:
-            for q in q_p:
-                if len(whole_q_path) == 0:
-                    whole_q_path = np.array(q)
-                else:
-                    whole_q_path = np.vstack((whole_q_path, q))
+        q_path = np.array(self.q_path)
         for i in range(0, 6):
-            plt.plot(whole_q_path[:, i], label='q' + str(i + 1))
+            plt.plot(q_path[:, i], label='q' + str(i + 1))
         plt.legend()
         plt.show(block=True)
 

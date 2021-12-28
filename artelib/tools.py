@@ -94,8 +94,6 @@ def R2quaternion(R):
         Q = np.hstack((s, v))
     return Q
 
-
-
 def mod_sign(x):
     """
        modified  version of sign() function as per   the    paper
@@ -105,45 +103,6 @@ def mod_sign(x):
         return 1
     else:
         return -1
-
-
-# def R2quaternion(R):
-#     """
-#     Transforms a rotation matrix R into a quaternion
-#
-#     The method implemented here was extracted from:
-#     Accurate Computation of Quaternions from Rotation Matrices. Soheil Sarabandi and Federico Thomas
-#           http://www.iri.upc.edu/files/scidoc/2068-Accurate-Computation-of-Quaternions-from-Rotation-Matrices.pdf
-#     """
-#     Q = np.zeros(4)
-#     if R[0, 0] + R[1, 1] + R[2, 2] > 0:
-#         Q[0] = 0.5 * np.sqrt(1 + R[0, 0] + R[1, 1] + R[2, 2])
-#     else:
-#         num = (R[2, 1] - R[1, 2])**2 + (R[0, 2] - R[2, 0])**2 + (R[1, 0] - R[0, 1])**2
-#         den = 3 - R[0, 0] - R[1, 1] - R[2, 2]
-#         Q[0] = 0.5 * np.sqrt(num / den)
-#
-#     if R[0, 0] - R[1, 1] - R[2, 2] > 0:
-#         Q[1] = 0.5 * np.sqrt(1 + R[0, 0] - R[1, 1] - R[2, 2])
-#     else:
-#         num = (R[2, 1] - R[1, 2])**2 + (R[0, 2] + R[2, 0])**2 + (R[1, 0] + R[0, 1])**2
-#         den = 3 - R[0, 0] + R[1, 1] + R[2, 2]
-#         Q[1] = 0.5 * np.sqrt(num / den)
-#
-#     if -R[0, 0] + R[1, 1] - R[2, 2] > 0:
-#         Q[2] = 0.5 * np.sqrt(1 - R[0, 0] + R[1, 1] - R[2, 2])
-#     else:
-#         num = (R[2, 1] + R[1, 2])**2 + (R[0, 2] - R[2, 0])**2 + (R[1, 0] + R[0, 1])**2
-#         den = 3 + R[0, 0] - R[1, 1] + R[2, 2]
-#         Q[2] = 0.5 * np.sqrt(num / den)
-#
-#     if -R[0, 0] - R[1, 1] + R[2, 2] > 0:
-#         Q[3] = 0.5 * np.sqrt(1 - R[0, 0] - R[1, 1] + R[2, 2])
-#     else:
-#         num = (R[2, 1] + R[1, 2])**2 + (R[0, 2] + R[2, 0])**2 + (R[1, 0] - R[0, 1])**2
-#         den = 3 + R[0, 0] + R[1, 1] + R[2, 2]
-#         Q[3] = 0.5 * np.sqrt(num / den)
-#     return Q
 
 
 def angular_w_between_quaternions(Q0, Q1, total_time):
