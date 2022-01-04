@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import time
 from PIL import Image, ImageOps
 
-
+# standard Coppelia simulation time. PLEASE CHANGE THIS ACCORDINGLY
 DELTA_TIME = 50.0/1000.0
 
 
@@ -87,7 +87,7 @@ class Robot():
                 self.wait_till_joint_position_is_met(q_path[i])
             else:
                 self.wait()
-            self.q_path.append(q_path[i])
+            # self.q_path.append(q_path[i])
 
     def get_joint_positions(self):
         q_actual = np.zeros(len(self.armjoints))
@@ -133,19 +133,6 @@ class Robot():
         for i in range(0, steps):
             sim.simxSynchronousTrigger(clientID=self.clientID)
 
-    def get_jacobian(self, q):
-        # calling derived class get_jacobian
-        # should be implemented at the UR5, UR10 classes etc.
-        return self.get_jacobian(q)
-
-    def compute_manipulability(self, q):
-        [J, _, _] = self.get_jacobian(q)
-        manip = np.sqrt(np.linalg.det(np.dot(J, J.T)))
-        return manip
-
-    def direct_kinematics(self, q):
-        return self.direct_kinematics(q)
-
     def wait_till_joint_position_is_met(self, q_target):
         n_iterations = 0
         while True:
@@ -161,6 +148,21 @@ class Robot():
                 print('ERROR, joint position could not be achieved, try increasing max_iterations')
                 break
             n_iterations += 1
+
+    def get_jacobian(self, q):
+        # calling derived class get_jacobian
+        # should be implemented at the UR5, UR10 classes etc.
+        return self.get_jacobian(q)
+
+    def compute_manipulability(self, q):
+        [J, _, _] = self.get_jacobian(q)
+        manip = np.sqrt(np.linalg.det(np.dot(J, J.T)))
+        return manip
+
+    def direct_kinematics(self, q):
+        return self.direct_kinematics(q)
+
+
 
     def compute_vref_wref(self, targetposition, targetorientation):
         position, orientation = self.get_end_effector_position_orientation()

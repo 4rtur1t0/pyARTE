@@ -89,6 +89,8 @@ def pick_and_place():
     # plan trajectories
     q1 = inverse_kinematics(robot=robot, target_position=target_positions[0],
                             target_orientation=target_orientations[0], q0=q0)
+    # set the target we are willing to reach on Coppelia
+    robot.set_target_position_orientation(target_positions[1], target_orientations[1])
     q2 = inverse_kinematics(robot=robot, target_position=target_positions[1],
                             target_orientation=target_orientations[1], q0=q1)
     ###############################################################################
