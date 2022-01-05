@@ -72,13 +72,8 @@ def pick_and_place():
                            [-np.pi/2, 0, -np.pi/2],
                            [-np.pi, 0, 0],
                            [-np.pi, 0, 0]]
-
     q0 = np.array([-np.pi, 0, np.pi/2, 0, 0, 0])
-    # set initial position of robot
-    robot.set_joint_target_positions(q0, wait=True)
 
-    # set the target we are willing to reach on Coppelia
-    robot.set_target_position_orientation(target_positions[0], target_orientations[0])
     # plan trajectories
     q1 = inverse_kinematics(robot=robot, target_position=target_positions[0],
                             target_orientation=target_orientations[0], q0=q0)
@@ -91,16 +86,20 @@ def pick_and_place():
     q5 = inverse_kinematics(robot=robot, target_position=target_positions[4],
                             target_orientation=target_orientations[4], q0=q4)
 
-    # execute trajectories
-    robot.open_gripper()
-    robot.set_joint_target_trajectory([q1])
-    robot.set_joint_target_trajectory([q2])
-    robot.close_gripper(wait=True)
-    robot.set_joint_target_trajectory([q3])
-    robot.set_joint_target_trajectory([q4])
-    robot.set_joint_target_trajectory([q5])
+    # NOW execute trajectories computed before.
+    # set initial position of robot
+    robot.set_joint_target_positions(q0, wait=True)
     robot.open_gripper(wait=True)
-    robot.set_joint_target_trajectory([q4])
+    # set the target we are willing to reach on Coppelia
+    robot.set_target_position_orientation(target_positions[0], target_orientations[0])
+    robot.set_joint_target_positions(q1, wait=True)
+    robot.set_joint_target_positions(q2, wait=True)
+    robot.close_gripper(wait=True)
+    robot.set_joint_target_positions(q3, wait=True)
+    robot.set_joint_target_positions(q4, wait=True)
+    robot.set_joint_target_positions(q5, wait=True)
+    robot.open_gripper(wait=True)
+    robot.set_joint_target_positions(q4)
 
     [image, resolution] = robot.get_image()
     robot.save_image(image=image, resolution=resolution, filename='test.png')

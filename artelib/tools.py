@@ -27,13 +27,13 @@ def compute_w_between_orientations(orientation, targetorientation):
     return w
 
 
-def compute_w_between_R(Rcurrent, Rtarget):
+def compute_w_between_R(Rcurrent, Rtarget, total_time=1):
     R1 = Rcurrent[0:3, 0:3]
     R2 = Rtarget[0:3, 0:3]
     Q1 = R2quaternion(R1)
     Q2 = R2quaternion(R2)
     # compute the angular speed w that rotates from Q1 to Q2
-    w = angular_w_between_quaternions(Q1, Q2, 1)
+    w = angular_w_between_quaternions(Q1, Q2, total_time=total_time)
     # print('Q1: ', Q1)
     # print('Q2: ', Q2)
     # print('w: ', w)
