@@ -106,7 +106,7 @@ def mod_sign(x):
 
 
 def angular_w_between_quaternions(Q0, Q1, total_time):
-    epsilon_len = 0.000001
+    epsilon_len = 0.001000
     # Let's first find quaternion q so q*q0=q1 it is q=q1/q0
     # For unit length quaternions, you can use q=q1*Conj(q0)
     Q = qprod(Q1, qconj(Q0))

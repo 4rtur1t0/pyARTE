@@ -335,13 +335,16 @@ class Robot():
         q_path = []
         qd_path = []
         q = q0
+        vrefs = []
+        wrefs = []
         for i in range(0, self.max_iterations_inverse_kinematics):
             print('Iteration number: ', i)
             Ti = self.direct_kinematics(q)
             vwref, error_dist, error_orient = self.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
             print(Ttarget-Ti)
             vwref = self.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
-
+            vrefs.append(vwref[0:3])
+            wrefs.append(vwref[3:6])
             print('vwref: ', vwref)
             print('errordist, error orient: ', error_dist, error_orient)
             if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
@@ -360,6 +363,9 @@ class Robot():
             # append to the computed joint path
             q_path.append(q)
             qd_path.append(qd)
+        # from artelib.plottools import plot_path
+        # plot_path(vrefs)
+        # plot_path(wrefs)
         return q_path, qd_path
 
     def inversekinematics(self, target_position, target_orientation, q0, vmax=1.0):
@@ -427,9 +433,9 @@ class Robot():
 
     def plot_trajectories(self):
         plt.figure()
-        # flatten self.q_path
         q_path = np.array(self.q_path)
-        for i in range(0, 6):
+        sh = q_path.shape
+        for i in range(0, sh[1]):
             plt.plot(q_path[:, i], label='q' + str(i + 1))
         plt.legend()
         plt.show(block=True)
