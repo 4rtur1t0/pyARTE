@@ -8,6 +8,7 @@ A number of useful functions
 """
 import numpy as np
 
+
 def buildT(position, orientation):
     T = np.zeros((4, 4))
     R = euler2Rot(orientation)
@@ -94,6 +95,7 @@ def R2quaternion(R):
         Q = np.hstack((s, v))
     return Q
 
+
 def mod_sign(x):
     """
        modified  version of sign() function as per   the    paper
@@ -158,3 +160,38 @@ def euler2Rot(abg):
     R = np.matmul(Rx, Ry)
     R = np.matmul(R, Rz)
     return R
+
+
+def null_space(J, n):
+    """
+    Obtain a unit vector in the direction of the null space using the SVD method.
+    Consider m degrees of liberty in the task.
+    Return the column n in the null space
+    """
+    u, s, vh = np.linalg.svd(J, full_matrices=True)
+    qd = vh.T[:, n]
+    return qd
+
+
+def minimize_w_central(q, qd, qcentral, K):
+    w = 0
+    for i in range(0, len(qcentral)):
+        w += K[i]*(q[i]-qcentral[i])**2
+
+    if w == 0:
+        return np.dot(0, qd)
+
+    dw = diff_w_central(qd, qcentral, K)
+
+    if dw > 0:
+        return np.dot(-1.0, qd)
+    else:
+        return qd
+
+
+def diff_w_central(qd, qcentral, K):
+    dw = []
+    for i in range(0, len(qcentral)):
+        dwi = K[i]*(qd[i]-qcentral[i])
+        dw.append(dwi)
+    return np.sum(np.array(dw))

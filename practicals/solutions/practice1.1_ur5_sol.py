@@ -57,6 +57,7 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
         # integrate movement. Please check that Delta_time matches coppelia simulation time step
         qd = np.dot(DELTA_TIME, qd)
         q = q + qd
+        q = robot.apply_joint_limits(q)
     return q
 
 

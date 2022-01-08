@@ -55,6 +55,8 @@ def inverse_kinematics(robot,
         # B) Integrar qd para obtener la solución q.
         # C) Decidir cuando se termina el algoritmo.
         ###########################################################################################
+        # OJO: el movimiento de las articulaciones debe estar limitado a sus valores máximos y mínimos
+        q = robot.apply_joint_limits(q)
     return q
 
 

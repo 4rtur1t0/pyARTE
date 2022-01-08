@@ -21,8 +21,8 @@ class RobotKUKALBR(Robot):
         max_joint_speeds = np.array([180, 180, 180, 180, 180, 180, 180, 180])
         max_joint_speeds = max_joint_speeds * np.pi / 180.0
         # max and min joint ranges
-        joint_ranges = np.array([[-360, -360, -360, -360, -360, -360, -360],
-                                 [360,   360,  360,  360,  360,  360, 360]])
+        joint_ranges = np.array([[-180, -180, -180, -180, -180, -180, -180],
+                                 [180,   180, 180,  180,  180,  180, 180]])
         joint_ranges = joint_ranges * np.pi / 180.0
 
         Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera,

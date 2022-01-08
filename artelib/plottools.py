@@ -18,11 +18,12 @@ def plot(x, title='Untitled', block=False):
     plt.show(block=block)
 
 
-def plot_path(q_path):
+def plot_vars(q_path, title='UNTITLED'):
     plt.figure()
     q_path = np.array(q_path)
     sh = q_path.shape
     for i in range(0, sh[1]):
-        plt.plot(q_path[:, i], label='q' + str(i + 1), linewidth=5)
+        plt.plot(q_path[:, i], label='q' + str(i + 1), linewidth=4)
     plt.legend()
+    plt.title(title)
     plt.show(block=True)

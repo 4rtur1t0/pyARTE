@@ -3,6 +3,9 @@
 """
 Please open the scenes/kuka_14_R820.ttt scene before running this script.
 
+INSTRUCTIONS:
+    JUST RUN THE CODE. The RG2 gripper does collide with the robot wrist and the robot is stopped in simulation.
+
 @Authors: Arturo Gil
 @Time: April 2021
 
@@ -64,7 +67,6 @@ def pick_and_place(robot, step_number):
 
 def pallet_application():
     robot, scene = init_simulation_KUKALBR()
-
 
     for i in range(0, 6):
         pick_and_place(robot, i)

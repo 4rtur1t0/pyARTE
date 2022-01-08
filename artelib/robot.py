@@ -9,7 +9,10 @@ Base Robot Class
 """
 import sim
 import numpy as np
-from artelib.tools import compute_w_between_orientations, euler2Rot, R2quaternion, buildT, compute_w_between_R
+
+from artelib.plottools import plot_vars
+from artelib.tools import compute_w_between_orientations, euler2Rot, R2quaternion, buildT, compute_w_between_R, \
+    null_space, diff_w_central, minimize_w_central
 import matplotlib.pyplot as plt
 import time
 from PIL import Image, ImageOps
@@ -85,7 +88,6 @@ class Robot():
         samples = range(0, len(q_path), sampling)
         for i in samples:
             self.set_joint_target_positions(q_path[i], wait=wait, real_time=real_time)
-
 
     def get_joint_positions(self):
         q_actual = np.zeros(len(self.armjoints))
@@ -249,6 +251,18 @@ class Robot():
                 valid_indexes.append(False)
         return valid, valid_indexes
 
+    def apply_joint_limits(self, q):
+        """
+        the value of qi will be saturated to the max or min values as specified in self.joint_ranges
+        """
+        for i in range(0, len(q)):
+            # greater than min and lower than max --> then saturate
+            if q[i] < self.joint_ranges[0, i]:
+                q[i] = self.joint_ranges[0, i]
+            elif q[i] > self.joint_ranges[1, i]:
+                q[i] = self.joint_ranges[1, i]
+        return q
+
     def check_speed(self, qd):
         """
         Checks that all joints speeds are within its limits.
@@ -360,13 +374,61 @@ class Robot():
             q = q + qd
             # check joints ranges
             self.check_joints(q)
+            q = self.apply_joint_limits(q)
             # append to the computed joint path
             q_path.append(q)
             qd_path.append(qd)
-        # from artelib.plottools import plot_path
-        # plot_path(vrefs)
-        # plot_path(wrefs)
         return q_path, qd_path
+
+    def inversekinematics_line2(self, target_position, target_orientation, q0, vmax=1.0):
+        """
+        fine: whether to reach the target point with precision or not.
+        vmax: linear velocity of the planner.
+        """
+        Ttarget = buildT(target_position, target_orientation)
+        q_path = []
+        qd_path = []
+        q = q0
+        vrefs = []
+        wrefs = []
+        qc = [0, 0, 0, 0, 0, 0, 0]
+        K = [0, 0, 0, 0, 1, 1, 0]
+        for i in range(0, self.max_iterations_inverse_kinematics):
+            print('Iteration number: ', i)
+            Ti = self.direct_kinematics(q)
+            vwref, error_dist, error_orient = self.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
+            print(Ttarget-Ti)
+            vwref = self.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
+            vrefs.append(vwref[0:3])
+            wrefs.append(vwref[3:6])
+            print('vwref: ', vwref)
+            print('errordist, error orient: ', error_dist, error_orient)
+            if error_dist < self.max_error_dist_inversekinematics and \
+                    error_orient < self.max_error_orient_inversekinematics:
+                print('Converged!!')
+                break
+            J, Jv, Jw = self.get_jacobian(q)
+            # compute joint speed to achieve the reference
+            qda = self.moore_penrose_damped(J, vwref)
+
+            # integrate movement. Please check that Delta_time matches coppelia simulation time step
+            qdb = null_space(J, 6)
+            qdb = minimize_w_central(q, qdb, qcentral=qc, K=K)
+
+            qd = qda + 0.2*qdb
+            [qd, _, _] = self.check_speed(qd)
+            qd = np.dot(DELTA_TIME, qd)
+            q = q + qd
+            # check joints ranges
+            self.check_joints(q)
+            #q = self.apply_joint_limits(q)
+            # append to the computed joint path
+            q_path.append(q)
+            qd_path.append(qdb)
+        #plot_vars(q_path, title='joints')
+        #plot_vars(qd_path, title='speeds')
+        return q_path, qd_path
+
 
     def inversekinematics(self, target_position, target_orientation, q0, vmax=1.0):
         """
@@ -396,7 +458,6 @@ class Robot():
             # check joints ranges
             self.check_joints(q)
         return q
-
 
     def get_image(self):
         print('Capturing image of vision sensor ')
@@ -438,6 +499,7 @@ class Robot():
         for i in range(0, sh[1]):
             plt.plot(q_path[:, i], label='q' + str(i + 1))
         plt.legend()
+        plt.title('JOINT TRAJECTORIES')
         plt.show(block=True)
 
 
