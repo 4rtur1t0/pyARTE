@@ -173,25 +173,36 @@ def null_space(J, n):
     return qd
 
 
-def minimize_w_central(q, qd, qcentral, K):
+def null_space_projector(J):
+    n = J.shape[1]
+    I = np.eye(n)
+    P = I - np.dot(np.linalg.pinv(J), J)
+    return P
+
+
+# def minimize_w_central(q, qd, qcentral, K):
+#
+#     w = w_central(q, qcentral, K)
+#
+#     if w == 0:
+#         return np.dot(0, qd)
+#
+#     dw = diff_w_central(qd, qcentral, K)
+#
+#     if dw > 0:
+#         return np.dot(-1.0, qd)
+#     else:
+#         return qd
+
+def w_central(q, qcentral, K):
     w = 0
     for i in range(0, len(qcentral)):
         w += K[i]*(q[i]-qcentral[i])**2
+    return w
 
-    if w == 0:
-        return np.dot(0, qd)
-
-    dw = diff_w_central(qd, qcentral, K)
-
-    if dw > 0:
-        return np.dot(-1.0, qd)
-    else:
-        return qd
-
-
-def diff_w_central(qd, qcentral, K):
+def diff_w_central(q, qcentral, K):
     dw = []
     for i in range(0, len(qcentral)):
-        dwi = K[i]*(qd[i]-qcentral[i])
+        dwi = K[i]*(q[i]-qcentral[i])
         dw.append(dwi)
-    return np.sum(np.array(dw))
+    return np.array(dw)

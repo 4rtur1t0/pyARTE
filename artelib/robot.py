@@ -12,7 +12,7 @@ import numpy as np
 
 from artelib.plottools import plot_vars
 from artelib.tools import compute_w_between_orientations, euler2Rot, R2quaternion, buildT, compute_w_between_R, \
-    null_space, diff_w_central, minimize_w_central
+    null_space, diff_w_central, w_central, null_space_projector
 import matplotlib.pyplot as plt
 import time
 from PIL import Image, ImageOps
@@ -42,7 +42,7 @@ class Robot():
         # max iterations to achieve a joint target in coppelia
         self.max_iterations_joint_target = 200
         # admit this error in q
-        self.epsilonq = 0.0005
+        self.epsilonq = 0.0006
         self.q_path = []
 
     def set_joint_target_velocities(self, qd):
@@ -95,7 +95,7 @@ class Robot():
         for i in range(0, n):
             while True:
                 error, value = sim.simxGetJointPosition(clientID=self.clientID, jointHandle=self.armjoints[i],
-                                                        operationMode=sim.simx_opmode_oneshot)
+                                                        operationMode=sim.simx_opmode_oneshot_wait)
                 if error == 0:
                     q_actual[i] = value
                     break
@@ -388,11 +388,13 @@ class Robot():
         Ttarget = buildT(target_position, target_orientation)
         q_path = []
         qd_path = []
+        w_values = []
         q = q0
         vrefs = []
         wrefs = []
         qc = [0, 0, 0, 0, 0, 0, 0]
-        K = [0, 0, 0, 0, 1, 1, 0]
+        K = [1, 1, 1, 1, 1, 10, 1]
+        #K = [0, 0, 0, 0, 0, 1, 0]
         for i in range(0, self.max_iterations_inverse_kinematics):
             print('Iteration number: ', i)
             Ti = self.direct_kinematics(q)
@@ -410,25 +412,35 @@ class Robot():
             J, Jv, Jw = self.get_jacobian(q)
             # compute joint speed to achieve the reference
             qda = self.moore_penrose_damped(J, vwref)
-
-            # integrate movement. Please check that Delta_time matches coppelia simulation time step
-            qdb = null_space(J, 6)
-            qdb = minimize_w_central(q, qdb, qcentral=qc, K=K)
-
-            qd = qda + 0.2*qdb
+            qdb = self.minimize_w_central(J, q, qc, K)
+            qdb = 0.8*np.linalg.norm(qda)*qdb
+            qd = qda + qdb
             [qd, _, _] = self.check_speed(qd)
             qd = np.dot(DELTA_TIME, qd)
             q = q + qd
             # check joints ranges
             self.check_joints(q)
-            #q = self.apply_joint_limits(q)
+            q = self.apply_joint_limits(q)
             # append to the computed joint path
             q_path.append(q)
             qd_path.append(qdb)
+            w = w_central(q, qc, K)
+            w_values.append([w])
         #plot_vars(q_path, title='joints')
         #plot_vars(qd_path, title='speeds')
+        #plot_vars(w_values, title='wvalues')
         return q_path, qd_path
 
+    def minimize_w_central(self, J, q, qc, K):
+        qd0 = diff_w_central(q, qc, K)
+        qd0 = np.dot(-1.0, qd0)
+        P = null_space_projector(J)
+        qdb = np.dot(P, qd0)
+        norma = np.linalg.norm(qdb)
+        if norma > 0.0001:
+            return qdb/norma
+        else:
+            return qdb
 
     def inversekinematics(self, target_position, target_orientation, q0, vmax=1.0):
         """

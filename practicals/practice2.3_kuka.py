@@ -16,29 +16,23 @@ DELTA_TIME = 50.0/1000.0
 
 
 def diff_w_central(q, qcentral, K):
-    dw = []
-    for i in range(0, len(qcentral)):
-        dwi = K[i]*(q[i]-qcentral[i])
-        dw.append(dwi)
-    return np.array(dw)
+    qd0 = []
+    # EJERCICIO: CALCULE LA EXPRESIÓN DE QD0 para MINIMIZAR W.
+    return np.array(qd0)
 
 
 def null_space_projector(J):
-    n = J.shape[1]
-    P = np.eye(n)-np.dot(np.linalg.pinv(J), J)
+    # EJERCICIO: IMPLEMENTE UN PROYECTOR AL ESPACIO NULO P
+
     return P
 
 
 def minimize_w_central(J, q, qc, K):
     qd0 = diff_w_central(q, qc, K)
-    qd0 = np.dot(-1.0, qd0)
     P = null_space_projector(J)
-    qdb = np.dot(P, qd0)
-    norma = np.linalg.norm(qdb)
-    if norma > 0.0001:
-        return qdb / norma
-    else:
-        return qdb
+
+    #EJERCICIO: PROYECTE QD0 AL ESPACIO NULO CON EL PROYECTOR P
+    #HAGA QUE QDB TENGA NORMA UNITARIA (SI SU NORMA NO ES CERO)
 
 
 def inversekinematics2(robot, target_position, target_orientation, q0, vmax=1.0):
@@ -52,7 +46,6 @@ def inversekinematics2(robot, target_position, target_orientation, q0, vmax=1.0)
     wrefs = []
     max_iterations = 500
     qc = [0, 0, 0, 0, 0, 0, 0]
-    #K = [0, 0, 0, 0, 0, 1, 0]
     K = [1, 1, 1, 1, 1, 10, 1]
     q_path = []
     qd_path = []
@@ -72,13 +65,8 @@ def inversekinematics2(robot, target_position, target_orientation, q0, vmax=1.0)
         J, Jv, Jw = robot.get_jacobian(q)
         # compute joint speed to achieve the reference
         qda = robot.moore_penrose_damped(J, vwref)
-
-        #
-        # CALCULE UNA VELOCIDAD ARTICULAR QUE MINIMICE W
-        #
         qdb = minimize_w_central(J, q, qc, K)
         qdb = 0.5 * np.linalg.norm(qda) * qdb
-
         qd = qda + qdb
         [qd, _, _] = robot.check_speed(qd)
         qd = np.dot(DELTA_TIME, qd)

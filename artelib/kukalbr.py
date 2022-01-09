@@ -31,8 +31,10 @@ class RobotKUKALBR(Robot):
     def open_gripper(self, wait=False):
         sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.gripper[0],
                                        targetPosition=0.05, operationMode=sim.simx_opmode_oneshot)
+        #sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.gripper[0],
+        #                               targetVelocity=0.1, operationMode=sim.simx_opmode_oneshot)
         sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.gripper[0],
-                                 force=1.0, operationMode=sim.simx_opmode_oneshot)
+                                 force=20.0, operationMode=sim.simx_opmode_oneshot)
         if wait:
             self.wait(10)
 
@@ -40,7 +42,7 @@ class RobotKUKALBR(Robot):
         sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.gripper[0],
                                         targetPosition=-0.05, operationMode=sim.simx_opmode_oneshot)
         sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.gripper[0],
-                                 force=-1.0, operationMode=sim.simx_opmode_oneshot)
+                                 force=20.0, operationMode=sim.simx_opmode_oneshot)
         if wait:
             self.wait(10)
 

@@ -25,7 +25,6 @@ def pick_and_place_rep():
                            [-np.pi/2, 0, -np.pi/2],
                            [-np.pi, 0, 0]]
 
-    # q0 = np.array([-np.pi, 0, np.pi / 2, 0, 0, 0])
     q0 = np.array([-np.pi, 0.1, np.pi/2, 0.1, 0.1, 0.1])
 
     # set initial position of robot
