@@ -122,7 +122,7 @@ def inverse_kinematics_line(robot, target_position, target_orientation, q0, vmax
 
 
 def move_to_target():
-    robot, scene = init_simulation_UR5()
+    robot = init_simulation_UR5()
     ################################################################
     # EJERCICIO:
     # A) COMPLETE LA FUNCIÓN inverse_kinematics_line
@@ -160,7 +160,7 @@ def move_to_target():
     # stop the arm
     robot.stop_arm()
     # stop simulation
-    scene.stop_simulation()
+    robot.stop_simulation()
     # plot joints for each movement
     robot.plot_trajectories()
 

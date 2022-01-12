@@ -15,7 +15,7 @@ def pick_and_place_rep():
     """
     A repeated pick and place application.
     """
-    robot, scene = init_simulation_UR5()
+    robot = init_simulation_UR5()
     target_positions = [[0.6, -0.2, 0.25],
                         [0.6, 0.1, 0.25],
                         [0.6, -0.1, 0.35],
@@ -66,7 +66,7 @@ def pick_and_place_rep():
         robot.set_joint_target_trajectory(q6_path, wait=False)
 
     robot.stop_arm()
-    scene.stop_simulation()
+    robot.stop_simulation()
     robot.plot_trajectories()
 
 

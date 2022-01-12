@@ -62,7 +62,7 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
 
 
 def pick_and_place():
-    robot, scene = init_simulation_UR5()
+    robot = init_simulation_UR5()
     target_positions = [[0.6, -0.2, 0.25], # initial in front of conveyor
                         [0.6, 0.1, 0.25], # pick the piece
                         [0.6, 0.1, 0.35], # bring the piece up
@@ -107,7 +107,7 @@ def pick_and_place():
 
     # Stop arm and simulation
     robot.stop_arm()
-    scene.stop_simulation()
+    robot.stop_simulation()
     robot.plot_trajectories()
 
 

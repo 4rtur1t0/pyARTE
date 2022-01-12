@@ -7,35 +7,45 @@ Base Scene class
 @Time: April 2021
 
 """
-# import time
 import sim
 # import sys
 import numpy as np
-# standard delta time for Coppelia, please modify if necessary
-# from artelib.artelib import compute_w_between_orientations, euler2Rot
-# from kinematics.jacobians_ur5 import eval_symbolic_jacobian_UR5
-# import matplotlib.pyplot as plt
-
 
 DELTA_TIME = 50.0/1000.0
+import itertools
 
-
-class Scene():
-    def __init__(self, clientID, objects):
+class Sphere():
+    def __init__(self, clientID, handle, pa, pb):
         self.clientID = clientID
-        self.objects = objects
-        self.angle = 2.5
+        self.handle = handle
+        self.position = pb
+        self.pa = pa
+        self.pb = pb
+        la = [True]*200
+        lb = [False]*200
+        la.extend(lb)
+        self.movement_dirs = itertools.cycle(la)
 
-    def random_walk(self):
-        errorCode, position = sim.simxGetObjectPosition(self.clientID, self.objects[0], -1, sim.simx_opmode_oneshot_wait)
-        v = np.array([np.cos(self.angle), np.sin(self.angle), 0])
-        # position
-        position = np.array(position) + 0.1*v
-        self.angle = self.angle + 0.1*np.random.rand(1, 1)
-        errorCode = sim.simxSetObjectPosition(self.clientID, self.objects[0], -1, position, sim.simx_opmode_oneshot_wait)
-        sim.simxSynchronousTrigger(clientID=self.clientID)
+    def next_position(self):
+        """
+        Move randomly towards from point pa to pb and back
+        """
+        ps = self.position
+        # try to mov towards pa
+        if next(self.movement_dirs):
+            u = self.pa - ps
+        else:
+            u = self.pb - ps
+        nu = np.linalg.norm(u)
+        if nu > 0:
+            u = u / nu
+        k = 0.01*np.random.rand(1, 1)[0][0]
+        self.position = self.position + np.dot(k, u)
 
-    def stop_simulation(self):
-        sim.simxStopSimulation(self.clientID, sim.simx_opmode_oneshot_wait)
-        sim.simxFinish(self.clientID)
+    def get_position(self):
+        return self.position
+
+    def set_object_position(self, position):
+        errorCode = sim.simxSetObjectPosition(self.clientID, self.handle, -1, position, sim.simx_opmode_oneshot_wait)
+
 

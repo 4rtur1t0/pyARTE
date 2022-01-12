@@ -31,7 +31,6 @@ class Robot():
         self.gripper = gripper
         self.end_effector = end_effector
         self.camera = camera
-        # self.max_iterations = 1500
         self.target = target
         self.max_joint_speeds = max_joint_speeds
         self.joint_ranges = joint_ranges
@@ -59,7 +58,7 @@ class Robot():
 
     def set_joint_target_positions(self, q_target, wait=False, real_time=False):
         """
-        CAUTION: this function may only work if the "position control loop" is enabled at every youbot armjoint.
+        CAUTION: this function may only work if the "position control loop" is enabled at every arm joint.
         :param q:
         :return:
         """
@@ -67,13 +66,17 @@ class Robot():
             errorCode = sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.armjoints[i],
                                                        targetPosition=q_target[i],
                                                        operationMode=sim.simx_opmode_oneshot)
+            # if sphere_position:
+            #     errorCode = sim.simxSetObjectPosition(clientID=self.clientID, objectHandle=self.sphere,
+            #                                                position=sphere_position,
+            #                                                operationMode=sim.simx_opmode_oneshot)
         if wait:
             self.wait_till_joint_position_is_met(q_target, real_time=real_time)
         else:
             self.wait(real_time=real_time)
         self.q_path.append(q_target)
 
-    def set_joint_target_trajectory(self, q_path, sampling=1, wait=True, real_time=False):
+    def set_joint_target_trajectory(self, q_path, sampling=1, wait=True, real_time=False, sphere_positions=None):
         """
         A repeated call to set_joint_target_positions.
         param q: a list of qs (joint positions).
@@ -87,6 +90,9 @@ class Robot():
         """
         samples = range(0, len(q_path), sampling)
         for i in samples:
+            # if sphere_positions is None:
+            #     self.set_joint_target_positions(q_path[i], wait=wait, real_time=real_time)
+            # else:
             self.set_joint_target_positions(q_path[i], wait=wait, real_time=real_time)
 
     def get_joint_positions(self):
@@ -128,6 +134,10 @@ class Robot():
         for armj in self.armjoints:
             errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=armj,
                                                        targetVelocity=0.0, operationMode=sim.simx_opmode_oneshot)
+
+    def stop_simulation(self):
+        sim.simxStopSimulation(self.clientID, sim.simx_opmode_oneshot_wait)
+        sim.simxFinish(self.clientID)
 
     def wait(self, steps=1, real_time=False):
         for i in range(0, steps):
@@ -340,6 +350,35 @@ class Robot():
             wref = np.dot(k, wref)
         return np.hstack((vref, wref))
 
+    def inversekinematics(self, target_position, target_orientation, q0, vmax=1.0):
+        """
+        vmax: linear velocity of the planner.
+        """
+        Ttarget = buildT(target_position, target_orientation)
+        q = q0
+        for i in range(0, self.max_iterations_inverse_kinematics):
+            print('Iteration number: ', i)
+            Ti = self.direct_kinematics(q)
+            vwref, error_dist, error_orient = self.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
+            print(Ttarget - Ti)
+            vwref = self.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
+            print('vwref: ', vwref)
+            print('errordist, error orient: ', error_dist, error_orient)
+            if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
+                print('Converged!!')
+                break
+            J, Jv, Jw = self.get_jacobian(q)
+            # compute joint speed to achieve the reference
+            qd = self.moore_penrose_damped(J, vwref)
+            # check joint speed and correct if necessary
+            [qd, _, _] = self.check_speed(qd)
+            # integrate movement. Please check that Delta_time matches coppelia simulation time step
+            qd = np.dot(DELTA_TIME, qd)
+            q = q + qd
+            # check joints ranges
+            self.check_joints(q)
+        return q
+
     def inversekinematics_line(self, target_position, target_orientation, q0, vmax=1.0):
         """
         fine: whether to reach the target point with precision or not.
@@ -442,35 +481,6 @@ class Robot():
         else:
             return qdb
 
-    def inversekinematics(self, target_position, target_orientation, q0, vmax=1.0):
-        """
-        vmax: linear velocity of the planner.
-        """
-        Ttarget = buildT(target_position, target_orientation)
-        q = q0
-        for i in range(0, self.max_iterations_inverse_kinematics):
-            print('Iteration number: ', i)
-            Ti = self.direct_kinematics(q)
-            vwref, error_dist, error_orient = self.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
-            print(Ttarget - Ti)
-            vwref = self.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
-            print('vwref: ', vwref)
-            print('errordist, error orient: ', error_dist, error_orient)
-            if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
-                print('Converged!!')
-                break
-            J, Jv, Jw = self.get_jacobian(q)
-            # compute joint speed to achieve the reference
-            qd = self.moore_penrose_damped(J, vwref)
-            # check joint speed and correct if necessary
-            [qd, _, _] = self.check_speed(qd)
-            # integrate movement. Please check that Delta_time matches coppelia simulation time step
-            qd = np.dot(DELTA_TIME, qd)
-            q = q + qd
-            # check joints ranges
-            self.check_joints(q)
-        return q
-
     def get_image(self):
         print('Capturing image of vision sensor ')
         # define here the fov of the camera
@@ -496,7 +506,6 @@ class Robot():
         sensorImage.resize([resolution[1], resolution[0], 3])
         img = Image.fromarray(sensorImage)
         img = ImageOps.flip(img)
-
         print('Saving to file: ', filename)
         img.save(filename)
         # caution--> tell python to release memory now or a kill will be issued by the system!
@@ -514,23 +523,23 @@ class Robot():
         plt.title('JOINT TRAJECTORIES')
         plt.show(block=True)
 
-
-class Scene():
-    def __init__(self, clientID, objects):
-        self.clientID = clientID
-        self.objects = objects
-        self.angle = 2.5
-
-    def random_walk(self):
-        errorCode, position = sim.simxGetObjectPosition(self.clientID, self.objects[0], -1, sim.simx_opmode_oneshot_wait)
-        v = np.array([np.cos(self.angle), np.sin(self.angle), 0])
-        # position
-        position = np.array(position) + 0.1*v
-        self.angle = self.angle + 0.1*np.random.rand(1, 1)
-        errorCode = sim.simxSetObjectPosition(self.clientID, self.objects[0], -1, position, sim.simx_opmode_oneshot_wait)
-        sim.simxSynchronousTrigger(clientID=self.clientID)
-
-    def stop_simulation(self):
-        sim.simxStopSimulation(self.clientID, sim.simx_opmode_oneshot_wait)
-        sim.simxFinish(self.clientID)
+#
+# class Scene():
+#     def __init__(self, clientID, objects):
+#         self.clientID = clientID
+#         self.objects = objects
+#         self.angle = 2.5
+#
+#     def random_walk(self):
+#         errorCode, position = sim.simxGetObjectPosition(self.clientID, self.objects[0], -1, sim.simx_opmode_oneshot_wait)
+#         v = np.array([np.cos(self.angle), np.sin(self.angle), 0])
+#         # position
+#         position = np.array(position) + 0.1*v
+#         self.angle = self.angle + 0.1*np.random.rand(1, 1)
+#         errorCode = sim.simxSetObjectPosition(self.clientID, self.objects[0], -1, position, sim.simx_opmode_oneshot_wait)
+#         sim.simxSynchronousTrigger(clientID=self.clientID)
+#
+#     def stop_simulation(self):
+#         sim.simxStopSimulation(self.clientID, sim.simx_opmode_oneshot_wait)
+#         sim.simxFinish(self.clientID)
 

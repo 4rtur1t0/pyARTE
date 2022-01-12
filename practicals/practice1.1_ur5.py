@@ -61,7 +61,7 @@ def inverse_kinematics(robot,
 
 
 def move_to_target():
-    robot, scene = init_simulation_UR5()
+    robot = init_simulation_UR5()
     ################################################################
     # EJERCICIO:
     # A) DEBERÁ COMPLETAR LA FUNCIÓN inverse_kinematics
@@ -95,12 +95,12 @@ def move_to_target():
     robot.set_joint_target_positions(q2, wait=True)
     robot.close_gripper(wait=True)
     robot.open_gripper(wait=True)
-    # plot joints for each movement
-    robot.plot_trajectories()
     # stop the arm
     robot.stop_arm()
     # stop simulation
-    scene.stop_simulation()
+    robot.stop_simulation()
+    # plot joints for each movement
+    robot.plot_trajectories()
 
 
 if __name__ == "__main__":

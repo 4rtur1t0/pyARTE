@@ -52,11 +52,11 @@ def move_null_space(robot):
 
 
 if __name__ == "__main__":
-    robot, scene = init_simulation_KUKALBR()
+    robot, _ = init_simulation_KUKALBR()
 
     move_null_space(robot)
 
     # Stop arm and simulation
     robot.stop_arm()
-    scene.stop_simulation()
+    robot.stop_simulation()
     robot.plot_trajectories()
