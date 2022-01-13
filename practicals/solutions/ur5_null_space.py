@@ -3,6 +3,12 @@
 """
 Please open the scenes/ur5.ttt scene before running this script.
 
+The script provides an example to move a UR5 robot along the null space.
+
+The active space can be defined by selecting the rows of the Manipulator Jacobian.
+The column in the V matrix can be selected, in this sense, one can move the robot along the different
+vectors that form the basis of the null space.
+
 @Authors: Arturo Gil
 @Time: April 2021
 """
@@ -11,6 +17,7 @@ from sceneconfig.scene_configs import init_simulation_UR5
 
 # standard delta time for Coppelia, please modify if necessary
 DELTA_TIME = 50.0/1000.0
+
 
 # move on the null space (with vh, column 6)
 def null_space_along(robot, m, col, n_steps=20):
