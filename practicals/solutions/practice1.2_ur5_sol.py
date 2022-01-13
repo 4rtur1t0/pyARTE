@@ -19,7 +19,7 @@ def pick_and_place_rep():
     target_positions = [[0.6, -0.2, 0.25],
                         [0.6, 0.1, 0.25],
                         [0.6, -0.1, 0.35],
-                        [0.2, -0.6, 0.4]]
+                        [0.2, -0.55, 0.4]]
     target_orientations = [[-np.pi/2, 0, -np.pi/2],
                            [-np.pi/2, 0, -np.pi/2],
                            [-np.pi/2, 0, -np.pi/2],

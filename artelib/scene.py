@@ -21,8 +21,8 @@ class Sphere():
         self.position = pb
         self.pa = pa
         self.pb = pb
-        la = [True]*200
-        lb = [False]*200
+        la = [True]*150
+        lb = [False]*150
         la.extend(lb)
         self.movement_dirs = itertools.cycle(la)
 

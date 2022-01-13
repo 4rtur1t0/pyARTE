@@ -219,7 +219,43 @@ class Robot():
         error_orient = np.linalg.norm(wref)
         return error_dist, error_orient
 
-    def compute_actions(self, Tcurrent, Ttarget, vmax=1.0):
+    def compute_time(self, Tcurrent, Ttarget, vmax=1.0):
+        """
+        Compute the movement that allows to bring Tcurrent to Ttarget with a given linear max speed
+        """
+        # current position of the end effector and target position
+        p_current = Tcurrent[0:3, 3]
+        p_target = Ttarget[0:3, 3]
+        vref = np.array(p_target-p_current)
+        dist = np.linalg.norm(vref)
+        # total time to complete the movement given vmax
+        total_time = dist/vmax
+        return total_time
+
+
+    # def compute_actions(self, Tcurrent, Ttarget, vmax=1.0):
+    #     """
+    #     Compute the movement that allows to bring Tcurrent to Ttarget with a given linear max speed
+    #     """
+    #     # current position of the end effector and target position
+    #     p_current = Tcurrent[0:3, 3]
+    #     p_target = Ttarget[0:3, 3]
+    #     # a vector along the line
+    #     vref = np.array(p_target-p_current)
+    #     dist = np.linalg.norm(vref)
+    #     error_dist = dist
+    #     if dist > 0.0:
+    #         vref = np.dot(vmax/dist, vref)
+    #     # total time to complete the movement given vmax
+    #     total_time = dist/vmax
+    #     # Compute error in distance and error in orientation.The error in orientation is computed considering the
+    #     # angular speed from R1 to R2 needed in total_time seconds.
+    #     wref = compute_w_between_R(Tcurrent, Ttarget, total_time=total_time)
+    #     error_orient = np.linalg.norm(wref)
+    #     vwref = np.hstack((vref, wref))
+    #     return vwref, error_dist, error_orient
+
+    def compute_actions(self, Tcurrent, Ttarget, vmax=1.0, total_time=1.0):
         """
         Compute the movement that allows to bring Tcurrent to Ttarget with a given linear max speed
         """
@@ -229,12 +265,12 @@ class Robot():
         # a vector along the line
         vref = np.array(p_target-p_current)
         dist = np.linalg.norm(vref)
-        # total time to complete the movement given vmax
-        total_time = dist/vmax
-        wref = compute_w_between_R(Tcurrent, Ttarget, total_time=total_time)
+        error_dist = dist
+        if dist > 0.0:
+            vref = np.dot(vmax/dist, vref)
         # Compute error in distance and error in orientation.The error in orientation is computed considering the
-        # angular speed from R1 to R2 needed in 1 sencond.
-        error_dist = np.linalg.norm(vref)
+        # angular speed from R1 to R2 needed in total_time seconds.
+        wref = compute_w_between_R(Tcurrent, Ttarget, total_time=total_time)
         error_orient = np.linalg.norm(wref)
         vwref = np.hstack((vref, wref))
         return vwref, error_dist, error_orient
@@ -339,7 +375,7 @@ class Robot():
         return qd
 
     def adjust_vwref(self, vwref, error_dist, error_orient, vmax=1.0):
-        radius = 2*self.max_error_dist_inversekinematics
+        radius = 8*self.max_error_dist_inversekinematics
         vref = vwref[0:3]
         wref = vwref[3:6]
         if error_dist <= radius:
@@ -385,6 +421,9 @@ class Robot():
         vmax: linear velocity of the planner.
         """
         Ttarget = buildT(target_position, target_orientation)
+        Ti = self.direct_kinematics(q0)
+        total_time = self.compute_time(Ti, Ttarget, vmax)
+        total_time = 0.2*total_time
         q_path = []
         qd_path = []
         q = q0
@@ -393,8 +432,8 @@ class Robot():
         for i in range(0, self.max_iterations_inverse_kinematics):
             print('Iteration number: ', i)
             Ti = self.direct_kinematics(q)
-            vwref, error_dist, error_orient = self.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
-            print(Ttarget-Ti)
+            vwref, error_dist, error_orient = self.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax,
+                                                                   total_time=total_time)
             vwref = self.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
             vrefs.append(vwref[0:3])
             wrefs.append(vwref[3:6])
@@ -425,6 +464,9 @@ class Robot():
         vmax: linear velocity of the planner.
         """
         Ttarget = buildT(target_position, target_orientation)
+        Ti = self.direct_kinematics(q0)
+        total_time = self.compute_time(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
+        total_time = 0.2*total_time
         q_path = []
         qd_path = []
         w_values = []
@@ -432,13 +474,13 @@ class Robot():
         vrefs = []
         wrefs = []
         qc = [0, 0, 0, 0, 0, 0, 0]
-        K = [1, 1, 1, 1, 1, 10, 1]
-        #K = [0, 0, 0, 0, 0, 1, 0]
+        #K = [1, 1, 1, 1, 1, 10, 1]
+        K = [0, 0, 0, 0, 0, 1, 0]
         for i in range(0, self.max_iterations_inverse_kinematics):
             print('Iteration number: ', i)
             Ti = self.direct_kinematics(q)
-            vwref, error_dist, error_orient = self.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
-            print(Ttarget-Ti)
+            vwref, error_dist, error_orient = self.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax,
+                                                                   total_time=total_time)
             vwref = self.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
             vrefs.append(vwref[0:3])
             wrefs.append(vwref[3:6])
@@ -452,7 +494,7 @@ class Robot():
             # compute joint speed to achieve the reference
             qda = self.moore_penrose_damped(J, vwref)
             qdb = self.minimize_w_central(J, q, qc, K)
-            qdb = 0.8*np.linalg.norm(qda)*qdb
+            qdb = 0.5*np.linalg.norm(qda)*qdb
             qd = qda + qdb
             [qd, _, _] = self.check_speed(qd)
             qd = np.dot(DELTA_TIME, qd)

@@ -66,8 +66,8 @@ def pick_and_place():
     target_positions = [[0.6, -0.2, 0.25], # initial in front of conveyor
                         [0.6, 0.1, 0.25], # pick the piece
                         [0.6, 0.1, 0.35], # bring the piece up
-                        [0.2, -0.6, 0.4], # over the table
-                        [0.2, -0.6, 0.3]] # drop the piece
+                        [0.2, -0.55, 0.4], # over the table
+                        [0.2, -0.55, 0.3]] # drop the piece
     target_orientations = [[-np.pi/2, 0, -np.pi/2],
                            [-np.pi/2, 0, -np.pi/2],
                            [-np.pi/2, 0, -np.pi/2],

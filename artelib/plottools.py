@@ -27,3 +27,14 @@ def plot_vars(q_path, title='UNTITLED'):
     plt.legend()
     plt.title(title)
     plt.show(block=True)
+
+def plot_xy(x, y, title='UNTITLED'):
+    plt.figure()
+    x = np.array(x)
+    y = np.array(y)
+    x = x.flatten()
+    y = y.flatten()
+    plt.plot(x, y, linewidth=4, marker='.')
+    plt.legend()
+    plt.title(title)
+    plt.show(block=True)

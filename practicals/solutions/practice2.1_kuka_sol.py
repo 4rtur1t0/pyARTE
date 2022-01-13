@@ -65,7 +65,6 @@ def pick_and_place(robot, step_number):
 def pallet_application():
     robot, _ = init_simulation_KUKALBR()
 
-
     for i in range(0, 6):
         pick_and_place(robot, i)
 

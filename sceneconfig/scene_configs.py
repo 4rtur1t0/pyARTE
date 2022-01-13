@@ -109,8 +109,8 @@ def init_simulation_KUKALBR():
     gripper.append(gripper1)
 
     sphere = Sphere(clientID=clientID, handle=sphere_handle,
-                    pa=np.array([0.4, -0.45, 0.4]),
-                    pb=np.array([1.0, -0.45, 0.4]))
+                    pa=np.array([1.0, -0.45, 0.25]),
+                    pb=np.array([0.5, -0.45, 0.25]))
     robot = RobotKUKALBR(clientID=clientID, wheeljoints=[],
                          armjoints=armjoints, base=robotbase,
                          end_effector=end_effector, gripper=gripper,

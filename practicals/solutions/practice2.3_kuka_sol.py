@@ -41,29 +41,32 @@ def minimize_w_central(J, q, qc, K):
         return qdb
 
 
-def inversekinematics2(robot, target_position, target_orientation, q0, vmax=1.0):
+def inversekinematics2(robot, target_position, target_orientation, q0, vmax=0.5):
     """
     fine: whether to reach the target point with precision or not.
     vmax: linear velocity of the planner.
     """
     Ttarget = buildT(target_position, target_orientation)
+    Ti = robot.direct_kinematics(q0)
+    total_time = robot.compute_time(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
+    total_time = 0.1*total_time
     q = q0
     vrefs = []
     wrefs = []
     max_iterations = 500
     qc = [0, 0, 0, 0, 0, 0, 0]
-    #K = [0, 0, 0, 0, 0, 1, 0]
-    K = [1, 1, 1, 1, 1, 10, 1]
+    K = [0, 0, 0, 0, 0, 1, 0]
+    #K = [1, 1, 1, 1, 1, 10, 1]
     q_path = []
     qd_path = []
     for i in range(0, max_iterations):
         print('Iteration number: ', i)
         Ti = robot.direct_kinematics(q)
-        vwref, error_dist, error_orient = robot.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
-        print(Ttarget - Ti)
+        vwref, error_dist, error_orient = robot.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax, total_time=total_time)
         vwref = robot.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
         vrefs.append(vwref[0:3])
         wrefs.append(vwref[3:6])
+        print(Ttarget - Ti)
         print('vwref: ', vwref)
         print('errordist, error orient: ', error_dist, error_orient)
         if error_dist < 0.01 and error_orient < 0.01:
@@ -78,7 +81,6 @@ def inversekinematics2(robot, target_position, target_orientation, q0, vmax=1.0)
         #
         qdb = minimize_w_central(J, q, qc, K)
         qdb = 0.5 * np.linalg.norm(qda) * qdb
-
         qd = qda + qdb
         [qd, _, _] = robot.check_speed(qd)
         qd = np.dot(DELTA_TIME, qd)

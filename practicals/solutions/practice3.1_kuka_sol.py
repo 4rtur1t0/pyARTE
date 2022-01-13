@@ -9,7 +9,7 @@ The demo represents a KUKA LBR IIWA robot trying to avoid collisions with a sphe
 
 """
 import numpy as np
-from artelib.plottools import plot_vars
+from artelib.plottools import plot_vars, plot_xy
 from artelib.tools import buildT
 from sceneconfig.scene_configs import init_simulation_KUKALBR
 
@@ -41,29 +41,54 @@ def minimize_w_central(J, q, qc, K):
     else:
         return qdb
 
+def potential(r):
+    K = 0.55
+    r0 = 0.5
+    if r < 0.2:
+        r = 0.2
+    p = K * (1 / r - 1 / r0)
+    if p < 0:
+        p = 0
+    return p
 
 def compute_repulsion(pe, ps):
-    K = 0.01
     u = pe - ps
     r = np.linalg.norm(u)
-    if r < 0.1:
-        r = 0.1
-    elif r > 0.5:
-        K = 0.0
-    u = u / r
-    vrep = np.dot(K/r**2, u)
+    if r > 0.0:
+        u = u / r
+    p = potential(r)
+    vrep = np.dot(p, u)
+    vrep = np.hstack((vrep, np.array([0, 0, 0])))
+    return vrep
+
+def compute_repulsion2(pe, ps):
+    ymax = 1.0
+    rmin = 0.1
+    rmax = 0.4
+    m = -ymax/rmax
+    n = ymax
+    u = pe - ps
+    r = np.linalg.norm(u)
+    if r > 0.0:
+        u = u/r
+    y = m * r + n
+    if r < rmin:
+        y = m*rmin+n
+    if y < 0:
+        y = 0.0
+    vrep = np.dot(y, u)
     vrep = np.hstack((vrep, np.array([0, 0, 0])))
     return vrep
 
 
-def inversekinematics3(robot, sphere, target_position, target_orientation, q0, vmax=1.0):
+def inversekinematics3(robot, sphere, target_position, target_orientation, q0, vmax=0.5):
     """
     fine: whether to reach the target point with precision or not.
     vmax: linear velocity of the planner.
     """
     Ttarget = buildT(target_position, target_orientation)
     q = q0
-    max_iterations = 500
+    max_iterations = 300
     qc = [0, 0, 0, 0, 0, 0, 0]
     K = [0, 0, 0, 0, 0, 1, 0]
     q_path = []
@@ -71,6 +96,10 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
     sphere_positions = []
     nvreps = []
     ndist = []
+    nvrefs = []
+    Ti = robot.direct_kinematics(q)
+    total_time = robot.compute_time(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
+    total_time = 0.2*total_time
     for i in range(0, max_iterations):
         # move sphere to next position (randomly)
         sphere.next_position()
@@ -79,13 +108,16 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
         print('Iteration number: ', i)
         Ti = robot.direct_kinematics(q)
         pe = Ti[0:3, 3]
-        vwref, error_dist, error_orient = robot.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
-        vrep=compute_repulsion(pe=pe, ps=sphere.get_position())
+        vwref, error_dist, error_orient = robot.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax,
+                                                                total_time=total_time)
+        vwref = robot.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
+
+        vrep = compute_repulsion(pe=pe, ps=sphere.get_position())
         nvreps.append([np.linalg.norm(vrep)])
         ndist.append([np.linalg.norm(pe-ps)])
-        print(Ttarget - Ti)
         vwref = vwref + vrep
         vwref = robot.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
+
         print('vwref: ', vwref)
         print('errordist, error orient: ', error_dist, error_orient)
         if error_dist < 0.01 and error_orient < 0.01:
@@ -105,6 +137,8 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
         qd_path.append(qd)
     #plot_vars(nvreps, title='norma vrep')
     #plot_vars(ndist, title='distancia')
+    #plot_vars(nvrefs, title='modulo velocidad')
+    plot_xy(ndist, nvreps, title='d')
     return q_path, qd_path, sphere_positions
 
 
