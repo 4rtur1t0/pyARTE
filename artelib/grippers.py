@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+
+Classes to manage the grippers in Coppelia simulations
+
+@Authors: Arturo Gil
+@Time: April 2021
+
+"""
+import sim
+import time
+
+DELTA_TIME = 50/1000.0
+
+
+class GripperRG2():
+    def __init__(self, clientID, joints):
+        self.clientID = clientID
+        self.joints = joints
+
+    def open_gripper(self, precision=False):
+        sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.joints[0],
+                                       targetPosition=0.05, operationMode=sim.simx_opmode_oneshot)
+        sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.joints[0],
+                                 force=20.0, operationMode=sim.simx_opmode_oneshot)
+        if precision:
+            self.wait(10)
+
+    def close_gripper(self, precision=False):
+        sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.joints[0],
+                                       targetPosition=-0.05, operationMode=sim.simx_opmode_oneshot)
+        sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.joints[0],
+                                 force=-20.0, operationMode=sim.simx_opmode_oneshot)
+        if precision:
+            self.wait(10)
+
+    def wait(self, steps=1, real_time=False):
+        for i in range(0, steps):
+            if real_time:
+                time.sleep(DELTA_TIME)
+            sim.simxSynchronousTrigger(clientID=self.clientID)
+

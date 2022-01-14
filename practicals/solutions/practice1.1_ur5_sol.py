@@ -89,17 +89,18 @@ def pick_and_place():
 
     # NOW execute trajectories computed before.
     # set initial position of robot
-    robot.set_joint_target_positions(q0, wait=True)
-    robot.open_gripper(wait=True)
+    robot.set_joint_target_positions(q0, precision=False)
+    robot.wait(15)
+    robot.open_gripper(precision=True)
     # set the target we are willing to reach on Coppelia
     robot.set_target_position_orientation(target_positions[0], target_orientations[0])
-    robot.set_joint_target_positions(q1, wait=True)
-    robot.set_joint_target_positions(q2, wait=True)
-    robot.close_gripper(wait=True)
-    robot.set_joint_target_positions(q3, wait=True)
-    robot.set_joint_target_positions(q4, wait=True)
-    robot.set_joint_target_positions(q5, wait=True)
-    robot.open_gripper(wait=True)
+    robot.set_joint_target_positions(q1, precision=False)
+    robot.set_joint_target_positions(q2, precision=True)
+    robot.close_gripper(precision=True)
+    robot.set_joint_target_positions(q3, precision=True)
+    robot.set_joint_target_positions(q4, precision=True)
+    robot.set_joint_target_positions(q5, precision=True)
+    robot.open_gripper(precision=True)
     robot.set_joint_target_positions(q4)
 
     [image, resolution] = robot.get_image()

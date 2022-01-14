@@ -41,7 +41,7 @@ class Robot():
         # max iterations to achieve a joint target in coppelia
         self.max_iterations_joint_target = 200
         # admit this error in q
-        self.epsilonq = 0.0006
+        self.epsilonq = 0.01
         self.q_path = []
 
     def set_joint_target_velocities(self, qd):
@@ -56,44 +56,56 @@ class Robot():
                                                        targetVelocity=qd[i],
                                                        operationMode=sim.simx_opmode_oneshot)
 
-    def set_joint_target_positions(self, q_target, wait=False, real_time=False):
+    def set_joint_target_positions(self, q_target, precision=True, real_time=False):
         """
         CAUTION: this function may only work if the "position control loop" is enabled at every arm joint.
-        :param q:
+        :param precision: whether to wait for Coppelia until que joint values are attained with precision
         :return:
         """
         for i in range(0, len(q_target)):
             errorCode = sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.armjoints[i],
                                                        targetPosition=q_target[i],
                                                        operationMode=sim.simx_opmode_oneshot)
-            # if sphere_position:
-            #     errorCode = sim.simxSetObjectPosition(clientID=self.clientID, objectHandle=self.sphere,
-            #                                                position=sphere_position,
-            #                                                operationMode=sim.simx_opmode_oneshot)
-        if wait:
+        if precision:
             self.wait_till_joint_position_is_met(q_target, real_time=real_time)
         else:
             self.wait(real_time=real_time)
         self.q_path.append(q_target)
 
-    def set_joint_target_trajectory(self, q_path, sampling=1, wait=True, real_time=False, sphere_positions=None):
+    # def set_joint_target_trajectory(self, q_path, sampling=1, wait=True, real_time=False):
+    def set_joint_target_trajectory(self, q_path, sampling=1, precision='last', real_time=False):
         """
         A repeated call to set_joint_target_positions.
         param q: a list of qs (joint positions).
         param sampling: select sampling=1 to reproduce all the joint positions in the path
                   select sampling=2 to skip one out of two joint positions.
-        param wait: whether wait_till_joint_position_is met should be called for each joint position in the path.
+        param precision:
+        all: wait for the simulator to wait until every q in the path is attained with precision
+                    (wait_till_joint_position_is_met) is called for every index i in  the trajectory.
+        last:  wait for the simulator to wait only on the last joint values q in  the trajectory.
+                   (wait_till_joint_position_is_met) is called on the last i in  the trajectory.
+        none:
                     if wait=True, the robot control scheme is making the joints stop and start
                     for each new joint. It waits until the joints of the robot and the target are equal.
                     With this option, the movement of the robot may be non-smooth.
                     if wait=False: the movement is typically smoother, but the trajectory is not followed exaclty.
         """
-        samples = range(0, len(q_path), sampling)
-        for i in samples:
-            # if sphere_positions is None:
-            #     self.set_joint_target_positions(q_path[i], wait=wait, real_time=real_time)
-            # else:
-            self.set_joint_target_positions(q_path[i], wait=wait, real_time=real_time)
+        # precision must be attained on all movements
+        if precision == 'all':
+            samples = range(0, len(q_path), sampling)
+            for i in samples:
+                self.set_joint_target_positions(q_path[i], precision=True, real_time=real_time)
+        # precision must be attained only on the last i in the path
+        elif precision == 'last':
+            samples = range(0, len(q_path), sampling)
+            for i in samples[0:-1]:
+                self.set_joint_target_positions(q_path[i], precision=False, real_time=real_time)
+            self.set_joint_target_positions(q_path[-1], precision=True, real_time=real_time)
+        # precision must not be attained on any i in the path
+        elif precision == 'none':
+            samples = range(0, len(q_path), sampling)
+            for i in samples:
+                self.set_joint_target_positions(q_path[i], precision=False, real_time=real_time)
 
     def get_joint_positions(self):
         q_actual = np.zeros(len(self.armjoints))
@@ -231,29 +243,6 @@ class Robot():
         # total time to complete the movement given vmax
         total_time = dist/vmax
         return total_time
-
-
-    # def compute_actions(self, Tcurrent, Ttarget, vmax=1.0):
-    #     """
-    #     Compute the movement that allows to bring Tcurrent to Ttarget with a given linear max speed
-    #     """
-    #     # current position of the end effector and target position
-    #     p_current = Tcurrent[0:3, 3]
-    #     p_target = Ttarget[0:3, 3]
-    #     # a vector along the line
-    #     vref = np.array(p_target-p_current)
-    #     dist = np.linalg.norm(vref)
-    #     error_dist = dist
-    #     if dist > 0.0:
-    #         vref = np.dot(vmax/dist, vref)
-    #     # total time to complete the movement given vmax
-    #     total_time = dist/vmax
-    #     # Compute error in distance and error in orientation.The error in orientation is computed considering the
-    #     # angular speed from R1 to R2 needed in total_time seconds.
-    #     wref = compute_w_between_R(Tcurrent, Ttarget, total_time=total_time)
-    #     error_orient = np.linalg.norm(wref)
-    #     vwref = np.hstack((vref, wref))
-    #     return vwref, error_dist, error_orient
 
     def compute_actions(self, Tcurrent, Ttarget, vmax=1.0, total_time=1.0):
         """
@@ -564,24 +553,3 @@ class Robot():
         plt.legend()
         plt.title('JOINT TRAJECTORIES')
         plt.show(block=True)
-
-#
-# class Scene():
-#     def __init__(self, clientID, objects):
-#         self.clientID = clientID
-#         self.objects = objects
-#         self.angle = 2.5
-#
-#     def random_walk(self):
-#         errorCode, position = sim.simxGetObjectPosition(self.clientID, self.objects[0], -1, sim.simx_opmode_oneshot_wait)
-#         v = np.array([np.cos(self.angle), np.sin(self.angle), 0])
-#         # position
-#         position = np.array(position) + 0.1*v
-#         self.angle = self.angle + 0.1*np.random.rand(1, 1)
-#         errorCode = sim.simxSetObjectPosition(self.clientID, self.objects[0], -1, position, sim.simx_opmode_oneshot_wait)
-#         sim.simxSynchronousTrigger(clientID=self.clientID)
-#
-#     def stop_simulation(self):
-#         sim.simxStopSimulation(self.clientID, sim.simx_opmode_oneshot_wait)
-#         sim.simxFinish(self.clientID)
-

@@ -45,21 +45,23 @@ def pick_and_place(robot, step_number):
 
     # NOW execute trajectories computed before.
     # set initial position of robot
-    robot.set_joint_target_positions(q0, wait=True)
-    robot.open_gripper(wait=True)
+    robot.set_joint_target_positions(q0, precision=False)
+    robot.wait(10)
+    robot.open_gripper(precision=True)
     # set the target we are willing to reach on Coppelia
     robot.set_target_position_orientation(target_positions[0], target_orientations[0])
-    robot.set_joint_target_trajectory(q1_path, wait=True)
-    robot.set_joint_target_trajectory(q2_path, wait=False)
-    robot.close_gripper(wait=True)
-    robot.set_joint_target_trajectory(q3_path, wait=False)
-    robot.set_joint_target_trajectory(q4_path, wait=False)
-    robot.set_joint_target_trajectory(q5_path, wait=False)
-    robot.open_gripper(wait=True)
+    robot.set_joint_target_trajectory(q1_path, precision='last')
+    robot.set_joint_target_trajectory(q2_path, precision='last')
+    robot.close_gripper(precision=True)
+    robot.set_joint_target_trajectory(q3_path, precision='last')
+    robot.set_joint_target_trajectory(q4_path, precision='last')
+    robot.set_joint_target_trajectory(q5_path, precision='last')
+    robot.open_gripper(precision=True)
     # reverse array, from q4 to q5 and now q5 to q4
     robot.set_joint_target_trajectory(q_path=q5_path[::-1])
     # back to initial
-    robot.set_joint_target_positions(q0, wait=True)
+    robot.set_joint_target_positions(q0, precision=False)
+    robot.wait(10)
 
 
 def pallet_application():

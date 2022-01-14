@@ -28,11 +28,12 @@ def pick_and_place_rep():
     q0 = np.array([-np.pi, 0.1, np.pi/2, 0.1, 0.1, 0.1])
 
     # set initial position of robot
-    robot.set_joint_target_positions(q0, wait=True)
+    robot.set_joint_target_positions(q0, precision=False)
+    robot.wait(20)
 
     # set the target we are willing to reach
     robot.set_target_position_orientation(target_positions[0], target_orientations[0])
-    vmax = 1.5
+    vmax = 1.0
 
     for i in range(0, 6):
         # plan trajectories
@@ -56,14 +57,14 @@ def pick_and_place_rep():
 
         # execute trajectories
         robot.open_gripper()
-        robot.set_joint_target_trajectory(q1_path, wait=False)
-        robot.set_joint_target_trajectory(q2_path, wait=False)
-        robot.close_gripper(wait=True)
-        robot.set_joint_target_trajectory(q3_path, wait=False)
-        robot.set_joint_target_trajectory(q4_path, wait=False)
-        robot.set_joint_target_trajectory(q5_path, wait=False)
-        robot.open_gripper(wait=False)
-        robot.set_joint_target_trajectory(q6_path, wait=False)
+        robot.set_joint_target_trajectory(q1_path, precision='last')
+        robot.set_joint_target_trajectory(q2_path, precision='last')
+        robot.close_gripper(precision=True)
+        robot.set_joint_target_trajectory(q3_path, precision='last')
+        robot.set_joint_target_trajectory(q4_path, precision='last')
+        robot.set_joint_target_trajectory(q5_path, precision='last')
+        robot.open_gripper(precision=False)
+        robot.set_joint_target_trajectory(q6_path, precision='last')
 
     robot.stop_arm()
     robot.stop_simulation()
