@@ -167,9 +167,7 @@ def eval_symbolic_T_KUKALBR(q):
                 np.cos(q4) * (np.sin(q1) * np.sin(q3) - np.cos(q1) * np.cos(q2) * np.cos(q3)) - np.cos(q1) * np.sin(q2) * np.sin(q4)) - np.cos(q5) * (
                             np.cos(q3) * np.sin(q1) + np.cos(q1) * np.cos(q2) * np.sin(q3))) - np.cos(q7) * (np.sin(q6) * (
                 np.sin(q4) * (np.sin(q1) * np.sin(q3) - np.cos(q1) * np.cos(q2) * np.cos(q3)) + np.cos(q1) * np.cos(q4) * np.sin(q2)) + np.cos(q6) * (
-                                                                                                       np.cos(q5) * (
-                                                                                                           np.cos(q4) * (
-                                                                                                               np.sin(q1) * np.sin(
+                np.cos(q5) * (np.cos(q4) * (np.sin(q1) * np.sin(
                                                                                                            q3) - np.cos(
                                                                                                            q1) * np.cos(
                                                                                                            q2) * np.cos(

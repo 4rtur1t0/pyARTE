@@ -36,12 +36,12 @@ class Robot():
         self.joint_ranges = joint_ranges
         # parameters of the inverse kinematics algorith
         self.max_iterations_inverse_kinematics = 1500
-        self.max_error_dist_inversekinematics = 0.010
-        self.max_error_orient_inversekinematics = 0.010
+        self.max_error_dist_inversekinematics = 0.0050
+        self.max_error_orient_inversekinematics = 0.0050
         # max iterations to achieve a joint target in coppelia
-        self.max_iterations_joint_target = 200
+        self.max_iterations_joint_target = 150
         # admit this error in q
-        self.epsilonq = 0.01
+        self.epsilonq = 0.001
         self.q_path = []
 
     def set_joint_target_velocities(self, qd):
@@ -255,6 +255,7 @@ class Robot():
         vref = np.array(p_target-p_current)
         dist = np.linalg.norm(vref)
         error_dist = dist
+        # normalize linear velocity
         if dist > 0.0:
             vref = np.dot(vmax/dist, vref)
         # Compute error in distance and error in orientation.The error in orientation is computed considering the
@@ -364,7 +365,7 @@ class Robot():
         return qd
 
     def adjust_vwref(self, vwref, error_dist, error_orient, vmax=1.0):
-        radius = 8*self.max_error_dist_inversekinematics
+        radius = 5*self.max_error_dist_inversekinematics
         vref = vwref[0:3]
         wref = vwref[3:6]
         if error_dist <= radius:
@@ -496,9 +497,6 @@ class Robot():
             qd_path.append(qdb)
             w = w_central(q, qc, K)
             w_values.append([w])
-        #plot_vars(q_path, title='joints')
-        #plot_vars(qd_path, title='speeds')
-        #plot_vars(w_values, title='wvalues')
         return q_path, qd_path
 
     def minimize_w_central(self, J, q, qc, K):
@@ -553,3 +551,4 @@ class Robot():
         plt.legend()
         plt.title('JOINT TRAJECTORIES')
         plt.show(block=True)
+

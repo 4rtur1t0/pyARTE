@@ -28,6 +28,7 @@ def plot_vars(q_path, title='UNTITLED'):
     plt.title(title)
     plt.show(block=True)
 
+
 def plot_xy(x, y, title='UNTITLED'):
     plt.figure()
     x = np.array(x)
@@ -35,6 +36,8 @@ def plot_xy(x, y, title='UNTITLED'):
     x = x.flatten()
     y = y.flatten()
     plt.plot(x, y, linewidth=4, marker='.')
+    # plt.xlabel('Distancia (m)')
+    # plt.ylabel('Módulo (m/s)')
     plt.legend()
     plt.title(title)
     plt.show(block=True)

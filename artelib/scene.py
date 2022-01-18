@@ -46,6 +46,7 @@ class Sphere():
         return self.position
 
     def set_object_position(self, position):
+        self.position = position
         errorCode = sim.simxSetObjectPosition(self.clientID, self.handle, -1, position, sim.simx_opmode_oneshot_wait)
 
 

@@ -134,10 +134,7 @@ def follow_line_obstacle(robot, sphere):
     q0 = np.array([-np.pi / 8, 0, 0, -np.pi / 2, 0, 0, 0])
 
     # necesita cambiar la posición central
-    sphere.set_object_position([0.55, 0.0, 0.45])
-    #sphere.set_object_position([0.5, 0.0, 0.5])
-    #sphere.set_object_position([0.5, 0.0, 0.4])
-    #sphere.set_object_position([0.35, 0.0, 0.4])
+    sphere.set_object_position([0.45, 0.0, 0.45])
 
     # plan trajectories
     [q1_path, _] = inversekinematics3(robot=robot, sphere=sphere, target_position=target_positions[0],
