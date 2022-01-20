@@ -31,7 +31,7 @@ def move_null_space(robot):
     robot.set_joint_target_positions(q0, precision=True)
     # ok perform n movements in null space
     n_movements_in_null_space = 300
-    q=q0
+    q = q0
     q_path = []
     qd_path = []
     for i in range(0, n_movements_in_null_space):
@@ -44,7 +44,7 @@ def move_null_space(robot):
         qd_path.append(qd)
         qd = np.dot(DELTA_TIME, qd)
         q = q + qd
-        q = robot.apply_joint_limits(q)
+        [q, _] = robot.apply_joint_limits(q)
         q_path.append(q)
     robot.set_joint_target_trajectory(q_path, precision='none')
     plot_vars(qd_path, title='JOINT SPEEDS')

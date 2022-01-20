@@ -56,7 +56,7 @@ def inverse_kinematics(robot,
         # C) Decidir cuando se termina el algoritmo.
         ###########################################################################################
         # OJO: el movimiento de las articulaciones debe estar limitado a sus valores máximos y mínimos
-        q = robot.apply_joint_limits(q)
+        [q, _] = robot.apply_joint_limits(q)
     return q
 
 

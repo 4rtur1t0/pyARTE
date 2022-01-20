@@ -25,26 +25,19 @@ class RobotKUKALBR(Robot):
                                  [180,   180, 180,  180,  180,  180, 180]])
         joint_ranges = joint_ranges * np.pi / 180.0
 
+        self.max_error_dist_inversekinematics = 0.0050
+        self.max_error_orient_inversekinematics = 0.0050
+
         Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera,
                        max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges)
 
     def open_gripper(self, precision=False):
         self.gripper.open_gripper(precision=precision)
-
-        # sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.gripper[0],
-        #                                targetPosition=0.05, operationMode=sim.simx_opmode_oneshot)
-        # sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.gripper[0],
-        #                          force=20.0, operationMode=sim.simx_opmode_oneshot)
         if precision:
             self.wait(10)
 
     def close_gripper(self, precision=False):
         self.gripper.close_gripper(precision=precision)
-
-        # sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.gripper[0],
-        #                                 targetPosition=-0.05, operationMode=sim.simx_opmode_oneshot)
-        # sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.gripper[0],
-        #                          force=20.0, operationMode=sim.simx_opmode_oneshot)
         if precision:
             self.wait(10)
 
@@ -55,3 +48,10 @@ class RobotKUKALBR(Robot):
     def direct_kinematics(self, q):
         T = eval_symbolic_T_KUKALBR(q)
         return T
+
+    def get_min_distance_to_objects(self):
+        """
+        Caution: a signal must have been added to the Coppelia Simulation (called distance_to_sphere)
+        """
+        error, distance = sim.simxGetFloatSignal(self.clientID, 'min_distance_to_objects', sim.simx_opmode_oneshot_wait)
+        return distance

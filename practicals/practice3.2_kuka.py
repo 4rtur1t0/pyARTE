@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/kuka_14_R820.ttt scene before running this script.
+Please open the scenes/kuka_14_R820_2.ttt scene before running this script.
+
 The demo represents a KUKA LBR IIWA robot trying to avoid collisions with a sphere.
+The min distance of the robot to all obstacles is plotted and showed on the robot.
 
 @Authors: Arturo Gil
 @Time: April 2021
@@ -17,6 +19,9 @@ DELTA_TIME = 50.0/1000.0
 
 
 def move_null_space(robot, q0, dir, nsteps):
+    # EJERCICIO: DEBE USAR LA FUNCIÓN d = robot.get_min_distance_to_objects() QUE DEVUELVE
+    # la distancia mínima del brazo a todos los objetos del entorno.
+    # debe devolver un array con todas las distancias mínimas para los distintos instantes de simulación.
     robot.set_joint_target_positions(q0, precision=True)
     # ok perform n movements in null space
     n_movements_in_null_space = nsteps
@@ -37,17 +42,17 @@ def move_null_space(robot, q0, dir, nsteps):
         if out_of_range:
             break
         q_path.append(q)
-    samples = range(0, len(q_path))
-    for i in samples:
-        robot.set_joint_target_positions(q_path[i], precision=False)
-        d = robot.get_min_distance_to_objects()
-        ds.append(d)
+        robot.set_joint_target_positions(q, precision=False)
+
+
+    # EJERCICIO: devuelva un array de distancias ds y un array de posiciones articulares q_path
     return ds, q_path
 
 
-def maximize_distance_to_obstacles(robot, q):
+def find_min_distance(robot, q):
     ds, qs = move_null_space(robot, q, '-', 200)
-    index = np.argmax(ds)
+    # EJERCICIO: halle el índice index que maximiza las distancias en el array ds
+    # La función devuelve la posición articular q que maximiza esta distancia
     return qs[index]
 
 
@@ -111,30 +116,27 @@ def inversekinematics4(robot, sphere, target_position, target_orientation, q0, v
         qd = np.dot(DELTA_TIME, qd)
         q = q + qd
         [q, _] = robot.apply_joint_limits(q)
-        # Yes, actually comanding the robot to move here
-        # robot.set_joint_target_positions(q, precision=True)
         q_path.append(q)
         qd_path.append(qd)
     return q_path, qd_path
 
 
-
 def follow_line_obstacle(robot, sphere):
-    target_positions = [[0.5, 0.4, 0.7],  # initial in front of conveyor
-                        [0.5, -0.4, 0.7]]  # drop the piece on the table
+    target_positions = [[0.5, 0.4, 0.5],  # initial in front of conveyor
+                        [0.5, -0.4, 0.5]]  # drop the piece on the table
     target_orientations = [[0, np.pi/8, 0],
                            [0, np.pi/8, 0]]
 
     # initial arm position
     q0 = np.array([-np.pi / 8, np.pi/8, np.pi/8, -np.pi / 2, 0.1, 0.1, 0.1])
-    # necesita cambiar la posición central
+
+    # cambie la posición de la esfera
     sphere.set_object_position([0.1, -0.3, 0.75])
     #sphere.set_object_position([0.5, 0.0, 0.5])
     #sphere.set_object_position([0.5, 0.0, 0.4])
     #sphere.set_object_position([0.35, 0.0, 0.4])
 
-
-    q0 = maximize_distance_to_obstacles(robot, q0)
+    q0 = find_min_distance(robot, q0)
 
     # set initial position of robot
     robot.set_joint_target_positions(q0, precision=True)
@@ -152,12 +154,9 @@ def follow_line_obstacle(robot, sphere):
     robot.wait(15)
 
 
-
-def pallet_application():
+def application_with_obstacles():
     robot, sphere = init_simulation_KUKALBR()
-
     follow_line_obstacle(robot, sphere)
-
     # Stop arm and simulation
     robot.stop_arm()
     robot.stop_simulation()
@@ -165,4 +164,4 @@ def pallet_application():
 
 
 if __name__ == "__main__":
-    pallet_application()
+    application_with_obstacles()

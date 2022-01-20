@@ -25,24 +25,19 @@ class RobotUR5(Robot):
                                  [360,   360,  360,  360,  360,  360]])
         joint_ranges = joint_ranges * np.pi / 180.0
 
+        self.max_error_dist_inversekinematics = 0.01
+        self.max_error_orient_inversekinematics = 0.01
+
         Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target,
                        max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges, camera=camera)
 
     def open_gripper(self, precision=False):
         self.gripper.open_gripper(precision=precision)
-        # sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.gripper[0],
-        #                                targetPosition=0.05, operationMode=sim.simx_opmode_oneshot)
-        # sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.gripper[0],
-        #                          force=1.0, operationMode=sim.simx_opmode_oneshot)
         if precision:
             self.wait(10)
 
     def close_gripper(self, precision=False):
         self.gripper.close_gripper(precision=precision)
-        # sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.gripper[0],
-        #                                 targetPosition=-0.05, operationMode=sim.simx_opmode_oneshot)
-        # sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.gripper[0],
-        #                          force=-1.0, operationMode=sim.simx_opmode_oneshot)
         if precision:
             self.wait(10)
 

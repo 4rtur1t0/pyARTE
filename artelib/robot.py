@@ -36,8 +36,6 @@ class Robot():
         self.joint_ranges = joint_ranges
         # parameters of the inverse kinematics algorith
         self.max_iterations_inverse_kinematics = 1500
-        self.max_error_dist_inversekinematics = 0.0050
-        self.max_error_orient_inversekinematics = 0.0050
         # max iterations to achieve a joint target in coppelia
         self.max_iterations_joint_target = 150
         # admit this error in q
@@ -290,14 +288,19 @@ class Robot():
     def apply_joint_limits(self, q):
         """
         the value of qi will be saturated to the max or min values as specified in self.joint_ranges
+
         """
+        # out_of_range states whether any of the joints is saturated (is going out of range)
+        out_of_range = False
         for i in range(0, len(q)):
             # greater than min and lower than max --> then saturate
             if q[i] < self.joint_ranges[0, i]:
                 q[i] = self.joint_ranges[0, i]
+                out_of_range = True
             elif q[i] > self.joint_ranges[1, i]:
                 q[i] = self.joint_ranges[1, i]
-        return q
+                out_of_range = True
+        return q, out_of_range
 
     def check_speed(self, qd):
         """
@@ -365,7 +368,7 @@ class Robot():
         return qd
 
     def adjust_vwref(self, vwref, error_dist, error_orient, vmax=1.0):
-        radius = 5*self.max_error_dist_inversekinematics
+        radius = 8*self.max_error_dist_inversekinematics
         vref = vwref[0:3]
         wref = vwref[3:6]
         if error_dist <= radius:
@@ -442,7 +445,7 @@ class Robot():
             q = q + qd
             # check joints ranges
             self.check_joints(q)
-            q = self.apply_joint_limits(q)
+            [q, _] = self.apply_joint_limits(q)
             # append to the computed joint path
             q_path.append(q)
             qd_path.append(qd)
@@ -491,7 +494,7 @@ class Robot():
             q = q + qd
             # check joints ranges
             self.check_joints(q)
-            q = self.apply_joint_limits(q)
+            [q, _] = self.apply_joint_limits(q)
             # append to the computed joint path
             q_path.append(q)
             qd_path.append(qdb)

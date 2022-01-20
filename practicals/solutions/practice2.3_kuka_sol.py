@@ -85,7 +85,7 @@ def inversekinematics2(robot, target_position, target_orientation, q0, vmax=0.5)
         [qd, _, _] = robot.check_speed(qd)
         qd = np.dot(DELTA_TIME, qd)
         q = q + qd
-        q = robot.apply_joint_limits(q)
+        [q, _] = robot.apply_joint_limits(q)
         q_path.append(q)
         qd_path.append(qd)
     return q_path, qd_path
