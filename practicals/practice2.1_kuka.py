@@ -53,7 +53,7 @@ def pick_and_place(robot, step_number):
     # set the target we are willing to reach on Coppelia
     robot.set_target_position_orientation(target_positions[0], target_orientations[0])
     robot.set_joint_target_trajectory(q1_path, precision='last')
-    robot.set_joint_target_trajectory(q2_path, precision='none')
+    robot.set_joint_target_trajectory(q2_path, precision='last')
     robot.close_gripper(precision=True)
     robot.set_joint_target_trajectory(q3_path, precision='last')
     robot.set_joint_target_trajectory(q4_path, precision='last')

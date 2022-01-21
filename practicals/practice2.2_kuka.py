@@ -28,7 +28,7 @@ def null_space(J):
 def move_null_space(robot):
     # initial arm position
     q0 = np.array([-np.pi / 8, np.pi/8, np.pi/8, -np.pi / 2, 0.1, 0.1, 0.1])
-    robot.set_joint_target_positions(q0, wait=True)
+    robot.set_joint_target_positions(q0, precision=True)
 
     # ok perform n movements in null space
     n_movements_in_null_space = 150
@@ -47,7 +47,7 @@ def move_null_space(robot):
         q_path.append(q)
         qd_path.append(qd)
 
-    robot.set_joint_target_trajectory(q_path, precision=False)
+    robot.set_joint_target_trajectory(q_path, precision='last')
     plot_vars(qd_path, 'JOINT SPEEDS')
 
 

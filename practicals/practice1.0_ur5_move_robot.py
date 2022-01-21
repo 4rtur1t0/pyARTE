@@ -18,15 +18,14 @@ The script is used to freely move the UR5 robot based on:
           Universidad Miguel Hernandez de Elche
 
 @Time: November 2021
-
 """
 import numpy as np
 from artelib.tools import T2quaternion
 import matplotlib.pyplot as plt
 from pynput import keyboard
-# standard delta time for Coppelia, please modify if necessary
 from sceneconfig.scene_configs import init_simulation_UR5
 
+# standard delta time for Coppelia, please modify if necessary
 DELTA_TIME = 50.0/1000.0
 
 actions = {'1': '0+',
@@ -50,10 +49,9 @@ actions = {'1': '0+',
 delta_increment = 0.05  # rad
 q = np.zeros(6)
 press_exit = False
-robot = init_simulation_UR5()
+robot, scene = init_simulation_UR5()
 # set initial position of robot
 robot.set_joint_target_positions(q, precision=True)
-
 
 
 def plot_trajectories(q_rs):
@@ -124,3 +122,4 @@ if __name__ == "__main__":
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
     robot.stop_arm()
+    scene.stop_simulation()
