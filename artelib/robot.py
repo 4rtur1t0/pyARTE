@@ -350,7 +350,6 @@ class Robot():
         Considers a simple joint control to behave properly in the presence of a singularity
         """
         manip = np.linalg.det(np.dot(J, J.T))
-        print('Manip is: ', manip)
         # print('Manip v is: ', np.linalg.det(np.dot(Jv, Jv.T)))
         # print('Manip w is: ', np.linalg.det(np.dot(Jw, Jw.T)))
         # normal case --> just compute pseudo inverse
@@ -361,6 +360,7 @@ class Robot():
             iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T)))
             qd = np.dot(iJ, vwref.T)
             return qd
+        print('Manip is: ', manip)
         print('Close to singularity: implementing DAMPED Least squares solution')
         K = 0.01 * np.eye(np.min(J.shape))
         iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + K))

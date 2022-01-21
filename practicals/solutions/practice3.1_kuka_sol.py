@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/kuka_14_R820_1.ttt scene before running this script.
+Please open the scenes/kuka_14_R820.ttt scene before running this script.
 The demo represents a KUKA LBR IIWA robot trying to avoid collisions with a sphere.
 
 @Authors: Arturo Gil
@@ -41,7 +41,6 @@ def minimize_w_central(J, q, qc, K):
     else:
         return qdb
 
-
 def potential0(r):
     K = 1.0
     p = K * (1 / r)
@@ -49,8 +48,14 @@ def potential0(r):
 
 
 def potential(r):
-    # EJERCICIO, calcular el módulo de la función de repulsión
-
+    K = 0.5
+    rs = 0.15 # radius of the sphere
+    rmax = 0.3
+    if r < rs:
+        r = rs
+    p = K * (1 / r - 1 / rmax)
+    if p < 0:
+        p = 0
     return p
 
 
@@ -59,12 +64,8 @@ def compute_repulsion(pe, ps):
     r = np.linalg.norm(u)
     if r > 0.0:
         u = u / r
-
-    # EJERCICIO: Calcular la velocidad de repulsíón considerando el vector
-    # unitario u
-
-    # EJERCICIO: note que la repulsión no implica un cambio en la orientación,
-    # con lo que wref=(0,0,0)
+    p = potential(r)
+    vrep = np.dot(p, u)
     vrep = np.hstack((vrep, np.array([0, 0, 0])))
     return vrep
 
@@ -115,13 +116,6 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
     return q_path, qd_path
 
 
-def plot_robot_and_sphere(robot, sphere, q_path, sphere_positions):
-    for i in range(0, len(q_path)):
-        robot.set_joint_target_positions(q_path[i], wait=False)
-        sphere.set_object_position(position=sphere_positions[i])
-    return
-
-
 def follow_line_obstacle(robot, sphere):
     target_positions = [[0.5, 0.4, 0.5],  # initial in front of conveyor
                         [0.5, -0.4, 0.5]]  # drop the piece on the table
@@ -155,10 +149,15 @@ def follow_line_obstacle(robot, sphere):
     robot.wait(15)
 
 
-if __name__ == "__main__":
+def application():
     robot, sphere = init_simulation_KUKALBR()
     follow_line_obstacle(robot, sphere)
+
     # Stop arm and simulation
     robot.stop_arm()
     robot.stop_simulation()
     robot.plot_trajectories()
+
+
+if __name__ == "__main__":
+    application()
