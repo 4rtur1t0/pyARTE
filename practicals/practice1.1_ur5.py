@@ -9,7 +9,6 @@ Please open the scenes/ur5.ttt scene before running this script.
 import numpy as np
 from artelib.tools import buildT
 from sceneconfig.scene_configs import init_simulation_UR5
-
 # standard delta time for Coppelia, please modify if necessary
 DELTA_TIME = 50.0/1000.0
 
@@ -85,16 +84,16 @@ def move_to_target():
 
     # NOW! execute trajectories on the simulated robot
     # set initial position of robot
-    robot.set_joint_target_positions(q0, wait=True)
+    robot.set_joint_target_positions(q0, precision=True)
     robot.open_gripper()
     # set the target we are willing to reach on Coppelia
     robot.set_target_position_orientation(target_positions[0], target_orientations[0])
-    robot.set_joint_target_positions(q1, wait=True)
+    robot.set_joint_target_positions(q1, precision=True)
     # set the target we are willing to reach on Coppelia
     robot.set_target_position_orientation(target_positions[1], target_orientations[1])
-    robot.set_joint_target_positions(q2, wait=True)
-    robot.close_gripper(wait=True)
-    robot.open_gripper(wait=True)
+    robot.set_joint_target_positions(q2, precision=True)
+    robot.close_gripper(precision=True)
+    robot.open_gripper(precision=True)
     # stop the arm
     robot.stop_arm()
     # stop simulation

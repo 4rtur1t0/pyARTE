@@ -18,15 +18,14 @@ The script is used to freely move the UR5 robot based on:
           Universidad Miguel Hernandez de Elche
 
 @Time: November 2021
-
 """
 import numpy as np
 from artelib.tools import T2quaternion
 import matplotlib.pyplot as plt
 from pynput import keyboard
-# standard delta time for Coppelia, please modify if necessary
 from sceneconfig.scene_configs import init_simulation_UR5
 
+# standard delta time for Coppelia, please modify if necessary
 DELTA_TIME = 50.0/1000.0
 
 actions = {'1': '0+',
@@ -48,11 +47,11 @@ actions = {'1': '0+',
            }
 
 delta_increment = 0.05  # rad
-q = np.zeros(7)
+q = np.zeros(6)
 press_exit = False
 robot, scene = init_simulation_UR5()
 # set initial position of robot
-robot.set_arm_joint_target_positions(q, wait=True)
+robot.set_joint_target_positions(q, precision=True)
 
 
 def plot_trajectories(q_rs):
@@ -70,15 +69,15 @@ def on_press(key):
         print('Key pressed: {0} '.format(key.char))
         caracter = key.char
         if caracter == 'o':
-            robot.open_gripper(wait=True)
+            robot.open_gripper(precision=True)
             return True
         elif caracter == 'c':
-            robot.close_gripper(wait=True)
+            robot.close_gripper(precision=True)
             return True
         elif caracter == 'z':
             print('ARM RESET')
-            q = np.zeros(7)
-            robot.set_arm_joint_target_positions(q, wait=True)
+            q = np.zeros(6)
+            robot.set_joint_target_positions(q, precision=True)
             return True
         # for the rest of actions,  decode action from actions dictionary
         acti = actions[key.char]
@@ -88,7 +87,7 @@ def on_press(key):
             q[index] += delta_increment
         else:
             q[index] -= delta_increment
-        robot.set_arm_joint_target_positions(q, wait=False)
+        robot.set_joint_target_positions(q, precision=False)
         robot.wait(1)
         [position, orientation] = robot.get_end_effector_position_orientation()
         T = robot.direct_kinematics(q)
@@ -122,6 +121,5 @@ if __name__ == "__main__":
     # Collect events until released
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
-
     robot.stop_arm()
     scene.stop_simulation()

@@ -16,40 +16,6 @@ from sceneconfig.scene_configs import init_simulation_KUKALBR
 DELTA_TIME = 50.0/1000.0
 
 
-def move_null_space(robot, q0, dir, nsteps):
-    robot.set_joint_target_positions(q0, precision=True)
-    # ok perform n movements in null space
-    n_movements_in_null_space = nsteps
-    q = q0
-    q_path = []
-    ds = []
-    for i in range(0, n_movements_in_null_space):
-        print('Movement number: ', i)
-        J, Jv, Jw = robot.get_jacobian(q)
-        qd = null_space(J, 6)
-        if dir == '+' and qd[2] < 0:
-            qd = -qd
-        elif dir == '-' and qd[2] > 0:
-            qd = -qd
-        qd = np.dot(DELTA_TIME, qd)
-        q = q + qd
-        [q, out_of_range] = robot.apply_joint_limits(q)
-        if out_of_range:
-            break
-        q_path.append(q)
-    samples = range(0, len(q_path))
-    for i in samples:
-        robot.set_joint_target_positions(q_path[i], precision=False)
-        d = robot.get_min_distance_to_objects()
-        ds.append(d)
-    return ds, q_path
-
-
-def maximize_distance_to_obstacles(robot, q):
-    ds, qs = move_null_space(robot, q, '-', 200)
-    index = np.argmax(ds)
-    return qs[index]
-
 def increase_distance_to_obstacles(robot, q):
     robot.set_joint_target_positions(q, precision=True)
     d1 = robot.get_min_distance_to_objects()
@@ -62,7 +28,6 @@ def increase_distance_to_obstacles(robot, q):
         return qd
     else:
         return -qd
-
 
 
 def potential(r):

@@ -126,8 +126,10 @@ def follow_line_obstacle(robot, sphere):
 
     # initial arm position
     q0 = np.array([-np.pi / 8, np.pi/8, np.pi/8, -np.pi / 2, 0.1, 0.1, 0.1])
+    #####################################
     # EJERCICIO:
     # CAMBIE LA POSICIÓN DE LAS ESFERAS
+    ######################################
     sphere.set_object_position([0.1, -0.3, 0.75])
     #sphere.set_object_position([0.5, 0.0, 0.5])
     #sphere.set_object_position([0.5, 0.0, 0.4])
