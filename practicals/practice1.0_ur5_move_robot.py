@@ -50,9 +50,9 @@ actions = {'1': '0+',
 delta_increment = 0.05  # rad
 q = np.zeros(7)
 press_exit = False
-robot, scene = init_simulation_UR5()
+robot = init_simulation_UR5()
 # set initial position of robot
-robot.set_arm_joint_target_positions(q, wait=True)
+robot.set_joint_target_positions(q, wait=True)
 
 
 def plot_trajectories(q_rs):
@@ -78,7 +78,7 @@ def on_press(key):
         elif caracter == 'z':
             print('ARM RESET')
             q = np.zeros(7)
-            robot.set_arm_joint_target_positions(q, wait=True)
+            robot.set_joint_target_positions(q, wait=True)
             return True
         # for the rest of actions,  decode action from actions dictionary
         acti = actions[key.char]
@@ -88,7 +88,7 @@ def on_press(key):
             q[index] += delta_increment
         else:
             q[index] -= delta_increment
-        robot.set_arm_joint_target_positions(q, wait=False)
+        robot.set_joint_target_positions(q, wait=False)
         robot.wait(1)
         [position, orientation] = robot.get_end_effector_position_orientation()
         T = robot.direct_kinematics(q)
@@ -124,4 +124,4 @@ if __name__ == "__main__":
         listener.join()
 
     robot.stop_arm()
-    scene.stop_simulation()
+   # scene.stop_simulation()
