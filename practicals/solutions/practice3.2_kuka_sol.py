@@ -118,7 +118,6 @@ def inversekinematics4(robot, sphere, target_position, target_orientation, q0, v
     return q_path, qd_path
 
 
-
 def follow_line_obstacle(robot, sphere):
     target_positions = [[0.5, 0.4, 0.7],  # initial in front of conveyor
                         [0.5, -0.4, 0.7]]  # drop the piece on the table
@@ -127,18 +126,19 @@ def follow_line_obstacle(robot, sphere):
 
     # initial arm position
     q0 = np.array([-np.pi / 8, np.pi/8, np.pi/8, -np.pi / 2, 0.1, 0.1, 0.1])
-    # necesita cambiar la posición central
+    # EJERCICIO:
+    # CAMBIE LA POSICIÓN DE LAS ESFERAS
     sphere.set_object_position([0.1, -0.3, 0.75])
     #sphere.set_object_position([0.5, 0.0, 0.5])
     #sphere.set_object_position([0.5, 0.0, 0.4])
     #sphere.set_object_position([0.35, 0.0, 0.4])
 
-
+    # EJERCICIO: MUEVA AL ROBOT EN EL ESPACIO NULO Y
+    # HALLE q0 que lo aleje lo más posible de los obstáculos
     q0 = maximize_distance_to_obstacles(robot, q0)
 
     # set initial position of robot
     robot.set_joint_target_positions(q0, precision=True)
-    # plan trajectories
     [q1_path, _] = inversekinematics4(robot=robot, sphere=sphere, target_position=target_positions[0],
                                       target_orientation=target_orientations[0], q0=q0)
     [q2_path, _] = inversekinematics4(robot=robot, sphere=sphere, target_position=target_positions[1],
@@ -152,12 +152,9 @@ def follow_line_obstacle(robot, sphere):
     robot.wait(15)
 
 
-
-def pallet_application():
+def application():
     robot, sphere = init_simulation_KUKALBR()
-
     follow_line_obstacle(robot, sphere)
-
     # Stop arm and simulation
     robot.stop_arm()
     robot.stop_simulation()
@@ -165,4 +162,4 @@ def pallet_application():
 
 
 if __name__ == "__main__":
-    pallet_application()
+    application()

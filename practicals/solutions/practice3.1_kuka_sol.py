@@ -93,7 +93,7 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
         # compute ATTRACTION
         vwref, error_dist, error_orient = robot.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax,
                                                                 total_time=total_time)
-        vwref = robot.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
+        # vwref = robot.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
         # compute REPULSION
         vrep = compute_repulsion(pe=pe, ps=ps)
         vwref = vwref + vrep
@@ -116,12 +116,6 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
         qd_path.append(qd)
     return q_path, qd_path
 
-
-def plot_robot_and_sphere(robot, sphere, q_path, sphere_positions):
-    for i in range(0, len(q_path)):
-        robot.set_joint_target_positions(q_path[i], wait=False)
-        sphere.set_object_position(position=sphere_positions[i])
-    return
 
 
 def follow_line_obstacle(robot, sphere):
@@ -157,10 +151,8 @@ def follow_line_obstacle(robot, sphere):
     robot.wait(15)
 
 
-
-def pallet_application():
+def application():
     robot, sphere = init_simulation_KUKALBR()
-
     follow_line_obstacle(robot, sphere)
 
     # Stop arm and simulation
@@ -170,4 +162,4 @@ def pallet_application():
 
 
 if __name__ == "__main__":
-    pallet_application()
+    application()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/kuka_14_R820.ttt scene before running this script.
+Please open the scenes/kuka_14_R820_1.ttt scene before running this script.
 The demo represents a KUKA LBR IIWA robot trying to avoid collisions with a sphere.
 
 @Authors: Arturo Gil
@@ -41,6 +41,7 @@ def minimize_w_central(J, q, qc, K):
     else:
         return qdb
 
+
 def potential0(r):
     K = 1.0
     p = K * (1 / r)
@@ -48,14 +49,8 @@ def potential0(r):
 
 
 def potential(r):
-    K = 0.5
-    rs = 0.15 # radius of the sphere
-    rmax = 0.3
-    if r < rs:
-        r = rs
-    p = K * (1 / r - 1 / rmax)
-    if p < 0:
-        p = 0
+    # EJERCICIO, calcular el módulo de la función de repulsión
+
     return p
 
 
@@ -64,8 +59,12 @@ def compute_repulsion(pe, ps):
     r = np.linalg.norm(u)
     if r > 0.0:
         u = u / r
-    p = potential(r)
-    vrep = np.dot(p, u)
+
+    # EJERCICIO: Calcular la velocidad de repulsíón considerando el vector
+    # unitario u
+
+    # EJERCICIO: note que la repulsión no implica un cambio en la orientación,
+    # con lo que wref=(0,0,0)
     vrep = np.hstack((vrep, np.array([0, 0, 0])))
     return vrep
 
@@ -93,7 +92,6 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
         # compute ATTRACTION
         vwref, error_dist, error_orient = robot.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax,
                                                                 total_time=total_time)
-        vwref = robot.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
         # compute REPULSION
         vrep = compute_repulsion(pe=pe, ps=ps)
         vwref = vwref + vrep
@@ -157,17 +155,10 @@ def follow_line_obstacle(robot, sphere):
     robot.wait(15)
 
 
-
-def pallet_application():
+if __name__ == "__main__":
     robot, sphere = init_simulation_KUKALBR()
-
     follow_line_obstacle(robot, sphere)
-
     # Stop arm and simulation
     robot.stop_arm()
     robot.stop_simulation()
     robot.plot_trajectories()
-
-
-if __name__ == "__main__":
-    pallet_application()
