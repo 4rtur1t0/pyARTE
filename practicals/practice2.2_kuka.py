@@ -47,7 +47,7 @@ def move_null_space(robot):
         q_path.append(q)
         qd_path.append(qd)
 
-    robot.set_joint_target_trajectory(q_path, wait=False)
+    robot.set_joint_target_trajectory(q_path, precision=False)
     plot_vars(qd_path, 'JOINT SPEEDS')
 
 
