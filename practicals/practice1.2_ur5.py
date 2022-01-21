@@ -146,16 +146,16 @@ def move_to_target():
 
     # NOW! execute trajectories on the simulated robot
     # set initial position of robot
-    robot.set_joint_target_positions(q0, wait=True)
+    robot.set_joint_target_positions(q0, precision=True)
     robot.open_gripper()
     # set the target we are willing to reach on Coppelia
     robot.set_target_position_orientation(target_positions[0], target_orientations[0])
-    robot.set_joint_target_trajectory(q1_path, wait=False)
+    robot.set_joint_target_trajectory(q1_path, precision=False)
     # set the target we are willing to reach on Coppelia
     robot.set_target_position_orientation(target_positions[1], target_orientations[1])
-    robot.set_joint_target_trajectory(q2_path, wait=False)
-    robot.set_joint_target_positions(q2_path[-1], wait=True)
-    robot.close_gripper(wait=True)
+    robot.set_joint_target_trajectory(q2_path, precision=False)
+    robot.set_joint_target_positions(q2_path[-1], precision=True)
+    robot.close_gripper(precision=True)
 
     # stop the arm
     robot.stop_arm()
