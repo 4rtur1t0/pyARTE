@@ -45,6 +45,10 @@ def inversekinematics2(robot, target_position, target_orientation, q0, vmax=1.0)
     vrefs = []
     wrefs = []
     max_iterations = 500
+    #################################################
+    # EJERCICIO: DEBERÁ VARIAR Y PROBAR DIFERENTES qc
+    # Y DIFERENTES PONDERACIONES K
+    #################################################
     qc = [0, 0, 0, 0, 0, 0, 0]
     K = [1, 1, 1, 1, 1, 10, 1]
     q_path = []
@@ -127,10 +131,8 @@ def pick_and_place(robot, step_number):
 
 def pallet_application():
     robot, _ = init_simulation_KUKALBR()
-
     for i in range(0, 6):
         pick_and_place(robot, i)
-
     # Stop arm and simulation
     robot.stop_arm()
     robot.stop_simulation()
