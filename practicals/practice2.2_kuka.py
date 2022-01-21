@@ -53,9 +53,7 @@ def move_null_space(robot):
 
 if __name__ == "__main__":
     robot, _ = init_simulation_KUKALBR()
-
     move_null_space(robot)
-
     # Stop arm and simulation
     robot.stop_arm()
     robot.stop_simulation()
