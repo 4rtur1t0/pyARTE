@@ -48,7 +48,7 @@ actions = {'1': '0+',
            }
 
 delta_increment = 0.05  # rad
-q = np.zeros(7)
+q = np.zeros(6)
 press_exit = False
 robot = init_simulation_UR5()
 # set initial position of robot
@@ -78,7 +78,7 @@ def on_press(key):
             return True
         elif caracter == 'z':
             print('ARM RESET')
-            q = np.zeros(7)
+            q = np.zeros(6)
             robot.set_joint_target_positions(q, precision=True)
             return True
         # for the rest of actions,  decode action from actions dictionary
@@ -123,6 +123,4 @@ if __name__ == "__main__":
     # Collect events until released
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
-
     robot.stop_arm()
-   # scene.stop_simulation()
