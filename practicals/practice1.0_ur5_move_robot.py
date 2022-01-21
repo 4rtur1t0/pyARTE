@@ -55,6 +55,7 @@ robot = init_simulation_UR5()
 robot.set_joint_target_positions(q, wait=True)
 
 
+
 def plot_trajectories(q_rs):
     q_rs = np.array(q_rs)
     plt.figure()
