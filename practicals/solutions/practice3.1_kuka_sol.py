@@ -93,7 +93,6 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
         # compute ATTRACTION
         vwref, error_dist, error_orient = robot.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax,
                                                                 total_time=total_time)
-        # vwref = robot.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
         # compute REPULSION
         vrep = compute_repulsion(pe=pe, ps=ps)
         vwref = vwref + vrep
@@ -115,7 +114,6 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
         q_path.append(q)
         qd_path.append(qd)
     return q_path, qd_path
-
 
 
 def follow_line_obstacle(robot, sphere):
