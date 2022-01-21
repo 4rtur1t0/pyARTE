@@ -52,7 +52,7 @@ q = np.zeros(7)
 press_exit = False
 robot = init_simulation_UR5()
 # set initial position of robot
-robot.set_joint_target_positions(q, wait=True)
+robot.set_joint_target_positions(q, precision=True)
 
 
 
@@ -71,15 +71,15 @@ def on_press(key):
         print('Key pressed: {0} '.format(key.char))
         caracter = key.char
         if caracter == 'o':
-            robot.open_gripper(wait=True)
+            robot.open_gripper(precision=True)
             return True
         elif caracter == 'c':
-            robot.close_gripper(wait=True)
+            robot.close_gripper(precision=True)
             return True
         elif caracter == 'z':
             print('ARM RESET')
             q = np.zeros(7)
-            robot.set_joint_target_positions(q, wait=True)
+            robot.set_joint_target_positions(q, precision=True)
             return True
         # for the rest of actions,  decode action from actions dictionary
         acti = actions[key.char]
@@ -89,7 +89,7 @@ def on_press(key):
             q[index] += delta_increment
         else:
             q[index] -= delta_increment
-        robot.set_joint_target_positions(q, wait=False)
+        robot.set_joint_target_positions(q, precision=False)
         robot.wait(1)
         [position, orientation] = robot.get_end_effector_position_orientation()
         T = robot.direct_kinematics(q)
