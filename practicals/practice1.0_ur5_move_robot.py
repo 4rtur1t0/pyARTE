@@ -49,7 +49,7 @@ actions = {'1': '0+',
 delta_increment = 0.05  # rad
 q = np.zeros(6)
 press_exit = False
-robot, scene = init_simulation_UR5()
+robot = init_simulation_UR5()
 # set initial position of robot
 robot.set_joint_target_positions(q, precision=True)
 

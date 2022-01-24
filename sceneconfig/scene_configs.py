@@ -37,7 +37,6 @@ def init_simulation_UR5():
         sys.exit("Connection failed,program ended!")
 
     armjoints = []
-    #gripper = []
     # Get the handles of the relevant objects
     errorCode, robotbase = sim.simxGetObjectHandle(clientID, 'UR5', sim.simx_opmode_oneshot_wait)
     errorCode, end_effector = sim.simxGetObjectHandle(clientID, 'end_effector', sim.simx_opmode_oneshot_wait)
@@ -59,11 +58,10 @@ def init_simulation_UR5():
     armjoints.append(q5)
     armjoints.append(q6)
     gripper = GripperRG2(clientID=clientID, joints=[gripper_joint1])
-    #gripper.append(gripper1)
-    # objects.append(sphere)
+
     robot = RobotUR5(clientID=clientID, wheeljoints=[],
-                    armjoints=armjoints, base=robotbase,
-                    end_effector=end_effector, gripper=gripper, target=target, camera=camera)
+                     armjoints=armjoints, base=robotbase,
+                     end_effector=end_effector, gripper=gripper, target=target, camera=camera)
     return robot
 
 
@@ -85,7 +83,6 @@ def init_simulation_KUKALBR():
         sys.exit("Connection failed,program ended!")
 
     armjoints = []
-    #gripper = []
     # Get the handles of the relevant objects
     errorCode, robotbase = sim.simxGetObjectHandle(clientID, 'LBR_iiwa_14_R820', sim.simx_opmode_oneshot_wait)
     errorCode, end_effector = sim.simxGetObjectHandle(clientID, 'end_effector', sim.simx_opmode_oneshot_wait)
@@ -109,7 +106,6 @@ def init_simulation_KUKALBR():
     armjoints.append(q5)
     armjoints.append(q6)
     armjoints.append(q7)
-    # gripper.append(gripper1)
     gripper = GripperRG2(clientID=clientID, joints=[gripper_joint1])
     sphere = Sphere(clientID=clientID, handle=sphere_handle,
                     pa=np.array([1.0, -0.45, 0.25]),

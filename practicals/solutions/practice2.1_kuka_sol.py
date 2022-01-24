@@ -3,11 +3,9 @@
 """
 Please open the scenes/kuka_14_R820.ttt scene before running this script.
 
-INSTRUCTIONS:
-    JUST RUN THE CODE. The RG2 gripper does collide with the robot wrist and the robot is stopped in simulation.
-
 @Authors: Arturo Gil
 @Time: April 2021
+
 """
 import numpy as np
 from sceneconfig.scene_configs import init_simulation_KUKALBR
@@ -32,7 +30,6 @@ def pick_and_place(robot, step_number):
 
     # initial arm position
     q0 = np.array([-np.pi/8, 0, -np.pi/2, -np.pi/2, 0, -np.pi/2, 0])
-
     # plan trajectories
     [q1_path, _] = robot.inversekinematics_line(target_position=target_positions[0],
                                                 target_orientation=target_orientations[0], q0=q0, vmax=vmax)
@@ -48,7 +45,7 @@ def pick_and_place(robot, step_number):
     # NOW execute trajectories computed before.
     # set initial position of robot
     robot.set_joint_target_positions(q0, precision=False)
-    robot.wait(15)
+    robot.wait(10)
     robot.open_gripper(precision=True)
     # set the target we are willing to reach on Coppelia
     robot.set_target_position_orientation(target_positions[0], target_orientations[0])
@@ -63,13 +60,15 @@ def pick_and_place(robot, step_number):
     robot.set_joint_target_trajectory(q_path=q5_path[::-1])
     # back to initial
     robot.set_joint_target_positions(q0, precision=False)
-    robot.wait(15)
+    robot.wait(10)
 
 
 def pallet_application():
     robot, _ = init_simulation_KUKALBR()
+
     for i in range(0, 6):
         pick_and_place(robot, i)
+
     # Stop arm and simulation
     robot.stop_arm()
     robot.stop_simulation()
