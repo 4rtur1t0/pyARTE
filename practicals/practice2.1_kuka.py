@@ -8,7 +8,6 @@ INSTRUCTIONS:
 
 @Authors: Arturo Gil
 @Time: April 2021
-
 """
 import numpy as np
 from sceneconfig.scene_configs import init_simulation_KUKALBR
@@ -48,11 +47,12 @@ def pick_and_place(robot, step_number):
 
     # NOW execute trajectories computed before.
     # set initial position of robot
-    robot.set_joint_target_positions(q0, precision=True)
+    robot.set_joint_target_positions(q0, precision=False)
+    robot.wait(15)
     robot.open_gripper(precision=True)
     # set the target we are willing to reach on Coppelia
     robot.set_target_position_orientation(target_positions[0], target_orientations[0])
-    robot.set_joint_target_trajectory(q1_path, precision='all')
+    robot.set_joint_target_trajectory(q1_path, precision='last')
     robot.set_joint_target_trajectory(q2_path, precision='last')
     robot.close_gripper(precision=True)
     robot.set_joint_target_trajectory(q3_path, precision='last')
@@ -62,12 +62,12 @@ def pick_and_place(robot, step_number):
     # reverse array, from q4 to q5 and now q5 to q4
     robot.set_joint_target_trajectory(q_path=q5_path[::-1])
     # back to initial
-    robot.set_joint_target_positions(q0, precision=True)
+    robot.set_joint_target_positions(q0, precision=False)
+    robot.wait(15)
 
 
 def pallet_application():
     robot, _ = init_simulation_KUKALBR()
-
     for i in range(0, 6):
         pick_and_place(robot, i)
     # Stop arm and simulation
