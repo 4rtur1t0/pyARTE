@@ -122,6 +122,5 @@ if __name__ == "__main__":
     # Collect events until released
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
-
     robot.stop_arm()
     scene.stop_simulation()
