@@ -3,14 +3,15 @@
 """
 Please open the scenes/kuka_14_R820.ttt scene before running this script.
 
+    EXERCISE: MOVE ARBITRARILY THE ROBOT IN THE NULL SPACE CONSIDERING
+    n=7 DOF
+    m=6 DOF, task in 3+3 dimensions
+
 @Authors: Arturo Gil
 @Time: April 2021
-
 """
 import numpy as np
-
 from artelib.plottools import plot_vars
-from artelib.tools import buildT
 from sceneconfig.scene_configs import init_simulation_KUKALBR
 
 DELTA_TIME = 50/1000

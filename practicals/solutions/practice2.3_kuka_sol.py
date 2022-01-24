@@ -3,6 +3,10 @@
 """
 Please open the scenes/kuka_14_R820.ttt scene before running this script.
 
+    EXERCISE: SOLVE the inverse kinematics problem in a 7DOF redundant robot.
+                as a secondary target, minimize the sum of square differences:
+                    w = \sum_i (q[i] - qcentral[i])^2
+
 @Authors: Arturo Gil
 @Time: April 2021
 
@@ -75,10 +79,9 @@ def inversekinematics2(robot, target_position, target_orientation, q0, vmax=0.5)
         J, Jv, Jw = robot.get_jacobian(q)
         # compute joint speed to achieve the reference
         qda = robot.moore_penrose_damped(J, vwref)
-
-        #
-        # CALCULE UNA VELOCIDAD ARTICULAR QUE MINIMICE W
-        #
+        ###################################################################
+        # EJERCICIO: CALCULE UNA VELOCIDAD ARTICULAR QUE MINIMICE W
+        ###################################################################
         qdb = minimize_w_central(J, q, qc, K)
         qdb = 0.5 * np.linalg.norm(qda) * qdb
         qd = qda + qdb
@@ -124,8 +127,8 @@ def pick_and_place(robot, step_number):
     # NOW execute trajectories computed before.
     # set initial position of robot
     robot.set_joint_target_positions(q0, precision=False)
-    robot.wait(15)
-    robot.open_gripper(precision=True)
+    robot.wait(20)
+    robot.open_gripper(precision=False)
     # set the target we are willing to reach on Coppelia
     robot.set_target_position_orientation(target_positions[0], target_orientations[0])
     robot.set_joint_target_trajectory(q1_path, precision='last')
@@ -138,7 +141,7 @@ def pick_and_place(robot, step_number):
     robot.set_joint_target_trajectory(q5_path[::-1], precision='last')
     # # # back to initial
     robot.set_joint_target_positions(q0, precision=False)
-    robot.wait(15)
+    robot.wait(20)
 
 
 def pallet_application():
