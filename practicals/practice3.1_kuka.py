@@ -9,7 +9,7 @@ The demo represents a KUKA LBR IIWA robot trying to avoid collisions with a sphe
 
 """
 import numpy as np
-from artelib.plottools import plot_vars, plot_xy
+from artelib.plottools import plot_vars, plot_xy, plot
 from artelib.tools import buildT
 from sceneconfig.scene_configs import init_simulation_KUKALBR
 
@@ -112,6 +112,7 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
         [q, _] = robot.apply_joint_limits(q)
         q_path.append(q)
         qd_path.append(qd)
+    plot()
     return q_path, qd_path
 
 
