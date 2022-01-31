@@ -25,8 +25,8 @@ class RobotKUKALBR(Robot):
                                  [180,   180, 180,  180,  180,  180, 180]])
         joint_ranges = joint_ranges * np.pi / 180.0
 
-        self.max_error_dist_inversekinematics = 0.0050
-        self.max_error_orient_inversekinematics = 0.0050
+        self.max_error_dist_inversekinematics = 0.08
+        self.max_error_orient_inversekinematics = 0.07
 
         Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera,
                        max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges)
@@ -49,9 +49,3 @@ class RobotKUKALBR(Robot):
         T = eval_symbolic_T_KUKALBR(q)
         return T
 
-    def get_min_distance_to_objects(self):
-        """
-        Caution: a signal must have been added to the Coppelia Simulation (called distance_to_sphere)
-        """
-        error, distance = sim.simxGetFloatSignal(self.clientID, 'min_distance_to_objects', sim.simx_opmode_oneshot_wait)
-        return distance

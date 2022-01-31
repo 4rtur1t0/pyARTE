@@ -1,4 +1,3 @@
 numpy
 matplotlib
 pynput
-python3-tk

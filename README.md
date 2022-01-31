@@ -40,6 +40,11 @@ If using Windows or Mac, you should look for your corresponding system library i
 Open the project in Pycharm (or any other python editor). Use the option ''add root content'' in 
 File-Settings-Project Structure-- Add Content Root. Add the directory coppelia_API.
 
+Install python3-tk
+```
+>> apt-get install python3-tk
+```
+
 **PRACTICALS**
 
 Practical exercises are provided under the practicals directory.
