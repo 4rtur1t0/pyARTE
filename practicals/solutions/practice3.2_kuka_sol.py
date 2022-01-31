@@ -9,7 +9,7 @@ The demo represents a KUKA LBR IIWA robot trying to avoid collisions with a sphe
 
 """
 import numpy as np
-from artelib.plottools import plot_vars, plot_xy
+from artelib.plottools import plot_vars, plot_xy, plot
 from artelib.tools import buildT, null_space
 from sceneconfig.scene_configs import init_simulation_KUKALBR
 
@@ -53,8 +53,8 @@ def maximize_distance_to_obstacles(robot, q):
 
 def potential(r):
     K = 0.5
-    rs = 0.15 # radius of the sphere
-    rmax = 0.3
+    rs = 0.1 # radius of the sphere
+    rmax = 0.2
     if r < rs:
         r = rs
     p = K * (1 / r - 1 / rmax)
@@ -81,27 +81,24 @@ def inversekinematics4(robot, sphere, target_position, target_orientation, q0, v
     """
     Ttarget = buildT(target_position, target_orientation)
     q = q0
-    max_iterations = 300
+    max_iterations = 1500
     q_path = []
     qd_path = []
     ps = sphere.get_position()
     Ti = robot.direct_kinematics(q)
     total_time = robot.compute_time(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
-    total_time = 0.5*total_time
+    # total_time = 0.3*total_time
     for i in range(0, max_iterations):
         print('Iteration number: ', i)
         Ti = robot.direct_kinematics(q)
         pe = Ti[0:3, 3]
-        # compute ATTRACTION
-        vwref, error_dist, error_orient = robot.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax,
+        vwref, error_dist, error_orient = robot.compute_actions(Tcurrent=Ti, Ttarget=Ttarget,
+                                                                vmax=vmax,
                                                                 total_time=total_time)
-        vwref = robot.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
-        # compute REPULSION
         vrep = compute_repulsion(pe=pe, ps=ps)
         vwref = vwref + vrep
         vwref = robot.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
-        if error_dist < robot.max_error_dist_inversekinematics and \
-                error_orient < robot.max_error_orient_inversekinematics:
+        if error_dist < robot.max_error_dist_inversekinematics and error_orient < robot.max_error_orient_inversekinematics:
             print('Converged!!')
             break
         J, Jv, Jw = robot.get_jacobian(q)
@@ -111,8 +108,6 @@ def inversekinematics4(robot, sphere, target_position, target_orientation, q0, v
         qd = np.dot(DELTA_TIME, qd)
         q = q + qd
         [q, _] = robot.apply_joint_limits(q)
-        # Yes, actually comanding the robot to move here
-        # robot.set_joint_target_positions(q, precision=True)
         q_path.append(q)
         qd_path.append(qd)
     return q_path, qd_path
@@ -130,10 +125,10 @@ def follow_line_obstacle(robot, sphere):
     # EJERCICIO:
     # CAMBIE LA POSICIÓN DE LAS ESFERAS
     ######################################
-    sphere.set_object_position([0.1, -0.3, 0.75])
+    sphere.set_object_position([0.1, -0.4, 0.75])
     #sphere.set_object_position([0.5, 0.0, 0.5])
     #sphere.set_object_position([0.5, 0.0, 0.4])
-    #sphere.set_object_position([0.35, 0.0, 0.4])
+    #sphere.set_object_position([1, 1, 1])
 
     # EJERCICIO: MUEVA AL ROBOT EN EL ESPACIO NULO Y
     # HALLE q0 que lo aleje lo más posible de los obstáculos

@@ -140,6 +140,21 @@ class Robot():
                                                  operationMode=sim.simx_opmode_oneshot_wait)
         return position, orientation
 
+    def get_min_distance_to_objects(self):
+        """
+        Caution: a signal must have been added to the Coppelia Simulation (called distance_to_sphere)
+        """
+        error, distance = sim.simxGetFloatSignal(self.clientID, 'min_distance_to_objects', sim.simx_opmode_oneshot_wait)
+        return distance
+
+    def get_laser_data(self):
+        """
+        Caution: a signal must have been added to the Coppelia Simulation (called distance_to_sphere)
+        """
+        error, data = sim.simxGetStringSignal(self.clientID, 'laserdata', sim.simx_opmode_oneshot_wait)
+        data = sim.simxUnpackFloats(data)
+        return data
+
     def stop_arm(self):
         for armj in self.armjoints:
             errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=armj,
@@ -318,7 +333,7 @@ class Robot():
             print('Setting speed to zero')
             print(30 * '*')
             return np.zeros(len(qd)), False, False
-        print('Joint speed norm: ', np.linalg.norm(qd))
+        # print('Joint speed norm: ', np.linalg.norm(qd))
         valid = True
         valid_indexes = []
         diffs = []
@@ -350,12 +365,8 @@ class Robot():
         Considers a simple joint control to behave properly in the presence of a singularity
         """
         manip = np.linalg.det(np.dot(J, J.T))
-        # print('Manip v is: ', np.linalg.det(np.dot(Jv, Jv.T)))
-        # print('Manip w is: ', np.linalg.det(np.dot(Jw, Jw.T)))
-        # normal case --> just compute pseudo inverse
-        # we are far from a singularity
-        if manip > .01 ** 2:
-            # iJ = np.linalg.pinv(J)
+        # normal case --> just compute pseudo inverse we are far from a singularity
+        if manip > .01**2:
             # moore penrose pseudo inverse J^T(J*J^T)^{-1}
             iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T)))
             qd = np.dot(iJ, vwref.T)
@@ -368,7 +379,7 @@ class Robot():
         return qd
 
     def adjust_vwref(self, vwref, error_dist, error_orient, vmax=1.0):
-        radius = 8*self.max_error_dist_inversekinematics
+        radius = 5*self.max_error_dist_inversekinematics
         vref = vwref[0:3]
         wref = vwref[3:6]
         if error_dist <= radius:
