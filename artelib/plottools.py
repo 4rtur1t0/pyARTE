@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot(x, title='Untitled', block=False):
+def plot(x, title='Untitled', block=True):
     plt.figure()
     x = np.array(x)
     plt.plot(x)
