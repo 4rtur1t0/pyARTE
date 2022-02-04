@@ -9,6 +9,9 @@ The demo represents a KUKA LBR IIWA robot trying to avoid collisions with a sphe
 
 """
 import numpy as np
+
+from artelib.inverse_kinematics import moore_penrose_damped
+from artelib.orientation import Euler
 from artelib.plottools import plot_vars, plot_xy, plot
 from artelib.tools import buildT, null_space
 from sceneconfig.scene_configs import init_simulation_KUKALBR
@@ -52,9 +55,9 @@ def maximize_distance_to_obstacles(robot, q):
 
 
 def potential(r):
-    K = 0.5
+    K = 0.4
     rs = 0.1 # radius of the sphere
-    rmax = 0.2
+    rmax = 0.15
     if r < rs:
         r = rs
     p = K * (1 / r - 1 / rmax)
@@ -103,7 +106,7 @@ def inversekinematics4(robot, sphere, target_position, target_orientation, q0, v
             break
         J, Jv, Jw = robot.get_jacobian(q)
         # compute joint speed to achieve the reference
-        qd = robot.moore_penrose_damped(J, vwref)
+        qd = moore_penrose_damped(J, vwref)
         [qd, _, _] = robot.check_speed(qd)
         qd = np.dot(DELTA_TIME, qd)
         q = q + qd
@@ -137,9 +140,9 @@ def follow_line_obstacle(robot, sphere):
     # set initial position of robot
     robot.set_joint_target_positions(q0, precision=True)
     [q1_path, _] = inversekinematics4(robot=robot, sphere=sphere, target_position=target_positions[0],
-                                      target_orientation=target_orientations[0], q0=q0)
+                                      target_orientation=Euler(target_orientations[0]), q0=q0)
     [q2_path, _] = inversekinematics4(robot=robot, sphere=sphere, target_position=target_positions[1],
-                                      target_orientation=target_orientations[1], q0=q1_path[-1])
+                                      target_orientation=Euler(target_orientations[1]), q0=q1_path[-1])
 
     # set the target we are willing to reach on Coppelia
     robot.set_target_position_orientation(target_positions[0], target_orientations[0])

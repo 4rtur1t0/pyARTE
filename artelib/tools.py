@@ -11,18 +11,29 @@ import numpy as np
 
 def buildT(position, orientation):
     T = np.zeros((4, 4))
-    R = euler2Rot(orientation)
+    # R = euler2rot(orientation)
+    R = orientation.R()
     T[0:3, 0:3] = R
     T[3, 3] = 1
     T[0:3, 3] = np.array(position).T
     return T
 
 
+# def buildTQ(position, orientationQ):
+#     T = np.zeros((4, 4))
+#     # R = quaternion2rot(orientationQ)
+#     T[0:3, 0:3] = R
+#     T[3, 3] = 1
+#     T[0:3, 3] = np.array(position).T
+#     return T
+
 def compute_w_between_orientations(orientation, targetorientation):
-    R1 = euler2Rot(orientation)
-    R2 = euler2Rot(targetorientation)
-    Q1 = R2quaternion(R1)
-    Q2 = R2quaternion(R2)
+    # R1 = euler2rot(orientation.R
+    # R2 = euler2rot(targetorientation)
+    R1 = orientation.R()
+    R2 = targetorientation.R()
+    Q1 = rot2quaternion(R1)
+    Q2 = rot2quaternion(R2)
     # compute the angular speed w that rotates from Q1 to Q2
     w = angular_w_between_quaternions(Q1, Q2, 1)
     return w
@@ -31,33 +42,71 @@ def compute_w_between_orientations(orientation, targetorientation):
 def compute_w_between_R(Rcurrent, Rtarget, total_time=1):
     R1 = Rcurrent[0:3, 0:3]
     R2 = Rtarget[0:3, 0:3]
-    Q1 = R2quaternion(R1)
-    Q2 = R2quaternion(R2)
+    Q1 = rot2quaternion(R1)
+    Q2 = rot2quaternion(R2)
     # compute the angular speed w that rotates from Q1 to Q2
     w = angular_w_between_quaternions(Q1, Q2, total_time=total_time)
-    # print('Q1: ', Q1)
-    # print('Q2: ', Q2)
-    # print('w: ', w)
     return w
 
 
-def T2quaternion(T):
-    """
-    Transforms a homogeneous matrix T into a quaternion. The R submatrix is extracted and the R2quaternion function is
-    used.
-    """
-    R = T[0:3, 0:3]
-    return R2quaternion(R)
+def compute_e_between_R(Rcurrent, Rtarget):
+    R1 = Rcurrent[0:3, 0:3]
+    R2 = Rtarget[0:3, 0:3]
+
+    ne = R1[:, 0]
+    se = R1[:, 1]
+    ae = R1[:, 2]
+
+    nd = R2[:, 0]
+    sd = R2[:, 1]
+    ad = R2[:, 2]
+    e = np.cross(ne, nd) + np.cross(se, sd) + np.cross(ae, ad)
+    e = 0.5*e
+    return e
 
 
-def R2quaternion(R):
+def compute_kinematic_errors(Tcurrent, Ttarget):
     """
-    R2quaternion(R)
+    Compute the error
+    """
+    # current position of the end effector and target position
+    p_current = Tcurrent[0:3, 3]
+    p_target = Ttarget[0:3, 3]
+    e1 = np.array(p_target - p_current)
+    error_dist = np.linalg.norm(e1)
+    e2 = compute_e_between_R(Tcurrent, Ttarget)
+    error_orient = np.linalg.norm(e2)
+    e = np.hstack((e1, e2))
+    return e, error_dist, error_orient
+
+
+def quaternion2rot(Q):
+    qw = Q[0]
+    qx = Q[1]
+    qy = Q[2]
+    qz = Q[3]
+    R = np.eye(3)
+    R[0, 0] = 1 - 2 * qy**2 - 2 * qz**2
+    R[0, 1] = 2 * qx * qy - 2 * qz * qw
+    R[0, 2] = 2 * qx * qz + 2 * qy * qw
+    R[1, 0] = 2 * qx * qy + 2 * qz * qw
+    R[1, 1] = 1 - 2*qx**2 - 2*qz**2
+    R[1, 2] = 2 * qy * qz - 2 * qx * qw
+    R[2, 0] = 2 * qx * qz - 2 * qy * qw
+    R[2, 1] = 2 * qy * qz + 2 * qx * qw
+    R[2, 2] = 1 - 2 * qx**2 - 2 * qy**2
+    return R
+
+
+def rot2quaternion(R):
+    """
+    rot2quaternion(R)
     Computes a quaternion Q from a rotation matrix R.
 
     This implementation has been translated from The Robotics Toolbox for Matlab (Peter  Corke),
     https://github.com/petercorke/spatial-math
     """
+    R = R[0:3, 0:3]
     s = np.sqrt(np.trace(R) + 1) / 2.0
     kx = R[2, 1] - R[1, 2] # Oz - Ay
     ky = R[0, 2] - R[2, 0] # Ax - Nz
@@ -147,7 +196,7 @@ def qconj(q):
     return Q
 
 
-def euler2Rot(abg):
+def euler2rot(abg):
     calpha = np.cos(abg[0])
     salpha = np.sin(abg[0])
     cbeta = np.cos(abg[1])
@@ -160,6 +209,55 @@ def euler2Rot(abg):
     R = np.matmul(Rx, Ry)
     R = np.matmul(R, Rz)
     return R
+
+
+def rot2euler(R):
+    """
+    Computes Euler angles for the expression Rx(alpha)Ry(beta)Rz(gamma)
+    Caution: convention is XYZ
+    :param R:
+    :return:
+    """
+    R = R[0:3, 0:3]
+    # caution, c-like indexes in python!
+    sbeta = R[0, 2]
+    if abs(sbeta) == 1.0:
+        # degenerate case in which sin(beta)=+-1 and cos(beta)=0
+        # arbitrarily set alpha to zero
+        alpha = 0.0
+        beta = np.arcsin(sbeta)
+        gamma = np.arctan2(R[1, 1], R[1, 0])
+    else:
+        # standard way to compute alpha beta and gamma
+        alpha = -np.arctan2(R[1, 2], R[2, 2])
+        beta = np.arctan2(np.cos(alpha) * R[0, 2], R[2, 2])
+        gamma = -np.arctan2(R[0, 1], R[0, 0])
+    return [alpha, beta, gamma]
+
+
+def euler2q(abg):
+    R = euler2rot(abg=abg)
+    Q = rot2quaternion(R)
+    return Q
+
+def q2euler(Q):
+    R = quaternion2rot(Q)
+    abg = rot2euler(R)
+    return abg
+
+
+def slerp(Q1, Q2, t):
+    """
+    Interpolates between quaternions Q1 and Q2, given a fraction 1
+    """
+    cth = np.dot(Q1, Q2)
+    th = np.arccos(cth)
+    if np.abs(th) > 0:
+        Q = Q1*np.sin((1-t)*th)/np.sin(th) + Q2*np.sin(t*th)/np.sin(th)
+        return Q
+    # if th == 0, dividing by zero, just return Q1
+    else:
+        return Q1
 
 
 def null_space(J, n):
@@ -176,23 +274,12 @@ def null_space(J, n):
 def null_space_projector(J):
     n = J.shape[1]
     I = np.eye(n)
-    P = I - np.dot(np.linalg.pinv(J), J)
+    # pseudo inverse moore-penrose
+    # here, do not use pinv
+    Jp = np.dot(J.T, np.linalg.inv(np.dot(J, J.T)))
+    P = I - np.dot(Jp, J)
     return P
 
-
-# def minimize_w_central(q, qd, qcentral, K):
-#
-#     w = w_central(q, qcentral, K)
-#
-#     if w == 0:
-#         return np.dot(0, qd)
-#
-#     dw = diff_w_central(qd, qcentral, K)
-#
-#     if dw > 0:
-#         return np.dot(-1.0, qd)
-#     else:
-#         return qd
 
 def w_central(q, qcentral, K):
     w = 0
@@ -200,9 +287,60 @@ def w_central(q, qcentral, K):
         w += K[i]*(q[i]-qcentral[i])**2
     return w
 
+
 def diff_w_central(q, qcentral, K):
     dw = []
     for i in range(0, len(qcentral)):
         dwi = K[i]*(q[i]-qcentral[i])
         dw.append(dwi)
     return np.array(dw)
+
+
+def minimize_w_central(J, q, qc, K):
+    qd0 = diff_w_central(q, qc, K)
+    qd0 = np.dot(-1.0, qd0)
+    P = null_space_projector(J)
+    qdb = np.dot(P, qd0)
+    norma = np.linalg.norm(qdb)
+    if np.isnan(np.sum(qdb)):
+        return np.zeros(len(q))
+    if norma > 0.0001:
+        return qdb / norma
+    else:
+        return qdb
+
+
+def w_lateral(q, qmax, qmin):
+    n = len(q)
+    w = 0
+    for i in range(n):
+        num = qmax[i]-qmin[i]
+        den = (qmax[i]-q[i])*(q[i]-qmin[i])
+        if den > 0:
+            w += num/den
+    w = w/2/n
+    return w
+
+
+def diff_w_lateral(q, qmax, qmin):
+    n = len(q)
+    dw = []
+    for i in range(n):
+        dwi = -(qmin[i]-qmax[i])/((q[i]-qmin[i])*(q[i]-qmax[i])**2)-(qmin[i] - qmax[i]) / ((q[i] - qmax[i])*(q[i] - qmin[i])**2)
+        if np.isinf(dwi):
+            dwi = 0
+        dw.append(dwi)
+    return np.array(dw)
+
+
+def minimize_w_lateral(J, q, qmax, qmin):
+    qd0 = diff_w_lateral(q, qmax, qmin)
+    qd0 = np.dot(-1.0, qd0)
+    P = null_space_projector(J)
+    qdb = np.dot(P, qd0)
+    norma = np.linalg.norm(qdb)
+    if norma > 0.0001:
+        return qdb / norma
+    else:
+        return qdb
+

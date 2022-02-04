@@ -10,9 +10,13 @@ Base Robot Class
 import sim
 import numpy as np
 
-from artelib.plottools import plot_vars
-from artelib.tools import compute_w_between_orientations, euler2Rot, R2quaternion, buildT, compute_w_between_R, \
-    null_space, diff_w_central, w_central, null_space_projector
+from artelib.inverse_kinematics import delta_q
+from artelib.path_planning import generate_target_positions_on_line, generate_target_orientations_on_line, \
+    generate_target_orientations_on_line_Q
+from artelib.plottools import plot_vars, plot
+from artelib.tools import compute_w_between_orientations, euler2rot, rot2quaternion, buildT, compute_w_between_R, \
+    null_space, diff_w_central, w_central, null_space_projector, compute_kinematic_errors, rot2euler, quaternion2rot, \
+    q2euler, buildT
 import matplotlib.pyplot as plt
 import time
 from PIL import Image, ImageOps
@@ -35,12 +39,18 @@ class Robot():
         self.max_joint_speeds = max_joint_speeds
         self.joint_ranges = joint_ranges
         # parameters of the inverse kinematics algorith
-        self.max_iterations_inverse_kinematics = 1500
+        self.max_iterations_inverse_kinematics = 15000
         # max iterations to achieve a joint target in coppelia
-        self.max_iterations_joint_target = 150
+        self.max_iterations_joint_target = 20
         # admit this error in q
         self.epsilonq = 0.001
         self.q_path = []
+
+        # max errors during computation of inverse kinematics
+        self.max_error_dist_inversekinematics = 0.01
+        self.max_error_orient_inversekinematics = 0.01
+        self.do_apply_joint_limits = False
+
 
     def set_joint_target_velocities(self, qd):
         """
@@ -89,7 +99,7 @@ class Robot():
                     if wait=False: the movement is typically smoother, but the trajectory is not followed exaclty.
         """
         # precision must be attained on all movements
-        if precision == 'all':
+        if precision == 'all' or precision == True:
             samples = range(0, len(q_path), sampling)
             for i in samples:
                 self.set_joint_target_positions(q_path[i], precision=True, real_time=real_time)
@@ -100,7 +110,7 @@ class Robot():
                 self.set_joint_target_positions(q_path[i], precision=False, real_time=real_time)
             self.set_joint_target_positions(q_path[-1], precision=True, real_time=real_time)
         # precision must not be attained on any i in the path
-        elif precision == 'none':
+        elif precision == 'none' or precision == False:
             samples = range(0, len(q_path), sampling)
             for i in samples:
                 self.set_joint_target_positions(q_path[i], precision=False, real_time=real_time)
@@ -139,6 +149,7 @@ class Robot():
                                                  eulerAngles=orientation, relativeToObjectHandle=-1,
                                                  operationMode=sim.simx_opmode_oneshot_wait)
         return position, orientation
+
 
     def get_min_distance_to_objects(self):
         """
@@ -221,10 +232,10 @@ class Robot():
         error_dist = np.array(targetposition)-np.array(position)
         # transform to rotation matrix and then to quaternion.
         # please, beware that the orientation is not unique using alpha, beta, gamma
-        Rorientation = euler2Rot(orientation)
-        Rtargetorientation = euler2Rot(targetorientation)
-        Qorientation = R2quaternion(Rorientation)
-        Qtargetorientation = R2quaternion(Rtargetorientation)
+        Rorientation = euler2rot(orientation)
+        Rtargetorientation = euler2rot(targetorientation)
+        Qorientation = rot2quaternion(Rorientation)
+        Qtargetorientation = rot2quaternion(Rtargetorientation)
         error_orient = Qorientation[1:4]-Qtargetorientation[1:4]
         return np.linalg.norm(error_dist), np.linalg.norm(error_orient)
 
@@ -362,23 +373,6 @@ class Robot():
             qd_corrected = qd
         return qd_corrected, valid, valid_indexes
 
-    def moore_penrose_damped(self, J, vwref):
-        """
-        Considers a simple joint control to behave properly in the presence of a singularity
-        """
-        manip = np.linalg.det(np.dot(J, J.T))
-        # normal case --> just compute pseudo inverse we are far from a singularity
-        if manip > .01**2:
-            # moore penrose pseudo inverse J^T(J*J^T)^{-1}
-            iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T)))
-            qd = np.dot(iJ, vwref.T)
-            return qd
-        print('Manip is: ', manip)
-        print('Close to singularity: implementing DAMPED Least squares solution')
-        K = 0.01 * np.eye(np.min(J.shape))
-        iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + K))
-        qd = np.dot(iJ, vwref.T)
-        return qd
 
     def adjust_vwref(self, vwref, error_dist, error_orient, vmax=1.0):
         radius = 5*self.max_error_dist_inversekinematics
@@ -392,139 +386,59 @@ class Robot():
             wref = np.dot(k, wref)
         return np.hstack((vref, wref))
 
-    def inversekinematics(self, target_position, target_orientation, q0, vmax=1.0):
+    def inversekinematics(self, target_position, target_orientation, q0):
         """
-        vmax: linear velocity of the planner.
+        Solve the inverse kinematics using a Jacobian method.
+        target_position: XYX vector in global coordinates.
+        target_orientation: A quaternion specifying orientation.
         """
+        # build transform using position and Quaternion
         Ttarget = buildT(target_position, target_orientation)
         q = q0
+
         for i in range(0, self.max_iterations_inverse_kinematics):
             print('Iteration number: ', i)
             Ti = self.direct_kinematics(q)
-            vwref, error_dist, error_orient = self.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
-            print(Ttarget - Ti)
-            vwref = self.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
-            print('vwref: ', vwref)
+            e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
             print('errordist, error orient: ', error_dist, error_orient)
             if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
                 print('Converged!!')
                 break
             J, Jv, Jw = self.get_jacobian(q)
-            # compute joint speed to achieve the reference
-            qd = self.moore_penrose_damped(J, vwref)
-            # check joint speed and correct if necessary
-            [qd, _, _] = self.check_speed(qd)
-            # integrate movement. Please check that Delta_time matches coppelia simulation time step
-            qd = np.dot(DELTA_TIME, qd)
+            qd = delta_q(J, e, method=self.ikmethod)
             q = q + qd
-            # check joints ranges
-            self.check_joints(q)
+            if self.do_apply_joint_limits:
+                [q, _] = self.apply_joint_limits(q)
         return q
 
     def inversekinematics_line(self, target_position, target_orientation, q0, vmax=1.0):
         """
-        fine: whether to reach the target point with precision or not.
-        vmax: linear velocity of the planner.
+        The end effector should follow a line in task space to reach target position and target orientation.
+        A number of points is interpolated along the line, according to the speed vmax and simulation time
+        (delta_time).
+        The same number or points are also interpolated in orientation.
+        Caution. target_orientationQ is specified as a quaternion
         """
         Ttarget = buildT(target_position, target_orientation)
         Ti = self.direct_kinematics(q0)
-        total_time = self.compute_time(Ti, Ttarget, vmax)
-        total_time = 0.2*total_time
-        q_path = []
-        qd_path = []
-        q = q0
-        vrefs = []
-        wrefs = []
-        for i in range(0, self.max_iterations_inverse_kinematics):
-            print('Iteration number: ', i)
-            Ti = self.direct_kinematics(q)
-            vwref, error_dist, error_orient = self.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax,
-                                                                   total_time=total_time)
-            vwref = self.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
-            vrefs.append(vwref[0:3])
-            wrefs.append(vwref[3:6])
-            print('vwref: ', vwref)
-            print('errordist, error orient: ', error_dist, error_orient)
-            if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
-                print('Converged!!')
-                break
-            J, Jv, Jw = self.get_jacobian(q)
-            # compute joint speed to achieve the reference
-            qd = self.moore_penrose_damped(J, vwref)
-            # check joint speed and correct if necessary
-            [qd, _, _] = self.check_speed(qd)
-            # integrate movement. Please check that Delta_time matches coppelia simulation time step
-            qd = np.dot(DELTA_TIME, qd)
-            q = q + qd
-            # check joints ranges
-            self.check_joints(q)
-            [q, _] = self.apply_joint_limits(q)
-            # append to the computed joint path
-            q_path.append(q)
-            qd_path.append(qd)
-        return q_path, qd_path
+        Qcurrent = rot2quaternion(Ti)
+        Qtarget = target_orientation.Q()
 
-    def inversekinematics_line2(self, target_position, target_orientation, q0, vmax=1.0):
-        """
-        fine: whether to reach the target point with precision or not.
-        vmax: linear velocity of the planner.
-        """
-        Ttarget = buildT(target_position, target_orientation)
-        Ti = self.direct_kinematics(q0)
-        total_time = self.compute_time(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
-        total_time = 0.2*total_time
+        p_current = Ti[0:3, 3]
+        p_target = Ttarget[0:3, 3]
+        target_positions = generate_target_positions_on_line(p_current, p_target, vmax=vmax, delta_time=DELTA_TIME)
+        # generating quaternions on the line. Use SLERP to interpolate between quaternions
+        target_orientations = generate_target_orientations_on_line_Q(Qcurrent, Qtarget,
+                                                                   len(target_positions))
         q_path = []
-        qd_path = []
-        w_values = []
         q = q0
-        vrefs = []
-        wrefs = []
-        qc = [0, 0, 0, 0, 0, 0, 0]
-        #K = [1, 1, 1, 1, 1, 10, 1]
-        K = [0, 0, 0, 0, 0, 1, 0]
-        for i in range(0, self.max_iterations_inverse_kinematics):
-            print('Iteration number: ', i)
-            Ti = self.direct_kinematics(q)
-            vwref, error_dist, error_orient = self.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax,
-                                                                   total_time=total_time)
-            vwref = self.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
-            vrefs.append(vwref[0:3])
-            wrefs.append(vwref[3:6])
-            print('vwref: ', vwref)
-            print('errordist, error orient: ', error_dist, error_orient)
-            if error_dist < self.max_error_dist_inversekinematics and \
-                    error_orient < self.max_error_orient_inversekinematics:
-                print('Converged!!')
-                break
-            J, Jv, Jw = self.get_jacobian(q)
-            # compute joint speed to achieve the reference
-            qda = self.moore_penrose_damped(J, vwref)
-            qdb = self.minimize_w_central(J, q, qc, K)
-            qdb = 0.5*np.linalg.norm(qda)*qdb
-            qd = qda + qdb
-            [qd, _, _] = self.check_speed(qd)
-            qd = np.dot(DELTA_TIME, qd)
-            q = q + qd
-            # check joints ranges
-            self.check_joints(q)
-            [q, _] = self.apply_joint_limits(q)
-            # append to the computed joint path
+        # now try to reach each target position on the line
+        for i in range(0, len(target_positions)):
+            q = self.inversekinematics(target_position=target_positions[i],
+                                       target_orientation=target_orientations[i], q0=q)
             q_path.append(q)
-            qd_path.append(qdb)
-            w = w_central(q, qc, K)
-            w_values.append([w])
-        return q_path, qd_path
+        return q_path
 
-    def minimize_w_central(self, J, q, qc, K):
-        qd0 = diff_w_central(q, qc, K)
-        qd0 = np.dot(-1.0, qd0)
-        P = null_space_projector(J)
-        qdb = np.dot(P, qd0)
-        norma = np.linalg.norm(qdb)
-        if norma > 0.0001:
-            return qdb/norma
-        else:
-            return qdb
 
     def get_image(self):
         print('Capturing image of vision sensor ')
@@ -567,4 +481,7 @@ class Robot():
         plt.legend()
         plt.title('JOINT TRAJECTORIES')
         plt.show(block=True)
+
+    def get_trajectories(self):
+        return self.q_path
 

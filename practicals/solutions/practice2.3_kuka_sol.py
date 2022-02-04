@@ -12,6 +12,9 @@ Please open the scenes/kuka_14_R820.ttt scene before running this script.
 
 """
 import numpy as np
+
+from artelib.inverse_kinematics import moore_penrose_damped
+from artelib.orientation import Euler
 from artelib.plottools import plot_vars
 from artelib.tools import buildT
 from sceneconfig.scene_configs import init_simulation_KUKALBR
@@ -78,7 +81,7 @@ def inversekinematics2(robot, target_position, target_orientation, q0, vmax=0.5)
             break
         J, Jv, Jw = robot.get_jacobian(q)
         # compute joint speed to achieve the reference
-        qda = robot.moore_penrose_damped(J, vwref)
+        qda = moore_penrose_damped(J, vwref)
         ###################################################################
         # EJERCICIO: CALCULE UNA VELOCIDAD ARTICULAR QUE MINIMICE W
         ###################################################################
@@ -114,15 +117,15 @@ def pick_and_place(robot, step_number):
 
     # plan trajectories
     [q1_path, _] = inversekinematics2(robot=robot, target_position=target_positions[0],
-                                      target_orientation=target_orientations[0], q0=q0)
+                                      target_orientation=Euler(target_orientations[0]), q0=q0)
     [q2_path, _] = inversekinematics2(robot=robot, target_position=target_positions[1],
-                                      target_orientation=target_orientations[1], q0=q1_path[-1])
+                                      target_orientation=Euler(target_orientations[1]), q0=q1_path[-1])
     [q3_path, _] = inversekinematics2(robot=robot, target_position=target_positions[2],
-                                      target_orientation=target_orientations[2], q0=q2_path[-1])
+                                      target_orientation=Euler(target_orientations[2]), q0=q2_path[-1])
     [q4_path, _] = inversekinematics2(robot=robot, target_position=target_positions[3],
-                                      target_orientation=target_orientations[3], q0=q3_path[-1])
+                                      target_orientation=Euler(target_orientations[3]), q0=q3_path[-1])
     [q5_path, _] = inversekinematics2(robot=robot, target_position=target_positions[4],
-                                      target_orientation=target_orientations[4], q0=q4_path[-1])
+                                      target_orientation=Euler(target_orientations[4]), q0=q4_path[-1])
 
     # NOW execute trajectories computed before.
     # set initial position of robot

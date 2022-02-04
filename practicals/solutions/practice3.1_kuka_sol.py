@@ -9,8 +9,11 @@ The demo represents a KUKA LBR IIWA robot trying to avoid collisions with a sphe
 
 """
 import numpy as np
+
+from artelib.inverse_kinematics import moore_penrose_damped
+from artelib.orientation import Euler
 from artelib.plottools import plot_vars, plot_xy
-from artelib.tools import buildT
+from artelib.tools import buildT, compute_kinematic_errors
 from sceneconfig.scene_configs import init_simulation_KUKALBR
 
 DELTA_TIME = 50.0/1000.0
@@ -41,6 +44,7 @@ def minimize_w_central(J, q, qc, K):
     else:
         return qdb
 
+
 def potential0(r):
     K = 1.0
     p = K * (1 / r)
@@ -48,8 +52,8 @@ def potential0(r):
 
 
 def potential(r):
-    K = 0.5
-    rs = 0.15 # radius of the sphere
+    K = 0.4
+    rs = 0.1 # radius of the sphere
     rmax = 0.3
     if r < rs:
         r = rs
@@ -79,36 +83,36 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
     q = q0
     max_iterations = 1500
     qc = [0, 0, 0, 0, 0, 0, 0]
-    K = [0, 1, 0, 0, 0, 0, 0]
+    K = [0, 1, 0, 0, 0, 1, 0]
     q_path = []
     qd_path = []
     ps = sphere.get_position()
-    Ti = robot.direct_kinematics(q)
-    total_time = robot.compute_time(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
-    total_time = 0.2*total_time
+    # Ti = robot.direct_kinematics(q)
+    # total_time = robot.compute_time(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax)
+    # total_time = 0.2*total_time
     for i in range(0, max_iterations):
         print('Iteration number: ', i)
         Ti = robot.direct_kinematics(q)
         pe = Ti[0:3, 3]
         # compute ATTRACTION
-        vwref, error_dist, error_orient = robot.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax,
-                                                                total_time=total_time)
+        # vwref, error_dist, error_orient = robot.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax,
+        #                                                         total_time=total_time)
+        e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
         # compute REPULSION
         vrep = compute_repulsion(pe=pe, ps=ps)
-        vwref = vwref + vrep
-        vwref = robot.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
-        if error_dist < robot.max_error_dist_inversekinematics and \
-                error_orient < robot.max_error_orient_inversekinematics:
+        vwref = e + vrep
+        # vwref = robot.adjust_vwref(vwref=vwref, error_dist=error_dist, error_orient=error_orient, vmax=vmax)
+        if error_dist < robot.max_error_dist_inversekinematics and error_orient < robot.max_error_orient_inversekinematics:
             print('Converged!!')
             break
         J, Jv, Jw = robot.get_jacobian(q)
         # compute joint speed to achieve the reference
-        qda = robot.moore_penrose_damped(J, vwref)
+        qda = 0.3*moore_penrose_damped(J, vwref)
         qdb = minimize_w_central(J, q, qc, K)
-        qdb = 0.5 * np.linalg.norm(qda) * qdb
+        qdb = 0.0 * np.linalg.norm(qda) * qdb
         qd = qda + qdb
-        [qd, _, _] = robot.check_speed(qd)
-        qd = np.dot(DELTA_TIME, qd)
+        # [qd, _, _] = robot.check_speed(qd)
+        # qd = np.dot(DELTA_TIME, qd)
         q = q + qd
         [q, _] = robot.apply_joint_limits(q)
         q_path.append(q)
@@ -133,9 +137,9 @@ def follow_line_obstacle(robot, sphere):
 
     # plan trajectories
     [q1_path, _] = inversekinematics3(robot=robot, sphere=sphere, target_position=target_positions[0],
-                                      target_orientation=target_orientations[0], q0=q0)
+                                      target_orientation=Euler(target_orientations[0]), q0=q0)
     [q2_path, _] = inversekinematics3(robot=robot, sphere=sphere, target_position=target_positions[1],
-                                      target_orientation=target_orientations[1], q0=q1_path[-1])
+                                      target_orientation=Euler(target_orientations[1]), q0=q1_path[-1])
 
     # NOW execute trajectories computed before.
     # set initial position of robot
