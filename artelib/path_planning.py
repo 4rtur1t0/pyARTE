@@ -12,71 +12,40 @@ from artelib.orientation import Quaternion
 from artelib.tools import euler2rot, rot2quaternion, slerp, rot2euler, quaternion2rot, buildT
 
 
-class Node():
-    def __init__(self, p0, p1, p2, ps):
-        self.p0 = p0
-        self.p1 = p1
-        self.p2 = p2
-        self.ps = ps
-        self.young = 0.1
-        self.mass = 100.0
-        self.db = np.linalg.norm(p0-p1)
-
-    def iteration_step(self):
-        fa = self.compute_attraction(self.p1)
-        fb = self.compute_attraction(self.p2)
-        fs = self.compute_repulsion()
-        dp = (1/self.mass)*(fa+fb+fs)
-        self.p0 = self.p0 + dp
-
-    def compute_attraction(self, p):
-        """
-        attraction p0 p1
-        """
-        d = np.linalg.norm(self.p0-p)
-        f = self.young*(p-self.p0)*(self.db - d)
-        return f
-
-    def potential(self, r):
-        K = 0.4
-        rs = 0.1  # radius of the sphere
-        rmax = 0.3
-        if r < rs:
-            r = rs
-        p = K * (1 / r - 1 / rmax)
-        if p < 0:
-            p = 0
-        return p
-
-    def compute_repulsion(self):
-        u = self.p0 - self.ps
-        r = np.linalg.norm(u)
-        if r > 0.0:
-            u = u / r
-        p = self.potential(r)
-        frep = np.dot(p, u)
-        return frep
+def potential(r):
+    K = 0.3
+    rs = 0.1  # radius of the sphere
+    rmax = 0.2
+    if r < rs:
+        r = rs
+    p = K * (1 / r - 1 / rmax)
+    if p < 0:
+        p = 0
+    return p
 
 
-
-def generate_target_positions_on_line(p_current, p_target, vmax, delta_time=0.05):
-    u = p_target - p_current
-    d = np.linalg.norm(p_target - p_current)
-    if d > 0:
-        u = u / d
-    total_time = d / vmax
+def n_movements(p_current, p_target, vmax=1.0, delta_time=0.05):
+    total_time = np.linalg.norm(np.array(p_target) - np.array(p_current)) / vmax
     n = total_time / delta_time
     n = np.ceil(n)
-    delta = d / n
+    return int(n)
 
-    target_positions = [p_current]
-    for i in range(1, int(n) + 1):
-        pi = p_current + i * delta * u
-        target_positions.append(pi)
+
+def generate_target_positions(p_current, p_target, n):
+    tt = np.linspace(0, 1, int(n))
+    target_positions = []
+    p_current = np.array(p_current)
+    p_target = np.array(p_target)
+    for t in tt:
+        target_pos = t*p_target + (1-t)*p_current
+        target_positions.append(target_pos)
     return target_positions
 
 
-def generate_target_orientations_on_line(abc_current, abc_target, n):
+def generate_target_orientations(abc_current, abc_target, n):
+    """
+    Generate a set of Euler angles between abc_current and abc_target.
+    """
     abc_current = np.array(abc_current)
     abc_target = np.array(abc_target)
     R1 = euler2rot(abc_current)
@@ -84,7 +53,7 @@ def generate_target_orientations_on_line(abc_current, abc_target, n):
     Q1 = rot2quaternion(R1)
     Q2 = rot2quaternion(R2)
 
-    tt = np.linspace(0, 1, n)
+    tt = np.linspace(0, 1, int(n))
     target_orientations = []
     for t in tt:
         Q = slerp(Q1, Q2, t)
@@ -94,8 +63,11 @@ def generate_target_orientations_on_line(abc_current, abc_target, n):
     return target_orientations
 
 
-def generate_target_orientations_on_line_Q(Q1, Q2, n):
-    tt = np.linspace(0, 1, n)
+def generate_target_orientations_Q(Q1, Q2, n):
+    """
+    Generate a set of n quaternions between Q1 and Q2. Use SLERP to find an interpolation between them.
+    """
+    tt = np.linspace(0, 1, int(n))
     target_orientations = []
     for t in tt:
         Q = slerp(Q1, Q2, t)
@@ -104,20 +76,23 @@ def generate_target_orientations_on_line_Q(Q1, Q2, n):
     return target_orientations
 
 
-def generate_on_line_obstacles(robot, target_position, target_orientation, sphere_position, q0, vmax=1.0):
-        """
-        Generate a series of points on the line.
-
-        """
-        Ttarget = buildT(target_position, target_orientation)
-        Ti = robot.direct_kinematics(q0)
-        Qcurrent = rot2quaternion(Ti)
-        Qtarget = target_orientation.Q()
-
-        p_current = Ti[0:3, 3]
-        p_target = Ttarget[0:3, 3]
-        target_positions = generate_target_positions_on_line(p_current, p_target, vmax=vmax, delta_time=0.05)
-        # generating quaternions on the line. Use SLERP to interpolate between quaternions
-        target_orientations = generate_target_orientations_on_line_Q(Qcurrent, Qtarget,
-                                                                   len(target_positions))
-
+def move_target_positions_obstacles(target_positions, sphere_position):
+    """
+    Moves a series of points on a path considering a repulsion potential field.
+    """
+    sphere_position = np.array(sphere_position)
+    final_positions = target_positions
+    while True:
+        total_potential = 0
+        for i in range(len(final_positions)):
+            r = np.linalg.norm(sphere_position-final_positions[i])
+            u = final_positions[i]-sphere_position
+            if r > 0:
+                u = u/r
+            pot = potential(r)
+            # modify current position in the direction of u considering potential > 0
+            final_positions[i] = final_positions[i] + 0.01*pot*u
+            total_potential += pot
+        if total_potential < 0.01:
+            break
+    return final_positions

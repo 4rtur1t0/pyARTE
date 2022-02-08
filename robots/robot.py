@@ -11,9 +11,9 @@ import sim
 import numpy as np
 
 from artelib.inverse_kinematics import delta_q
-from artelib.path_planning import generate_target_positions_on_line, generate_target_orientations_on_line, \
-    generate_target_orientations_on_line_Q
-from artelib.plottools import plot_vars, plot
+from artelib.path_planning import generate_target_positions, generate_target_orientations, \
+    generate_target_orientations_Q, move_target_positions_obstacles
+from artelib.plottools import plot_vars, plot, plot3d
 from artelib.tools import compute_w_between_orientations, euler2rot, rot2quaternion, buildT, compute_w_between_R, \
     null_space, diff_w_central, w_central, null_space_projector, compute_kinematic_errors, rot2euler, quaternion2rot, \
     q2euler, buildT
@@ -64,7 +64,7 @@ class Robot():
                                                        targetVelocity=qd[i],
                                                        operationMode=sim.simx_opmode_oneshot)
 
-    def set_joint_target_positions(self, q_target, precision=True, real_time=False):
+    def set_joint_target_positions(self, q_target, precision=True):
         """
         CAUTION: this function may only work if the "position control loop" is enabled at every arm joint.
         :param precision: whether to wait for Coppelia until que joint values are attained with precision
@@ -75,13 +75,12 @@ class Robot():
                                                        targetPosition=q_target[i],
                                                        operationMode=sim.simx_opmode_oneshot)
         if precision:
-            self.wait_till_joint_position_is_met(q_target, real_time=real_time)
+            self.wait_till_joint_position_is_met(q_target)
         else:
-            self.wait(real_time=real_time)
+            self.wait()
         self.q_path.append(q_target)
 
-    # def set_joint_target_trajectory(self, q_path, sampling=1, wait=True, real_time=False):
-    def set_joint_target_trajectory(self, q_path, sampling=1, precision='last', real_time=False):
+    def set_joint_target_trajectory(self, q_path, sampling=1, precision='last'):
         """
         A repeated call to set_joint_target_positions.
         param q: a list of qs (joint positions).
@@ -99,21 +98,27 @@ class Robot():
                     if wait=False: the movement is typically smoother, but the trajectory is not followed exaclty.
         """
         # precision must be attained on all movements
-        if precision == 'all' or precision == True:
+        if precision == 'all' or precision is True:
             samples = range(0, len(q_path), sampling)
             for i in samples:
-                self.set_joint_target_positions(q_path[i], precision=True, real_time=real_time)
+                self.set_joint_target_positions(q_path[i], precision=True)
+        # precision is low on any
+        elif precision == 'low':
+            self.epsilonq = 100.0 * self.epsilonq
+            for i in range(0, len(q_path), sampling):
+                self.set_joint_target_positions(q_path[i], precision=True)
+            self.epsilonq = self.epsilonq / 100.0
         # precision must be attained only on the last i in the path
         elif precision == 'last':
             samples = range(0, len(q_path), sampling)
             for i in samples[0:-1]:
-                self.set_joint_target_positions(q_path[i], precision=False, real_time=real_time)
-            self.set_joint_target_positions(q_path[-1], precision=True, real_time=real_time)
+                self.set_joint_target_positions(q_path[i], precision=False)
+            self.set_joint_target_positions(q_path[-1], precision=True)
         # precision must not be attained on any i in the path
-        elif precision == 'none' or precision == False:
+        elif precision == 'none' or precision is False:
             samples = range(0, len(q_path), sampling)
             for i in samples:
-                self.set_joint_target_positions(q_path[i], precision=False, real_time=real_time)
+                self.set_joint_target_positions(q_path[i], precision=False)
 
     def get_joint_positions(self):
         q_actual = np.zeros(len(self.armjoints))
@@ -177,17 +182,13 @@ class Robot():
         sim.simxStopSimulation(self.clientID, sim.simx_opmode_oneshot_wait)
         sim.simxFinish(self.clientID)
 
-    def wait(self, steps=1, real_time=False):
+    def wait(self, steps=1):
         for i in range(0, steps):
-            if real_time:
-                time.sleep(DELTA_TIME)
             sim.simxSynchronousTrigger(clientID=self.clientID)
 
-    def wait_till_joint_position_is_met(self, q_target, real_time=False):
+    def wait_till_joint_position_is_met(self, q_target):
         n_iterations = 0
         while True:
-            if real_time:
-                time.sleep(DELTA_TIME)
             # make the simulation go forward 1 step
             sim.simxSynchronousTrigger(clientID=self.clientID)
             q_actual = self.get_joint_positions()
@@ -374,17 +375,17 @@ class Robot():
         return qd_corrected, valid, valid_indexes
 
 
-    def adjust_vwref(self, vwref, error_dist, error_orient, vmax=1.0):
-        radius = 5*self.max_error_dist_inversekinematics
-        vref = vwref[0:3]
-        wref = vwref[3:6]
-        if error_dist <= radius:
-            k = vmax*error_dist/radius
-            vref = np.dot(k, vref)
-        if error_orient <= radius:
-            k = vmax*error_orient/radius
-            wref = np.dot(k, wref)
-        return np.hstack((vref, wref))
+    # def adjust_vwref(self, vwref, error_dist, error_orient, vmax=1.0):
+    #     radius = 5*self.max_error_dist_inversekinematics
+    #     vref = vwref[0:3]
+    #     wref = vwref[3:6]
+    #     if error_dist <= radius:
+    #         k = vmax*error_dist/radius
+    #         vref = np.dot(k, vref)
+    #     if error_orient <= radius:
+    #         k = vmax*error_orient/radius
+    #         wref = np.dot(k, wref)
+    #     return np.hstack((vref, wref))
 
     def inversekinematics(self, target_position, target_orientation, q0):
         """
@@ -411,7 +412,7 @@ class Robot():
                 [q, _] = self.apply_joint_limits(q)
         return q
 
-    def inversekinematics_line(self, target_position, target_orientation, q0, vmax=1.0):
+    def inversekinematics_line(self, target_position, target_orientation, q0, vmax=1.0, sphere_position=None):
         """
         The end effector should follow a line in task space to reach target position and target orientation.
         A number of points is interpolated along the line, according to the speed vmax and simulation time
@@ -426,10 +427,20 @@ class Robot():
 
         p_current = Ti[0:3, 3]
         p_target = Ttarget[0:3, 3]
-        target_positions = generate_target_positions_on_line(p_current, p_target, vmax=vmax, delta_time=DELTA_TIME)
+
+        total_time = np.linalg.norm(p_target-p_current)/ vmax
+        n = total_time / DELTA_TIME
+        n = np.ceil(n)
+        # generate n target positions
+        target_positions = generate_target_positions(p_current, p_target, n)
         # generating quaternions on the line. Use SLERP to interpolate between quaternions
-        target_orientations = generate_target_orientations_on_line_Q(Qcurrent, Qtarget,
+        target_orientations = generate_target_orientations_Q(Qcurrent, Qtarget,
                                                                    len(target_positions))
+        if sphere_position is not None:
+            target_positions = move_target_positions_obstacles(target_positions, sphere_position)
+            p_positions = np.array(target_positions)
+            plot3d(p_positions[:, 0], p_positions[:, 1], p_positions[:, 2])
+
         q_path = []
         q = q0
         # now try to reach each target position on the line
@@ -439,6 +450,18 @@ class Robot():
             q_path.append(q)
         return q_path
 
+    def inversekinematics_path(self, target_positions, target_orientations, q0):
+        """
+        Solve iteratively q for each of the target positions and orientation specified
+        """
+        q_path = []
+        q = q0
+        # now try to reach each target position on the line
+        for i in range(0, len(target_positions)):
+            q = self.inversekinematics(target_position=target_positions[i],
+                                       target_orientation=target_orientations[i], q0=q)
+            q_path.append(q)
+        return q_path
 
     def get_image(self):
         print('Capturing image of vision sensor ')

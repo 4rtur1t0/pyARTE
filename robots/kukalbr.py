@@ -12,7 +12,7 @@ RobotKUKALBR is a derived class of the Robot base class that particularizes some
 import numpy as np
 
 from artelib.inverse_kinematics import delta_q
-from artelib.path_planning import generate_target_positions_on_line, generate_target_orientations_on_line_Q
+from artelib.path_planning import generate_target_positions, generate_target_orientations_Q
 from artelib.tools import compute_kinematic_errors, buildT, rot2quaternion, minimize_w_central, minimize_w_lateral, \
     w_lateral
 from robots.robot import Robot
@@ -20,6 +20,7 @@ from kinematics.kinematics_kukalbr import eval_symbolic_jacobian_KUKALBR, eval_s
 
 
 DELTA_TIME = 50.0/1000.0
+
 
 class RobotKUKALBR(Robot):
     def __init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera):
@@ -68,15 +69,12 @@ class RobotKUKALBR(Robot):
         This a particular inverse kinematics function for this robot.
         If self.secondary is set, then the null space is used to find
         """
-        qc = [0, 0, 0, 0, 0, 0, 0]
-        K = [0, 1, 0, 0, 0, 1, 0]
         # build transform using position and Quaternion
         Ttarget = buildT(target_position, target_orientation)
         q = q0
         error_dists = []
         error_orients = []
         es = []
-        w = []
         qmin = self.joint_ranges[0]
         qmax = self.joint_ranges[1]
         for i in range(0, self.max_iterations_inverse_kinematics):

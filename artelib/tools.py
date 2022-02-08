@@ -276,8 +276,11 @@ def null_space_projector(J):
     I = np.eye(n)
     # pseudo inverse moore-penrose
     # here, do not use pinv
-    Jp = np.dot(J.T, np.linalg.inv(np.dot(J, J.T)))
-    P = I - np.dot(Jp, J)
+    try:
+        Jp = np.dot(J.T, np.linalg.inv(np.dot(J, J.T)))
+        P = I - np.dot(Jp, J)
+    except np.linalg.LinAlgError:
+        P = I
     return P
 
 

@@ -34,7 +34,7 @@ class Quaternion():
 
 class RotationMatrix():
     def __init__(self, rot):
-        self.rot = np.array(rot)
+        self.rot = np.array(rot[0:3, 0:3])
 
     def R(self):
         return self.rot
