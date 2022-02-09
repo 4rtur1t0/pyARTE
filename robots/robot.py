@@ -41,7 +41,7 @@ class Robot():
         # parameters of the inverse kinematics algorith
         self.max_iterations_inverse_kinematics = 15000
         # max iterations to achieve a joint target in coppelia
-        self.max_iterations_joint_target = 20
+        self.max_iterations_joint_target = 200
         # admit this error in q
         self.epsilonq = 0.001
         self.q_path = []
@@ -68,7 +68,9 @@ class Robot():
         """
         CAUTION: this function may only work if the "position control loop" is enabled at every arm joint.
         :param precision: whether to wait for Coppelia until que joint values are attained with precision
-        :return:
+                    precision=True: --> the method self.wait_till_joint_position_is_met is called. This method
+                    checks, at each simulation time, whether the specified joint values q_target have been achieved.
+        :return: None
         """
         for i in range(0, len(q_target)):
             errorCode = sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.armjoints[i],

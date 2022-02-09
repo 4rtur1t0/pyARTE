@@ -15,7 +15,7 @@ from sceneconfig.scene_configs import init_simulation_UR5
 DELTA_TIME = 50.0/1000.0
 
 
-def moore_penrose_damped(J, vwref):
+def moore_penrose_damped(J, e):
     """
     Compute qd given J and v.
     If close to singularity, used damped version.
@@ -27,12 +27,12 @@ def moore_penrose_damped(J, vwref):
     if manip > .01 ** 2:
         # moore penrose pseudo inverse J^T(J*J^T)^{-1}
         iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T)))
-        qd = np.dot(iJ, vwref.T)
+        qd = np.dot(iJ, e.T)
         return qd
     print('Close to singularity: implementing DAMPED Least squares solution')
     K = 0.01 * np.eye(np.min(J.shape))
     iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + K))
-    qd = np.dot(iJ, vwref.T)
+    qd = np.dot(iJ, e.T)
     return qd
 
 
