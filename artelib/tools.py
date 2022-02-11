@@ -13,6 +13,7 @@ def buildT(position, orientation):
     T = np.zeros((4, 4))
     # R = euler2rot(orientation)
     R = orientation.R()
+    R = R.toarray()
     T[0:3, 0:3] = R
     T[3, 3] = 1
     T[0:3, 3] = np.array(position).T
@@ -50,8 +51,8 @@ def compute_w_between_R(Rcurrent, Rtarget, total_time=1):
 
 
 def compute_e_between_R(Rcurrent, Rtarget):
-    R1 = Rcurrent[0:3, 0:3]
-    R2 = Rtarget[0:3, 0:3]
+    R1 = Rcurrent.R().toarray()
+    R2 = Rtarget.R().toarray()
 
     ne = R1[:, 0]
     se = R1[:, 1]
@@ -70,8 +71,8 @@ def compute_kinematic_errors(Tcurrent, Ttarget):
     Compute the error
     """
     # current position of the end effector and target position
-    p_current = Tcurrent[0:3, 3]
-    p_target = Ttarget[0:3, 3]
+    p_current = Tcurrent.pos() #[0:3, 3]
+    p_target = Ttarget.pos() # [0:3, 3]
     e1 = np.array(p_target - p_current)
     error_dist = np.linalg.norm(e1)
     e2 = compute_e_between_R(Tcurrent, Ttarget)
@@ -240,6 +241,7 @@ def euler2q(abg):
     Q = rot2quaternion(R)
     return Q
 
+
 def q2euler(Q):
     R = quaternion2rot(Q)
     abg = rot2euler(R)
@@ -250,7 +252,8 @@ def slerp(Q1, Q2, t):
     """
     Interpolates between quaternions Q1 and Q2, given a fraction 1
     """
-    cth = np.dot(Q1, Q2)
+    # caution using built-in class Quaternion  dot product
+    cth = Q1.dot(Q2)
     th = np.arccos(cth)
     if np.abs(th) > 0:
         Q = Q1*np.sin((1-t)*th)/np.sin(th) + Q2*np.sin(t*th)/np.sin(th)

@@ -34,7 +34,7 @@ def null_space_along(robot, m, col, n_steps=20):
         # caution, obtaining v transposed --> must transpose
         qd = vh.T[:, col]
         q = q + DELTA_TIME*qd
-        robot.set_joint_target_positions(q, wait=True)
+        robot.set_joint_target_positions(q, precision=True)
 
 
 if __name__ == "__main__":
@@ -48,5 +48,4 @@ if __name__ == "__main__":
 
     # robot.plot_trajectories()
     robot.stop_arm()
-    scene.stop_simulation()
 

@@ -8,8 +8,8 @@ Simple path planning functions.
 
 """
 import numpy as np
-from artelib.orientation import Quaternion
-from artelib.tools import euler2rot, rot2quaternion, slerp, rot2euler, quaternion2rot, buildT
+from artelib.tools import euler2rot, rot2quaternion, slerp, rot2euler, quaternion2rot
+    #, buildT
 
 
 def potential(r):
@@ -25,6 +25,11 @@ def potential(r):
 
 
 def n_movements(p_current, p_target, vmax=1.0, delta_time=0.05):
+    """
+    Compute the number of points on the line, considering a very simple planning:
+        - constant speed vmax.
+        - simulation delta_time in Coppelia.
+    """
     total_time = np.linalg.norm(np.array(p_target) - np.array(p_current)) / vmax
     n = total_time / delta_time
     n = np.ceil(n)
@@ -32,6 +37,9 @@ def n_movements(p_current, p_target, vmax=1.0, delta_time=0.05):
 
 
 def generate_target_positions(p_current, p_target, n):
+    """
+    Generate n points between the current and target positions p_current and p_target
+    """
     tt = np.linspace(0, 1, int(n))
     target_positions = []
     p_current = np.array(p_current)
@@ -71,7 +79,7 @@ def generate_target_orientations_Q(Q1, Q2, n):
     target_orientations = []
     for t in tt:
         Q = slerp(Q1, Q2, t)
-        Q = Quaternion(Q)
+        # Q = Quaternion(Q)
         target_orientations.append(Q)
     return target_orientations
 

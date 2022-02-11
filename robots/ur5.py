@@ -10,6 +10,7 @@ RobotUR5 is a derived class of the Robot base class that
 
 """
 import numpy as np
+from artelib import homogeneousmatrix
 from robots.robot import Robot
 from kinematics.kinematics_ur5 import eval_symbolic_jacobian_UR5, eval_symbolic_T_UR5
 
@@ -23,7 +24,6 @@ class RobotUR5(Robot):
         joint_ranges = np.array([[-360, -360, -360, -360, -360, -360],
                                  [360,   360,  360,  360,  360,  360]])
         joint_ranges = joint_ranges * np.pi / 180.0
-
         self.max_iterations_inverse_kinematics = 15000
         self.max_error_dist_inversekinematics = 0.01
         self.max_error_orient_inversekinematics = 0.01
@@ -52,4 +52,4 @@ class RobotUR5(Robot):
 
     def direct_kinematics(self, q):
         T = eval_symbolic_T_UR5(q)
-        return T
+        return homogeneousmatrix.HomogeneousMatrix(T)

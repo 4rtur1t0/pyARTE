@@ -7,27 +7,12 @@ Please open the scenes/ur5.ttt scene before running this script.
 @Time: April 2021
 """
 import numpy as np
-
-from artelib.plottools import plot
-from artelib.tools import buildT, compute_w_between_R, compute_e_between_R, euler2q
+from artelib.euler import Euler
 from sceneconfig.scene_configs import init_simulation_UR5
 
 
 def ikine():
     robot = init_simulation_UR5()
-    # OK
-    # target_positions = [[0.6, -0.2, 0.25],
-    #                     [0.6, 0.1, 0.25],
-    #                     [0.6, -0.1, 0.35],
-    #                     [0.2, -0.55, 0.4],
-    #                     [0.3, 0.3, 0.58],
-    #                     [-0.3, -0.3, 0.5]]
-    # target_orientations = [[-np.pi / 2, 0, -np.pi / 2],
-    #                        [-np.pi / 2, 0, -np.pi / 2],
-    #                        [-np.pi / 2, 0, -np.pi / 2],
-    #                        [-np.pi, 0, 0],
-    #                        [0, 0, 0],
-    #                        [np.pi/2, 0, 0]]
 
     target_positions = [[0.2, -0.45, 0.4],
                         [0.6, -0.2, 0.25]]
@@ -39,7 +24,7 @@ def ikine():
     for i in range(len(target_positions)):
         robot.set_target_position_orientation(target_positions[i], target_orientations[i])
         q = robot.inversekinematics(target_position=target_positions[i],
-                                    target_orientation=euler2q(target_orientations[i]), q0=q)
+                                    target_orientation=Euler(target_orientations[i]), q0=q)
         robot.set_joint_target_positions(q, precision=True)
 
     robot.stop_arm()

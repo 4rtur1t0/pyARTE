@@ -10,9 +10,10 @@ Base Robot Class
 import sim
 import numpy as np
 
+from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.inverse_kinematics import delta_q
 from artelib.path_planning import generate_target_positions, generate_target_orientations, \
-    generate_target_orientations_Q, move_target_positions_obstacles
+    generate_target_orientations_Q, move_target_positions_obstacles, n_movements
 from artelib.plottools import plot_vars, plot, plot3d
 from artelib.tools import compute_w_between_orientations, euler2rot, rot2quaternion, buildT, compute_w_between_R, \
     null_space, diff_w_central, w_central, null_space_projector, compute_kinematic_errors, rot2euler, quaternion2rot, \
@@ -50,7 +51,6 @@ class Robot():
         self.max_error_dist_inversekinematics = 0.01
         self.max_error_orient_inversekinematics = 0.01
         self.do_apply_joint_limits = False
-
 
     def set_joint_target_velocities(self, qd):
         """
@@ -93,6 +93,7 @@ class Robot():
                     (wait_till_joint_position_is_met) is called for every index i in  the trajectory.
         last:  wait for the simulator to wait only on the last joint values q in  the trajectory.
                    (wait_till_joint_position_is_met) is called on the last i in  the trajectory.
+        low: a low precision over the trajectory.
         none:
                     if wait=True, the robot control scheme is making the joints stop and start
                     for each new joint. It waits until the joints of the robot and the target are equal.
@@ -156,7 +157,6 @@ class Robot():
                                                  eulerAngles=orientation, relativeToObjectHandle=-1,
                                                  operationMode=sim.simx_opmode_oneshot_wait)
         return position, orientation
-
 
     def get_min_distance_to_objects(self):
         """
@@ -396,9 +396,9 @@ class Robot():
         target_orientation: A quaternion specifying orientation.
         """
         # build transform using position and Quaternion
-        Ttarget = buildT(target_position, target_orientation)
+        # Ttarget = buildT(target_position, target_orientation)
+        Ttarget = HomogeneousMatrix(target_position, target_orientation)
         q = q0
-
         for i in range(0, self.max_iterations_inverse_kinematics):
             print('Iteration number: ', i)
             Ti = self.direct_kinematics(q)
@@ -422,27 +422,21 @@ class Robot():
         The same number or points are also interpolated in orientation.
         Caution. target_orientationQ is specified as a quaternion
         """
-        Ttarget = buildT(target_position, target_orientation)
+        Ttarget = HomogeneousMatrix(target_position, target_orientation)
         Ti = self.direct_kinematics(q0)
-        Qcurrent = rot2quaternion(Ti)
+        Qcurrent = Ti.Q()
         Qtarget = target_orientation.Q()
-
-        p_current = Ti[0:3, 3]
-        p_target = Ttarget[0:3, 3]
-
-        total_time = np.linalg.norm(p_target-p_current)/ vmax
-        n = total_time / DELTA_TIME
-        n = np.ceil(n)
+        p_current = Ti.pos()
+        p_target = Ttarget.pos()
+        n = n_movements(p_current, p_target, vmax)
         # generate n target positions
         target_positions = generate_target_positions(p_current, p_target, n)
         # generating quaternions on the line. Use SLERP to interpolate between quaternions
-        target_orientations = generate_target_orientations_Q(Qcurrent, Qtarget,
-                                                                   len(target_positions))
+        target_orientations = generate_target_orientations_Q(Qcurrent, Qtarget, len(target_positions))
         if sphere_position is not None:
             target_positions = move_target_positions_obstacles(target_positions, sphere_position)
-            p_positions = np.array(target_positions)
-            plot3d(p_positions[:, 0], p_positions[:, 1], p_positions[:, 2])
-
+            # p_positions = np.array(target_positions)
+            # plot3d(p_positions[:, 0], p_positions[:, 1], p_positions[:, 2])
         q_path = []
         q = q0
         # now try to reach each target position on the line
@@ -500,6 +494,8 @@ class Robot():
     def plot_trajectories(self):
         plt.figure()
         q_path = np.array(self.q_path)
+        if len(q_path) == 0:
+            return
         sh = q_path.shape
         for i in range(0, sh[1]):
             plt.plot(q_path[:, i], label='q' + str(i + 1))

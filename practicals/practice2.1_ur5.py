@@ -7,19 +7,16 @@ Please open the scenes/ur5.ttt scene before running this script.
 @Time: April 2021
 """
 import numpy as np
-from artelib.euler import Euler
-from artelib.homogeneousmatrix import HomogeneousMatrix
-from artelib.tools import compute_kinematic_errors
+from artelib.orientation import Euler
+from artelib.tools import buildT, compute_kinematic_errors
 from sceneconfig.scene_configs import init_simulation_UR5
 
+# standard delta time for Coppelia, please modify if necessary
+DELTA_TIME = 50.0/1000.0
 
 
 def delta_q_transpose(J, e):
-    alpha1 = np.dot(np.dot(np.dot(J, J.T), e), e)
-    alpha2 = np.dot(np.dot(J, J.T), e)
-    alpha2 = np.dot(alpha2, alpha2)
-    alpha = alpha1/alpha2
-    dq = alpha*np.dot(J.T, e)
+
     return dq
 
 
@@ -30,17 +27,7 @@ def moore_penrose_damped(J, e):
     """
     manip = np.linalg.det(np.dot(J, J.T))
     print('Manip is: ', manip)
-    # normal case --> just compute pseudo inverse
-    # we are far from a singularity
-    if manip > .01 ** 2:
-        # moore penrose pseudo inverse J^T(J*J^T)^{-1}
-        iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T)))
-        qd = np.dot(iJ, e.T)
-        return qd
-    print('Close to singularity: implementing DAMPED Least squares solution')
-    K = 0.01 * np.eye(np.min(J.shape))
-    iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + K))
-    qd = np.dot(iJ, e.T)
+
     return qd
 
 
@@ -49,7 +36,7 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
     Find q that allows the robot to achieve the specified target position and orientaiton
     CAUTION: target_orientation must be specified as a quaternion.
     """
-    Ttarget = HomogeneousMatrix(target_position, target_orientation)
+    Ttarget = buildT(target_position, target_orientation)
     q = q0
     max_iterations = 10000
     for i in range(0, max_iterations):
@@ -57,12 +44,12 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
         Ti = robot.direct_kinematics(q)
         J, Jv, Jw = robot.get_jacobian(q)
         e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
-        print('vwref: ', e)
+        print('Error: ', e)
         print('errordist, error orient: ', error_dist, error_orient)
         if error_dist < 0.01 and error_orient < 0.01:
             print('Converged!!')
             break
-        # compute delta q for the step
+        # EJERCICIO: PRUEBE AMBOS MÉTODOS
         # qd = moore_penrose_damped(J, e)
         qd = delta_q_transpose(J, e)
         q = q + qd

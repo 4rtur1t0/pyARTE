@@ -7,7 +7,7 @@ Please open the scenes/ur5.ttt scene before running this script.
 @Time: April 2021
 """
 import numpy as np
-from artelib.orientation import Euler
+from artelib.euler import Euler
 from sceneconfig.scene_configs import init_simulation_UR5
 
 
