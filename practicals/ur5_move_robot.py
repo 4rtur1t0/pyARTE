@@ -20,7 +20,6 @@ The script is used to freely move the UR5 robot based on:
 @Time: November 2021
 """
 import numpy as np
-from artelib.tools import T2quaternion
 import matplotlib.pyplot as plt
 from pynput import keyboard
 from sceneconfig.scene_configs import init_simulation_UR5
@@ -91,7 +90,7 @@ def on_press(key):
         robot.wait(1)
         [position, orientation] = robot.get_end_effector_position_orientation()
         T = robot.direct_kinematics(q)
-        Q = T2quaternion(T)
+        Q = T.Q()
         print('Current q is: ', q)
         print('End effector position is (p): ', position)
         print('End effector orientation is (alpha, betta, gamma): ', orientation)
@@ -99,14 +98,12 @@ def on_press(key):
         print('End effector Q is: ', Q)
 
     except (AttributeError, KeyError):
-        print('special key pressed: {0}'.format(
-            key))
+        print('special key pressed: {0}'.format(key))
     return True
 
 
 def on_release(key):
-    print('Key released: {0}'.format(
-        key))
+    print('Key released: {0}'.format(key))
     if key == keyboard.Key.esc:
         print('Exiting')
         exit()
@@ -122,4 +119,3 @@ if __name__ == "__main__":
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
     robot.stop_arm()
-    # scene.stop_simulation()

@@ -70,8 +70,7 @@ def pick_and_place():
                     False,  # over the table
                     True,
                     True]  # drop the piece
-    q = np.array([-np.pi/2, -np.pi / 8, np.pi / 2, 0, 0, 0])
-    # q = np.array([-np.pi, -np.pi/8, np.pi/2, 0, 0, 0])
+    q = np.array([-np.pi/2, -np.pi / 8, np.pi / 2, np.pi / 2, 0.1, 0.1])
     robot.set_joint_target_positions(q)
     robot.wait(20)
     for i in range(len(target_positions)-1):

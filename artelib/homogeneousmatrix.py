@@ -28,6 +28,9 @@ class HomogeneousMatrix():
                 raise Exception
             self.array = array
 
+    def __str__(self):
+        return str(self.array)
+
     def toarray(self):
         return self.array
 
