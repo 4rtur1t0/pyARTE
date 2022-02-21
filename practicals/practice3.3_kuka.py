@@ -25,15 +25,14 @@ DELTA_TIME = 50.0/1000.0
 
 def diff_w_central(q, qcentral, K):
     dw = []
-    for i in range(0, len(qcentral)):
-        dwi = K[i]*(q[i]-qcentral[i])
-        dw.append(dwi)
+    # EJERCICIO, DEVUELVA LA DERIVADA DE W(q)
+
     return np.array(dw)
 
 
 def null_space_projector(J):
-    n = J.shape[1]
-    P = np.eye(n)-np.dot(np.linalg.pinv(J), J)
+    # EJERCICIO: CONSTRUYA UN PROYECTOR AL ESPACIO NULO
+
     return P
 
 
@@ -93,8 +92,11 @@ def inversekinematics_secondary(robot, target_position, target_orientation, q0):
         J, Jv, Jw = robot.get_jacobian(q)
         # compute joint speed to achieve the reference
         qda = moore_penrose_damped(J, e)
+        ###################################################################
+        # EJERCICIO: CALCULE UNA VELOCIDAD ARTICULAR QUE MINIMICE W
+        ###################################################################
         qdb = minimize_w_central(J, q, qc, K)
-        qdb = 0.2 * np.linalg.norm(qda) * qdb
+        qdb = 0.8 * np.linalg.norm(qda) * qdb
         qd = qda + qdb
         q = q + qd
         [q, _] = robot.apply_joint_limits(q)

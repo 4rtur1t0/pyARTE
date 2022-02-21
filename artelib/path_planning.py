@@ -9,7 +9,6 @@ Simple path planning functions.
 """
 import numpy as np
 from artelib.tools import euler2rot, rot2quaternion, slerp, rot2euler, quaternion2rot
-    #, buildT
 
 
 def potential(r):

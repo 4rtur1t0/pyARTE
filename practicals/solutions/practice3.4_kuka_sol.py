@@ -22,31 +22,58 @@ from sceneconfig.scene_configs import init_simulation_KUKALBR
 
 DELTA_TIME = 50.0/1000.0
 
+def null_space_projector(J):
+    n = J.shape[1]
+    I = np.eye(n)
+    # pseudo inverse moore-penrose
+    # here, do not use pinv
+    try:
+        Jp = np.dot(J.T, np.linalg.inv(np.dot(J, J.T)))
+        P = I - np.dot(Jp, J)
+    except np.linalg.LinAlgError:
+        P = I
+    return P
 
-def diff_w_central(q, qcentral, K):
+
+def saturate_qi(q, qmin, qmax):
+    deltaq = np.pi/20
+    if q > (qmax - deltaq):
+        q = qmax - deltaq
+    elif q < (qmin + deltaq):
+        q = qmin + deltaq
+    return q
+
+
+def diff_w_lateral(q, qmin, qmax):
+    """
+    The function computes the differential of the secondary function w_lateral
+    """
+    n = len(q)
     dw = []
-    for i in range(0, len(qcentral)):
-        dwi = K[i]*(q[i]-qcentral[i])
+    for i in range(n):
+        qi = saturate_qi(q[i], qmin[i], qmax[i])
+        dwi_num = (qmin[i] - qmax[i])*(-2*qi + qmax[i] + qmin[i])
+        dwi_den = ((qi - qmax[i]) * (qi - qmin[i]))**2
+        dwi = dwi_num/dwi_den
+        if np.isinf(dwi) or np.isnan(dwi):
+            dwi = 0.0
         dw.append(dwi)
     return np.array(dw)
 
 
-def null_space_projector(J):
-    n = J.shape[1]
-    P = np.eye(n)-np.dot(np.linalg.pinv(J), J)
-    return P
-
-
-def minimize_w_central(J, q, qc, K):
-    qd0 = diff_w_central(q, qc, K)
+def minimize_w_lateral(J, q, qmax, qmin):
+    qd0 = diff_w_lateral(q, qmax, qmin)
     qd0 = np.dot(-1.0, qd0)
     P = null_space_projector(J)
     qdb = np.dot(P, qd0)
     norma = np.linalg.norm(qdb)
+    if np.isnan(np.sum(qdb)):
+        return np.zeros(len(q))
     if norma > 0.0001:
         return qdb / norma
     else:
         return qdb
+
 
 
 def inversekinematics_line(robot, target_position, target_orientation, q0, vmax=0.5):
@@ -79,8 +106,8 @@ def inversekinematics_secondary(robot, target_position, target_orientation, q0):
     Ttarget = HomogeneousMatrix(target_position, target_orientation)
     q = q0
     max_iterations = 500
-    qc = [0, 0, 0, 0, 0, 0, 0]
-    K = [0, 0, 0, 0, 0, 1, 0]
+    qmin = robot.joint_ranges[0]
+    qmax = robot.joint_ranges[1]
     for i in range(0, max_iterations):
         print('Iteration number: ', i)
         Ti = robot.direct_kinematics(q)
@@ -93,7 +120,7 @@ def inversekinematics_secondary(robot, target_position, target_orientation, q0):
         J, Jv, Jw = robot.get_jacobian(q)
         # compute joint speed to achieve the reference
         qda = moore_penrose_damped(J, e)
-        qdb = minimize_w_central(J, q, qc, K)
+        qdb = minimize_w_lateral(J, q, qmin=qmin, qmax=qmax)
         qdb = 0.2 * np.linalg.norm(qda) * qdb
         qd = qda + qdb
         q = q + qd
@@ -147,8 +174,8 @@ def pick_and_place(robot, step_number):
     robot.open_gripper(precision=True)
     robot.set_joint_target_trajectory(q5_path[::-1], precision='last')
     # # # back to initial
-    robot.set_joint_target_positions(q0, precision=False)
-    robot.wait(20)
+    # robot.set_joint_target_positions(q0, precision=False)
+    # robot.wait(20)
 
 
 def pallet_application():

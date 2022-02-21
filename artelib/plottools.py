@@ -36,16 +36,14 @@ def plot_xy(x, y, title='UNTITLED'):
     x = x.flatten()
     y = y.flatten()
     plt.plot(x, y, linewidth=4, marker='.')
-    # plt.xlabel('Distancia (m)')
-    # plt.ylabel('Módulo (m/s)')
+    # plt.xlabel('qi')
+    # plt.ylabel('dw')
     plt.legend()
     plt.title(title)
     plt.show(block=True)
 
+
 def plot3d(x, y, z, title='3D'):
-    # x = np.linspace(−4*np.pi, 4*np.pi,50)
-    # y = np.linspace(−4*np.pi, 4*np.pi,50)
-    # z = x**2 + y**2
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(x, y, z)

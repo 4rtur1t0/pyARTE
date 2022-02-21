@@ -13,7 +13,6 @@ from artelib.tools import compute_kinematic_errors
 from sceneconfig.scene_configs import init_simulation_UR5
 
 
-
 def delta_q_transpose(J, e):
     alpha1 = np.dot(np.dot(np.dot(J, J.T), e), e)
     alpha2 = np.dot(np.dot(J, J.T), e)

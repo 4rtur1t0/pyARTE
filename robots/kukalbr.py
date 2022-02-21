@@ -12,6 +12,7 @@ RobotKUKALBR is a derived class of the Robot base class that particularizes some
 import numpy as np
 
 from artelib import homogeneousmatrix
+from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.inverse_kinematics import delta_q
 from artelib.path_planning import generate_target_positions, generate_target_orientations_Q
 from artelib.tools import compute_kinematic_errors, buildT, rot2quaternion, minimize_w_central, minimize_w_lateral, \
@@ -30,13 +31,11 @@ class RobotKUKALBR(Robot):
         max_joint_speeds = max_joint_speeds * np.pi / 180.0
         # max and min joint ranges
         joint_ranges = np.array([[-180, -180, -180, -180, -180, -180, -180],
-                                 [180,   180, 180,  180,  180,  180, 180]])
+                                 [180,   180,  180,  180,  180,  180,  180]])
         joint_ranges = joint_ranges * np.pi / 180.0
-
         # max errors during computation of inverse kinematics
         self.max_error_dist_inversekinematics = 0.01
         self.max_error_orient_inversekinematics = 0.01
-
         self.ikmethod = 'moore-penrose-damped'
         # self.ikmethod = 'moore-penrose'
         # self.ikmethod = 'transpose'
@@ -71,21 +70,15 @@ class RobotKUKALBR(Robot):
         If self.secondary is set, then the null space is used to find
         """
         # build transform using position and Quaternion
-        Ttarget = buildT(target_position, target_orientation)
+        Ttarget = HomogeneousMatrix(target_position, target_orientation)
         q = q0
-        error_dists = []
-        error_orients = []
-        es = []
         qmin = self.joint_ranges[0]
         qmax = self.joint_ranges[1]
         for i in range(0, self.max_iterations_inverse_kinematics):
             print('Iteration number: ', i)
             Ti = self.direct_kinematics(q)
             e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
-            error_dists.append(np.linalg.norm(error_dist))
-            error_orients.append(np.linalg.norm(error_orient))
             print('e: ', e)
-            es.append(e)
             print('errordist, error orient: ', error_dist, error_orient)
             if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
                 print('Converged!!')

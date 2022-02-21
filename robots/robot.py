@@ -107,10 +107,10 @@ class Robot():
                 self.set_joint_target_positions(q_path[i], precision=True)
         # precision is low on any
         elif precision == 'low':
-            self.epsilonq = 100.0 * self.epsilonq
+            self.epsilonq = 1000.0 * self.epsilonq
             for i in range(0, len(q_path), sampling):
                 self.set_joint_target_positions(q_path[i], precision=True)
-            self.epsilonq = self.epsilonq / 100.0
+            self.epsilonq = self.epsilonq / 1000.0
         # precision must be attained only on the last i in the path
         elif precision == 'last':
             samples = range(0, len(q_path), sampling)
@@ -217,14 +217,14 @@ class Robot():
     def direct_kinematics(self, q):
         return self.direct_kinematics(q)
 
-    def compute_vref_wref(self, targetposition, targetorientation):
-        position, orientation = self.get_end_effector_position_orientation()
-        vref = np.array(targetposition)-np.array(position)
-        wref = compute_w_between_orientations(orientation, targetorientation)
-        vref = vref/np.linalg.norm(vref)
-        wref = wref/np.linalg.norm(wref)
-        vwref = np.hstack((vref, wref))
-        return vwref, vref, wref
+    # def compute_vref_wref(self, targetposition, targetorientation):
+    #     position, orientation = self.get_end_effector_position_orientation()
+    #     vref = np.array(targetposition)-np.array(position)
+    #     wref = compute_w_between_orientations(orientation, targetorientation)
+    #     vref = vref/np.linalg.norm(vref)
+    #     wref = wref/np.linalg.norm(wref)
+    #     vwref = np.hstack((vref, wref))
+    #     return vwref, vref, wref
 
     def compute_target_error(self, targetposition, targetorientation):
         """
@@ -242,23 +242,23 @@ class Robot():
         error_orient = Qorientation[1:4]-Qtargetorientation[1:4]
         return np.linalg.norm(error_dist), np.linalg.norm(error_orient)
 
-    def compute_errors(self, Ttarget, Tcurrent):
-        """
-        computes a euclidean distance in px, py, pz between target position and the robot's end effector
-        computes a orientation error based on the quaternion orientation vectors
-        """
-        # current position of the end effector and target position
-        p_current = Tcurrent[0:3, 3]
-        p_target = Ttarget[0:3, 3]
-        # a vector along the line
-        vref = np.array(p_target - p_current)
-        # total time to complete the movement given vmax
-        wref = compute_w_between_R(Tcurrent, Ttarget, total_time=1)
-        # Compute error in distance and error in orientation.
-        # The error in orientation is computed
-        error_dist = np.linalg.norm(vref)
-        error_orient = np.linalg.norm(wref)
-        return error_dist, error_orient
+    # def compute_errors(self, Ttarget, Tcurrent):
+    #     """
+    #     computes a euclidean distance in px, py, pz between target position and the robot's end effector
+    #     computes a orientation error based on the quaternion orientation vectors
+    #     """
+    #     # current position of the end effector and target position
+    #     p_current = Tcurrent[0:3, 3]
+    #     p_target = Ttarget[0:3, 3]
+    #     # a vector along the line
+    #     vref = np.array(p_target - p_current)
+    #     # total time to complete the movement given vmax
+    #     wref = compute_w_between_R(Tcurrent, Ttarget, total_time=1)
+    #     # Compute error in distance and error in orientation.
+    #     # The error in orientation is computed
+    #     error_dist = np.linalg.norm(vref)
+    #     error_orient = np.linalg.norm(wref)
+    #     return error_dist, error_orient
 
     def compute_time(self, Tcurrent, Ttarget, vmax=1.0):
         """
@@ -273,26 +273,26 @@ class Robot():
         total_time = dist/vmax
         return total_time
 
-    def compute_actions(self, Tcurrent, Ttarget, vmax=1.0, total_time=1.0):
-        """
-        Compute the movement that allows to bring Tcurrent to Ttarget with a given linear max speed
-        """
-        # current position of the end effector and target position
-        p_current = Tcurrent[0:3, 3]
-        p_target = Ttarget[0:3, 3]
-        # a vector along the line
-        vref = np.array(p_target-p_current)
-        dist = np.linalg.norm(vref)
-        error_dist = dist
-        # normalize linear velocity
-        if dist > 0.0:
-            vref = np.dot(vmax/dist, vref)
-        # Compute error in distance and error in orientation.The error in orientation is computed considering the
-        # angular speed from R1 to R2 needed in total_time seconds.
-        wref = compute_w_between_R(Tcurrent, Ttarget, total_time=total_time)
-        error_orient = np.linalg.norm(wref)
-        vwref = np.hstack((vref, wref))
-        return vwref, error_dist, error_orient
+    # def compute_actions(self, Tcurrent, Ttarget, vmax=1.0, total_time=1.0):
+    #     """
+    #     Compute the movement that allows to bring Tcurrent to Ttarget with a given linear max speed
+    #     """
+    #     # current position of the end effector and target position
+    #     p_current = Tcurrent[0:3, 3]
+    #     p_target = Ttarget[0:3, 3]
+    #     # a vector along the line
+    #     vref = np.array(p_target-p_current)
+    #     dist = np.linalg.norm(vref)
+    #     error_dist = dist
+    #     # normalize linear velocity
+    #     if dist > 0.0:
+    #         vref = np.dot(vmax/dist, vref)
+    #     # Compute error in distance and error in orientation.The error in orientation is computed considering the
+    #     # angular speed from R1 to R2 needed in total_time seconds.
+    #     wref = compute_w_between_R(Tcurrent, Ttarget, total_time=total_time)
+    #     error_orient = np.linalg.norm(wref)
+    #     vwref = np.hstack((vref, wref))
+    #     return vwref, error_dist, error_orient
 
     def check_joints(self, q):
         """
@@ -376,19 +376,6 @@ class Robot():
             qd_corrected = qd
         return qd_corrected, valid, valid_indexes
 
-
-    # def adjust_vwref(self, vwref, error_dist, error_orient, vmax=1.0):
-    #     radius = 5*self.max_error_dist_inversekinematics
-    #     vref = vwref[0:3]
-    #     wref = vwref[3:6]
-    #     if error_dist <= radius:
-    #         k = vmax*error_dist/radius
-    #         vref = np.dot(k, vref)
-    #     if error_orient <= radius:
-    #         k = vmax*error_orient/radius
-    #         wref = np.dot(k, wref)
-    #     return np.hstack((vref, wref))
-
     def inversekinematics(self, target_position, target_orientation, q0):
         """
         Solve the inverse kinematics using a Jacobian method.
@@ -396,7 +383,6 @@ class Robot():
         target_orientation: A quaternion specifying orientation.
         """
         # build transform using position and Quaternion
-        # Ttarget = buildT(target_position, target_orientation)
         Ttarget = HomogeneousMatrix(target_position, target_orientation)
         q = q0
         for i in range(0, self.max_iterations_inverse_kinematics):

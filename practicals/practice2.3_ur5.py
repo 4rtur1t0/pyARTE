@@ -16,35 +16,39 @@ from sceneconfig.scene_configs import init_simulation_UR5
 
 def pick_and_place():
     robot = init_simulation_UR5()
-    target_positions = [[0.6, -0.2, 0.25], # initial in front of conveyor
-                        [0.6, 0.1, 0.25], # pick the piece
-                        [0.6, -0.1, 0.35], # bring the piece up
-                        [0.4, -0.1, 0.35], # middle point
-                        [0.2, -0.55, 0.4], # over the table
+    target_positions = [[0.6, -0.25, 0.4],
+                        [0.6, -0.2, 0.25],  # initial in front of conveyor
+                        [0.6, 0.1, 0.25],  # pick the piece
+                        [0.6, -0.1, 0.35],  # bring the piece up
+                        [0.4, -0.1, 0.35],  # middle point
+                        [0.2, -0.55, 0.4],  # over the table
                         [0.2, -0.55, 0.3],
-                        [0.2, -0.55, 0.4]] # drop the piece
-    target_orientations = [[-np.pi/2, 0, -np.pi/2],
-                           [-np.pi/2, 0, -np.pi/2],
-                           [-np.pi/2, 0, -np.pi/2],
+                        [0.2, -0.55, 0.4]]  # drop the piece
+    target_orientations = [[-np.pi / 2, 0, 0],
+                           [-np.pi / 2, 0, -np.pi / 2],
+                           [-np.pi / 2, 0, -np.pi / 2],
+                           [-np.pi / 2, 0, -np.pi / 2],
                            [-np.pi / 2, 0, 0],
                            [-np.pi, 0, 0],
                            [-np.pi, 0, 0],
                            [-np.pi, 0, 0]]
-    open_gripper = [True,
-                    False,
-                    False,
-                    False,
-                    False,
+    open_gripper = [False,
                     True,
+                    True,
+                    False,
+                    False,
+                    False,
+                    False,
                     True]
+    q = np.array([-np.pi / 2, -np.pi / 8, np.pi / 2, -0.1, -0.1, -0.1])
+    robot.set_joint_target_positions(q, precision='last')
 
-    q = np.array([-np.pi, -np.pi/8, np.pi/2, 0, 0, 0])
-    robot.set_joint_target_positions(q)
     robot.wait(20)
     for i in range(len(target_positions)):
+        robot.set_target_position_orientation(target_positions[i], target_orientations[i])
         q_path = robot.inversekinematics_line(target_position=target_positions[i],
                                               target_orientation=Euler(target_orientations[i]),
-                                              q0=q)
+                                              q0=q, vmax=0.5)
         if open_gripper[i]:
             robot.open_gripper(precision=True)
         else:
@@ -60,4 +64,3 @@ def pick_and_place():
 
 if __name__ == "__main__":
     pick_and_place()
-

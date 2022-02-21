@@ -20,13 +20,13 @@ def buildT(position, orientation):
     return T
 
 
-# def buildTQ(position, orientationQ):
-#     T = np.zeros((4, 4))
-#     # R = quaternion2rot(orientationQ)
-#     T[0:3, 0:3] = R
-#     T[3, 3] = 1
-#     T[0:3, 3] = np.array(position).T
-#     return T
+def normalize(q):
+    norma = np.linalg.norm(q)
+    if norma > 0:
+        return q/norma
+    else:
+        return q
+
 
 def compute_w_between_orientations(orientation, targetorientation):
     # R1 = euler2rot(orientation.R
@@ -316,25 +316,47 @@ def minimize_w_central(J, q, qc, K):
         return qdb
 
 
-def w_lateral(q, qmax, qmin):
+def saturate_qi(q, qmin, qmax):
+    deltaq = np.pi/20
+    if q > (qmax - deltaq):
+        q = qmax - deltaq
+    elif q < (qmin + deltaq):
+        q = qmin + deltaq
+    return q
+
+
+def w_lateral(q, qmin, qmax):
+    """
+    The evaluation of a lateral function that avoids going into the range limits of the joints.
+    A delta_q is considered in order to avoid the singularity if q[i]==qmax[i] of q[i]==qmax[i]
+    """
     n = len(q)
     w = 0
     for i in range(n):
-        num = qmax[i]-qmin[i]
-        den = (qmax[i]-q[i])*(q[i]-qmin[i])
-        if den > 0:
+        qi = saturate_qi(q[i], qmin[i], qmax[i])
+        num = (qmax[i]-qmin[i])
+        den = (qmax[i]-qi)*(qi-qmin[i])
+        if den > 0.0:
             w += num/den
+        else:
+            w += 0.0
     w = w/2/n
     return w
 
 
-def diff_w_lateral(q, qmax, qmin):
+def diff_w_lateral(q, qmin, qmax):
+    """
+    The function computes the differential of the secondary function w_lateral
+    """
     n = len(q)
     dw = []
     for i in range(n):
-        dwi = -(qmin[i]-qmax[i])/((q[i]-qmin[i])*(q[i]-qmax[i])**2)-(qmin[i] - qmax[i]) / ((q[i] - qmax[i])*(q[i] - qmin[i])**2)
-        if np.isinf(dwi):
-            dwi = 0
+        qi = saturate_qi(q[i], qmin[i], qmax[i])
+        dwi_num = (qmin[i] - qmax[i])*(-2*qi + qmax[i] + qmin[i])
+        dwi_den = ((qi - qmax[i]) * (qi - qmin[i]))**2
+        dwi = dwi_num/dwi_den
+        if np.isinf(dwi) or np.isnan(dwi):
+            dwi = 0.0
         dw.append(dwi)
     return np.array(dw)
 
@@ -345,6 +367,8 @@ def minimize_w_lateral(J, q, qmax, qmin):
     P = null_space_projector(J)
     qdb = np.dot(P, qd0)
     norma = np.linalg.norm(qdb)
+    if np.isnan(np.sum(qdb)):
+        return np.zeros(len(q))
     if norma > 0.0001:
         return qdb / norma
     else:

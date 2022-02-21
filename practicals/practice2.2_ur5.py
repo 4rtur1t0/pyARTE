@@ -44,26 +44,44 @@ def path_planning_o(o_current, o_target, n):
 
 def pick_and_place():
     robot = init_simulation_UR5()
-    target_positions = [[0.6, -0.2, 0.25], # initial in front of conveyor
-                        [0.6, 0.1, 0.25], # pick the piece
-                        [0.6, 0.1, 0.35], # bring the piece up
-                        [0.4, -0.1, 0.35], # middle point
-                        [0.2, -0.55, 0.4], # over the table
-                        [0.2, -0.55, 0.3]] # drop the piece
-    target_orientations = [[-np.pi/2, 0, -np.pi/2],
-                           [-np.pi/2, 0, -np.pi/2],
-                           [-np.pi/2, 0, -np.pi/2],
+    target_positions = [[0.6, -0.3, 0.4],
+                        [0.6, -0.2, 0.25],  # initial in front of conveyor
+                        [0.6, 0.1, 0.25],  # pick the piece
+                        [0.6, -0.1, 0.35],  # bring the piece up
+                        [0.4, -0.1, 0.35],  # middle point
+                        [0.2, -0.55, 0.4],  # over the table
+                        [0.2, -0.55, 0.3],
+                        [0.2, -0.55, 0.4]]  # drop the piece
+    target_orientations = [[-np.pi / 2, 0, 0],
+                           [-np.pi / 2, 0, -np.pi / 2],
+                           [-np.pi / 2, 0, -np.pi / 2],
+                           [-np.pi / 2, 0, -np.pi / 2],
                            [-np.pi / 2, 0, 0],
                            [-np.pi, 0, 0],
+                           [-np.pi, 0, 0],
                            [-np.pi, 0, 0]]
-    q = np.array([-np.pi, -np.pi/8, np.pi/2, 0, 0, 0])
+    open_gripper = [False,
+                    True,  # initial in front of conveyor
+                    False,  # pick the piece
+                    False,  # bring the piece up
+                    False,  # middle point
+                    False,  # over the table
+                    True,
+                    True]  # drop the piece
+    q = np.array([-np.pi / 2, -np.pi / 8, np.pi / 2, -0.1, -0.1, -0.1])
 
     for i in range(len(target_positions)-1):
+        robot.set_target_position_orientation(target_positions[i+1], target_orientations[i+1])
         n = n_movements(target_positions[i], target_positions[i+1], vmax=0.5)
         path_p = path_planning_p(target_positions[i], target_positions[i+1], n)
         path_o = path_planning_o(Euler(target_orientations[i]), Euler(target_orientations[i+1]), n)
         q_path = robot.inversekinematics_path(path_p, path_o, q)
         robot.set_joint_target_trajectory(q_path, precision='last')
+
+        if open_gripper[i]:
+            robot.open_gripper(precision=True)
+        else:
+            robot.close_gripper(precision=True)
         q = q_path[-1]
 
     # Stop arm and simulation
