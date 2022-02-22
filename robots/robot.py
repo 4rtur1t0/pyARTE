@@ -426,7 +426,7 @@ class Robot():
         q_path = []
         q = q0
         # now try to reach each target position on the line
-        for i in range(0, len(target_positions)):
+        for i in range(len(target_positions)):
             q = self.inversekinematics(target_position=target_positions[i],
                                        target_orientation=target_orientations[i], q0=q)
             q_path.append(q)
@@ -439,7 +439,7 @@ class Robot():
         q_path = []
         q = q0
         # now try to reach each target position on the line
-        for i in range(0, len(target_positions)):
+        for i in range(len(target_positions)):
             q = self.inversekinematics(target_position=target_positions[i],
                                        target_orientation=target_orientations[i], q0=q)
             q_path.append(q)

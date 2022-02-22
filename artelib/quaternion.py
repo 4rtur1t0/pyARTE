@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-The orientation class
+The Quaternion orientation class
 @Authors: Arturo Gil
 @Time: April 2021
 
@@ -24,6 +24,9 @@ class Quaternion():
         Convert Quaternion to Euler angles XYZ
         """
         return euler.Euler(q2euler(self.array))
+
+    def Q(self):
+        return self
 
     def __str__(self):
         return str(self.array)

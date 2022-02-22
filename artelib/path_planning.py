@@ -14,7 +14,7 @@ from artelib.tools import euler2rot, rot2quaternion, slerp, rot2euler, quaternio
 def potential(r):
     K = 0.3
     rs = 0.1  # radius of the sphere
-    rmax = 0.2
+    rmax = 0.3
     if r < rs:
         r = rs
     p = K * (1 / r - 1 / rmax)
@@ -51,22 +51,15 @@ def generate_target_positions(p_current, p_target, n):
 
 def generate_target_orientations(abc_current, abc_target, n):
     """
-    Generate a set of Euler angles between abc_current and abc_target.
+    Generate a set of interpolated orientations. The initial Euler angles are converted to Quaternions
     """
-    abc_current = np.array(abc_current)
-    abc_target = np.array(abc_target)
-    R1 = euler2rot(abc_current)
-    R2 = euler2rot(abc_target)
-    Q1 = rot2quaternion(R1)
-    Q2 = rot2quaternion(R2)
-
+    Q1 = abc_current.Q()
+    Q2 = abc_target.Q()
     tt = np.linspace(0, 1, int(n))
     target_orientations = []
     for t in tt:
         Q = slerp(Q1, Q2, t)
-        R = quaternion2rot(Q)
-        abc = rot2euler(R)
-        target_orientations.append(abc)
+        target_orientations.append(Q.Euler())
     return target_orientations
 
 
@@ -74,11 +67,12 @@ def generate_target_orientations_Q(Q1, Q2, n):
     """
     Generate a set of n quaternions between Q1 and Q2. Use SLERP to find an interpolation between them.
     """
+    Q1 = Q1.Q()
+    Q2 = Q2.Q()
     tt = np.linspace(0, 1, int(n))
     target_orientations = []
     for t in tt:
         Q = slerp(Q1, Q2, t)
-        # Q = Quaternion(Q)
         target_orientations.append(Q)
     return target_orientations
 
