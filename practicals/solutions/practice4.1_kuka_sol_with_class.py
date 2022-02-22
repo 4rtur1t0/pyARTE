@@ -13,7 +13,6 @@ from artelib.euler import Euler
 from sceneconfig.scene_configs import init_simulation_KUKALBR
 
 
-
 def follow_line_obstacle(robot, sphere):
     target_positions = [[0.5, 0.5, 0.5],  # initial in front of conveyor
                         [0.5, -0.5, 0.5]]  # drop the piece on the table

@@ -18,8 +18,8 @@ def potential(r):
     if r < rs:
         r = rs
     p = K * (1 / r - 1 / rmax)
-    if p < 0:
-        p = 0
+    if p < 0.0:
+        p = 0.0
     return p
 
 

@@ -11,13 +11,7 @@ The demo represents a KUKA LBR IIWA robot trying to maximize the distance to obs
 
 """
 import numpy as np
-from artelib.homogeneousmatrix import HomogeneousMatrix
-from artelib.inverse_kinematics import moore_penrose_damped, delta_q_transpose
-from artelib.euler import Euler
-from artelib.path_planning import n_movements, generate_target_positions, generate_target_orientations_Q, \
-    generate_target_orientations
-from artelib.plottools import plot_vars, plot_xy, plot
-from artelib.tools import null_space, compute_kinematic_errors
+from artelib.tools import null_space
 from sceneconfig.scene_configs import init_simulation_KUKALBR
 
 DELTA_TIME = 50.0/1000.0
@@ -34,21 +28,9 @@ def move_null_space(robot, q0, dir, nsteps):
         print('Movement number: ', i)
         J, Jv, Jw = robot.get_jacobian(q)
         qd = null_space(J, 6)
-        if dir == '+' and qd[2] < 0:
-            qd = -qd
-        elif dir == '-' and qd[2] > 0:
-            qd = -qd
-        # qd = np.dot(DELTA_TIME, qd)
-        q = q + 0.05*qd
-        [q, out_of_range] = robot.apply_joint_limits(q)
-        if out_of_range:
-            break
-        q_path.append(q)
-    samples = range(0, len(q_path))
-    for i in samples:
-        robot.set_joint_target_positions(q_path[i], precision=False)
-        d = robot.get_min_distance_to_objects()
-        ds.append(d)
+        # EJERCICIO: COMPLETE LA FUNCIÓN
+
+
     return ds, q_path
 
 

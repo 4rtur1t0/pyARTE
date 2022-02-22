@@ -82,6 +82,21 @@ class Robot():
             self.wait()
         self.q_path.append(q_target)
 
+    def set_joint_positions(self, q_target):
+        """
+        CAUTION: this function may only work if the "position control loop" is enabled at every arm joint.
+        :param precision: whether to wait for Coppelia until que joint values are attained with precision
+                    precision=True: --> the method self.wait_till_joint_position_is_met is called. This method
+                    checks, at each simulation time, whether the specified joint values q_target have been achieved.
+        :return: None
+        """
+        for i in range(len(q_target)):
+            errorCode = sim.simxSetJointPosition(clientID=self.clientID,
+                                                 jointHandle=self.armjoints[i],
+                                                 position=q_target[i],
+                                                 operationMode=sim.simx_opmode_oneshot_wait)
+        self.q_path.append(q_target)
+
     def set_joint_target_trajectory(self, q_path, sampling=1, precision='last'):
         """
         A repeated call to set_joint_target_positions.
