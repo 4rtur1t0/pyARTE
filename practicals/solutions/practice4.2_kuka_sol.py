@@ -32,7 +32,6 @@ def move_null_space(robot, q0, dir, nsteps):
             qd = -qd
         elif dir == '-' and qd[2] > 0:
             qd = -qd
-        # qd = np.dot(DELTA_TIME, qd)
         q = q + 0.05*qd
         [q, out_of_range] = robot.apply_joint_limits(q)
         if out_of_range:

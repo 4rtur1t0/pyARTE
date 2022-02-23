@@ -14,8 +14,6 @@ import numpy as np
 from artelib.tools import null_space
 from sceneconfig.scene_configs import init_simulation_KUKALBR
 
-DELTA_TIME = 50.0/1000.0
-
 
 def move_null_space(robot, q0, dir, nsteps):
     robot.set_joint_target_positions(q0, precision=True)

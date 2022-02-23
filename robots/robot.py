@@ -95,7 +95,7 @@ class Robot():
                                                  jointHandle=self.armjoints[i],
                                                  position=q_target[i],
                                                  operationMode=sim.simx_opmode_oneshot_wait)
-        self.q_path.append(q_target)
+        # self.q_path.append(q_target)
 
     def set_joint_target_trajectory(self, q_path, sampling=1, precision='last'):
         """
