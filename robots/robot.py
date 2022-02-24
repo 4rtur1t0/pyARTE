@@ -44,7 +44,7 @@ class Robot():
         # max iterations to achieve a joint target in coppelia
         self.max_iterations_joint_target = 200
         # admit this error in q
-        self.epsilonq = 0.001
+        self.epsilonq = 0.005
         self.q_path = []
 
         # max errors during computation of inverse kinematics
