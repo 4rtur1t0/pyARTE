@@ -72,6 +72,42 @@ def init_simulation_UR5():
     return robot
 
 
+
+def init_simulation_UR5BarrettHand():
+    clientID = init_sim()
+    armjoints = []
+    # Get the handles of the relevant objects
+    errorCode, robotbase = sim.simxGetObjectHandle(clientID, 'UR5', sim.simx_opmode_oneshot_wait)
+    errorCode, end_effector = sim.simxGetObjectHandle(clientID, 'end_effector', sim.simx_opmode_oneshot_wait)
+
+    errorCode, q1 = sim.simxGetObjectHandle(clientID, 'UR5_joint1', sim.simx_opmode_oneshot_wait)
+    errorCode, q2 = sim.simxGetObjectHandle(clientID, 'UR5_joint2', sim.simx_opmode_oneshot_wait)
+    errorCode, q3 = sim.simxGetObjectHandle(clientID, 'UR5_joint3', sim.simx_opmode_oneshot_wait)
+    errorCode, q4 = sim.simxGetObjectHandle(clientID, 'UR5_joint4', sim.simx_opmode_oneshot_wait)
+    errorCode, q5 = sim.simxGetObjectHandle(clientID, 'UR5_joint5', sim.simx_opmode_oneshot_wait)
+    errorCode, q6 = sim.simxGetObjectHandle(clientID, 'UR5_joint6', sim.simx_opmode_oneshot_wait)
+    errorCode, gripper_joint1 = sim.simxGetObjectHandle(clientID, 'Barrett_openCloseJoint',
+                                                        sim.simx_opmode_oneshot_wait)
+    errorCode, gripper_joint2 = sim.simxGetObjectHandle(clientID, 'Barrett_openCloseJoint0',
+                                                        sim.simx_opmode_oneshot_wait)
+    errorCode, target = sim.simxGetObjectHandle(clientID, 'target', sim.simx_opmode_oneshot_wait)
+    errorCode, camera = sim.simxGetObjectHandle(clientID, 'camera', sim.simx_opmode_oneshot_wait)
+
+    armjoints.append(q1)
+    armjoints.append(q2)
+    armjoints.append(q3)
+    armjoints.append(q4)
+    armjoints.append(q5)
+    armjoints.append(q6)
+    gripper = GripperBarretHand(clientID=clientID, joints=[gripper_joint1, gripper_joint2])
+
+    robot = RobotUR5(clientID=clientID, wheeljoints=[],
+                     armjoints=armjoints, base=robotbase,
+                     end_effector=end_effector, gripper=gripper, target=target, camera=camera)
+    return robot
+
+
+
 def init_simulation_KUKALBR():
     clientID = init_sim()
 
@@ -128,7 +164,6 @@ def init_simulation_4dof_planar():
     armjoints.append(q2)
     armjoints.append(q3)
     armjoints.append(q4)
-
     robot = Planar4DOF(clientID=clientID, wheeljoints=[],
                        armjoints=armjoints, base=robotbase,
                        end_effector=end_effector, gripper=None, target=target, camera=None)
@@ -155,7 +190,6 @@ def init_simulation_ABBIRB140():
 
     errorCode, target = sim.simxGetObjectHandle(clientID, 'target', sim.simx_opmode_oneshot_wait)
     errorCode, camera = sim.simxGetObjectHandle(clientID, 'camera', sim.simx_opmode_oneshot_wait)
-    # errorCode, sphere_handle = sim.simxGetObjectHandle(clientID, 'Sphere', sim.simx_opmode_oneshot_wait)
 
     armjoints.append(q1)
     armjoints.append(q2)
