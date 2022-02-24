@@ -12,13 +12,11 @@ from artelib import euler, quaternion, homogeneousmatrix
 
 
 class RotationMatrix():
-    # def __init__(self, rot):
-    #     self.array = np.array(rot[0:3, 0:3])
 
     def __init__(self, *args):
-        orientation = np.array(args[0])
+        orientation = args[0]
         if isinstance(orientation, np.ndarray):
-            self.array = np.array(args[0])
+            self.array = orientation
             self.array = self.array[0:3, 0:3]
         elif isinstance(orientation, euler.Euler):
             self.array = orientation.R()

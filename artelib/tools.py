@@ -11,7 +11,6 @@ import numpy as np
 
 def buildT(position, orientation):
     T = np.zeros((4, 4))
-    # R = euler2rot(orientation)
     R = orientation.R()
     R = R.toarray()
     T[0:3, 0:3] = R
