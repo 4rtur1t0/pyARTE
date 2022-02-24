@@ -35,14 +35,12 @@ def potentialo(d):
 
 
 def increase_distance_to_obstacles(robot, q):
-    # robot.set_joint_target_positions(q, precision=False)
     robot.set_joint_target_trajectory([q], precision='low')
     d1 = robot.get_min_distance_to_objects()
     f1 = potentialo(d1)
     J, Jv, Jw = robot.get_jacobian(q)
     qd = null_space(J, 6)
     q = q + f1*qd
-    # robot.set_joint_target_positions(q, precision=True)
     robot.set_joint_target_trajectory([q], precision='low')
     d2 = robot.get_min_distance_to_objects()
     f2 = potentialo(d2)
