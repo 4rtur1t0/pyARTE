@@ -59,7 +59,7 @@ class Robot():
         :param qd: joint speeds rad/s
         :return:
         """
-        for i in range(0, len(qd)):
+        for i in range(len(qd)):
             errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.armjoints[i],
                                                        targetVelocity=qd[i],
                                                        operationMode=sim.simx_opmode_oneshot)
@@ -72,7 +72,7 @@ class Robot():
                     checks, at each simulation time, whether the specified joint values q_target have been achieved.
         :return: None
         """
-        for i in range(0, len(q_target)):
+        for i in range(len(q_target)):
             errorCode = sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.armjoints[i],
                                                        targetPosition=q_target[i],
                                                        operationMode=sim.simx_opmode_oneshot)

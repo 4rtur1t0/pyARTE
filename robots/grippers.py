@@ -11,7 +11,7 @@ Classes to manage the grippers in Coppelia simulations
 import sim
 import time
 
-DELTA_TIME = 50/1000.0
+# DELTA_TIME = 50/1000.0
 
 
 class GripperRG2():
@@ -35,9 +35,37 @@ class GripperRG2():
         if precision:
             self.wait(10)
 
-    def wait(self, steps=1, real_time=False):
-        for i in range(0, steps):
-            if real_time:
-                time.sleep(DELTA_TIME)
+    def wait(self, steps=1):
+        for i in range(steps):
             sim.simxSynchronousTrigger(clientID=self.clientID)
 
+
+class GripperBarretHand():
+    def __init__(self, clientID, joints):
+        self.clientID = clientID
+        self.joints = joints
+
+    def open_gripper(self, precision=False):
+        sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[0],
+                                       targetVelocity=0.1, operationMode=sim.simx_opmode_oneshot)
+        sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[1],
+                                       targetVelocity=0.1, operationMode=sim.simx_opmode_oneshot)
+        # sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.joints[0],
+        #                          force=20.0, operationMode=sim.simx_opmode_oneshot)
+        # sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.joints[1],
+        #                          force=20.0, operationMode=sim.simx_opmode_oneshot)
+        if precision:
+            self.wait(15)
+
+    def close_gripper(self, precision=False):
+        sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[0],
+                                       targetVelocity=-0.1, operationMode=sim.simx_opmode_oneshot)
+        sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[1],
+                                       targetVelocity=-0.1, operationMode=sim.simx_opmode_oneshot)
+
+        if precision:
+            self.wait(15)
+
+    def wait(self, steps=1):
+        for i in range(steps):
+            sim.simxSynchronousTrigger(clientID=self.clientID)
