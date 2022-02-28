@@ -403,7 +403,7 @@ class Robot():
         q = q0
         for i in range(0, self.max_iterations_inverse_kinematics):
             print('Iteration number: ', i)
-            Ti = self.direct_kinematics(q)
+            Ti = self.directkinematics(q)
             e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
             print('errordist, error orient: ', error_dist, error_orient)
             if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
