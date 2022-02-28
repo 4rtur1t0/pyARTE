@@ -229,8 +229,9 @@ class Robot():
         manip = np.sqrt(np.linalg.det(np.dot(J, J.T)))
         return manip
 
-    def direct_kinematics(self, q):
-        return self.direct_kinematics(q)
+    def directkinematics(self, q):
+        T = self.serialrobot.directkinematics(q)
+        return T # self.direct_kinematics(q)
 
     # def compute_vref_wref(self, targetposition, targetorientation):
     #     position, orientation = self.get_end_effector_position_orientation()
@@ -424,7 +425,7 @@ class Robot():
         Caution. target_orientationQ is specified as a quaternion
         """
         Ttarget = HomogeneousMatrix(target_position, target_orientation)
-        Ti = self.direct_kinematics(q0)
+        Ti = self.directkinematics(q0)
         Qcurrent = Ti.Q()
         Qtarget = target_orientation.Q()
         p_current = Ti.pos()

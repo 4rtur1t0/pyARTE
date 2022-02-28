@@ -25,7 +25,7 @@ from pynput import keyboard
 from sceneconfig.scene_configs import init_simulation_UR5
 
 # standard delta time for Coppelia, please modify if necessary
-DELTA_TIME = 50.0/1000.0
+# DELTA_TIME = 50.0/1000.0
 
 actions = {'1': '0+',
            'q': '0-',
@@ -89,7 +89,7 @@ def on_press(key):
         robot.set_joint_target_positions(q, precision=False)
         robot.wait(1)
         [position, orientation] = robot.get_end_effector_position_orientation()
-        T = robot.direct_kinematics(q)
+        T = robot.directkinematics(q)
         Q = T.Q()
         print('Current q is: ', q)
         print('End effector position is (p): ', position)

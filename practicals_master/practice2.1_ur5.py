@@ -41,7 +41,7 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
     max_iterations = 10000
     for i in range(0, max_iterations):
         print('Iteration number: ', i)
-        Ti = robot.direct_kinematics(q)
+        Ti = robot.directkinematics(q)
         J, Jv, Jw = robot.get_jacobian(q)
         e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
         print('Error: ', e)

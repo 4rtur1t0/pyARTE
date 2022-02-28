@@ -10,9 +10,9 @@ RobotABBIRB140 is a derived class of the Robot base class that
 
 """
 import numpy as np
-from artelib import homogeneousmatrix
+# from artelib import homogeneousmatrix
 from robots.robot import Robot
-from kinematics.kinematics_ur5 import eval_symbolic_jacobian_UR5, eval_symbolic_T_UR5
+# from kinematics.kinematics_ur5 import eval_symbolic_jacobian_UR5, eval_symbolic_T_UR5
 
 
 class RobotABBIRB140(Robot):

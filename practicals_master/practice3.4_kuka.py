@@ -92,7 +92,7 @@ def inversekinematics_secondary(robot, target_position, target_orientation, q0):
     qmax = robot.joint_ranges[1]
     for i in range(0, max_iterations):
         print('Iteration number: ', i)
-        Ti = robot.direct_kinematics(q)
+        Ti = robot.directkinematics(q)
         e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
         print('e: ', e)
         print('errordist, error orient: ', error_dist, error_orient)
