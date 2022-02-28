@@ -14,7 +14,12 @@ from artelib import quaternion, rotationmatrix, euler
 class HomogeneousMatrix():
     def __init__(self, *args):
         if len(args) == 1:
-            self.array = np.array(args[0])
+            if isinstance(args[0], HomogeneousMatrix):
+                self.array = args[0].toarray()
+            elif isinstance(args[0], np.ndarray):
+                self.array = args[0]
+            else:
+                self.array = np.array(args[0])
         if len(args) == 2:
             position = np.array(args[0])
             orientation = args[1]
@@ -43,5 +48,18 @@ class HomogeneousMatrix():
     def pos(self):
         return self.array[0:3, 3]
 
-    # def T(self):
-    #     return self.array
+    def __mul__(self, other):
+        T = np.dot(self.array, other.array)
+        return HomogeneousMatrix(T)
+
+    def __add__(self, other):
+        T = self.array+other.array
+        return HomogeneousMatrix(T)
+
+    def __sub__(self, other):
+        T = self.array-other.array
+        return HomogeneousMatrix(T)
+
+
+
+

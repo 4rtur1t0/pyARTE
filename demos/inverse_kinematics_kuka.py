@@ -27,7 +27,9 @@ def ikine():
                            [0, 0, 0],
                            [np.pi/2, 0, 0]]
 
-    q = np.array([0, 0, 0, 0, 0, 0, 0])
+    q = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, -0.1])
+
+    robot.directkinematics(q)
 
     for i in range(6):
         robot.set_target_position_orientation(target_positions[i], target_orientations[i])

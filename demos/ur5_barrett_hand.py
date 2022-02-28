@@ -10,9 +10,8 @@ The script provides an example to move a UR5 robot and get laser data.
 @Time: April 2021
 """
 import numpy as np
-
 from artelib.euler import Euler
-from sceneconfig.scene_configs import init_simulation_UR5, init_simulation_UR5BarrettHand
+from sceneconfig.scene_configs import init_simulation_UR5BarrettHand
 
 
 if __name__ == "__main__":
@@ -24,6 +23,8 @@ if __name__ == "__main__":
     # set initial position of robot
     robot.set_joint_target_positions(q0, precision=True)
 
+    robot.direct_kinematics(q=q0)
+
     robot.set_target_position_orientation(target_positions[0], target_orientations[0])
     q_path = robot.inversekinematics_line(target_position=target_positions[0],
                                           target_orientation=Euler(target_orientations[0]),
@@ -33,7 +34,6 @@ if __name__ == "__main__":
     robot.close_gripper(precision=True)
     robot.set_joint_target_trajectory(q_path[::-1], precision='last')
     robot.open_gripper(precision=True)
-
 
     robot.stop_arm()
 

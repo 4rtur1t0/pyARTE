@@ -15,6 +15,7 @@ from artelib import homogeneousmatrix
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.inverse_kinematics import delta_q
 from artelib.path_planning import generate_target_positions, generate_target_orientations_Q
+from artelib.seriallink import SerialRobot
 from artelib.tools import compute_kinematic_errors, buildT, rot2quaternion, minimize_w_central, minimize_w_lateral, \
     w_lateral
 from robots.robot import Robot
@@ -43,6 +44,15 @@ class RobotKUKALBR(Robot):
         self.do_apply_joint_limits = True
         self.secondary_objective = True
 
+        self.serialrobot = SerialRobot(n=7, T0=np.eye(4), TCP=np.eye(4), name='KUKALBR')
+        self.serialrobot.append(th=0, d=0.36,  a=0, alpha=-np.pi/2, link_type='R')
+        self.serialrobot.append(th=0, d=0,     a=0, alpha= np.pi/2, link_type='R')
+        self.serialrobot.append(th=0, d=0.420, a=0, alpha= np.pi/2, link_type='R')
+        self.serialrobot.append(th=0, d=0,     a=0, alpha=-np.pi/2, link_type='R')
+        self.serialrobot.append(th=0, d=0.4,   a=0, alpha=-np.pi/2, link_type='R')
+        self.serialrobot.append(th=0, d=0,     a=0, alpha=np.pi/2, link_type='R')
+        self.serialrobot.append(th=0, d=0.111, a=0, alpha=0)
+
         Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera,
                        max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges)
 
@@ -60,9 +70,11 @@ class RobotKUKALBR(Robot):
         J, Jv, Jw = eval_symbolic_jacobian_KUKALBR(q)
         return J, Jv, Jw
 
-    def direct_kinematics(self, q):
-        T = eval_symbolic_T_KUKALBR(q)
-        return homogeneousmatrix.HomogeneousMatrix(T)
+    def directkinematics(self, q):
+        # T = eval_symbolic_T_KUKALBR(q)
+        # T1 = HomogeneousMatrix(T)
+        T = self.serialrobot.directkinematics(q)
+        return T # homogeneousmatrix.HomogeneousMatrix(T)
 
     def inversekinematics(self, target_position, target_orientation, q0):
         """
@@ -76,7 +88,7 @@ class RobotKUKALBR(Robot):
         qmax = self.joint_ranges[1]
         for i in range(0, self.max_iterations_inverse_kinematics):
             print('Iteration number: ', i)
-            Ti = self.direct_kinematics(q)
+            Ti = self.directkinematics(q)
             e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
             print('e: ', e)
             print('errordist, error orient: ', error_dist, error_orient)
