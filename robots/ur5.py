@@ -61,7 +61,5 @@ class RobotUR5(Robot):
         return J, Jv, Jw
 
     def directkinematics(self, q):
-        # T1 = eval_symbolic_T_UR5(q)
-        # T1 = HomogeneousMatrix(T1)
         T = self.serialrobot.directkinematics(q)
         return homogeneousmatrix.HomogeneousMatrix(T)
