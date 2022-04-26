@@ -51,7 +51,7 @@ def minimize_w_central(J, q, qc, K):
 
 def inversekinematics_line(robot, target_position, target_orientation, q0, vmax=0.5):
     Ttarget = HomogeneousMatrix(target_position, target_orientation)
-    Ti = robot.direct_kinematics(q0)
+    Ti = robot.directkinematics(q0)
     Qcurrent = Ti.Q()
     Qtarget = target_orientation.Q()
     p_current = Ti.pos()
@@ -83,7 +83,7 @@ def inversekinematics_secondary(robot, target_position, target_orientation, q0):
     K = [0, 0, 0, 0, 0, 1, 0]
     for i in range(0, max_iterations):
         print('Iteration number: ', i)
-        Ti = robot.direct_kinematics(q)
+        Ti = robot.directkinematics(q)
         e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
         print('e: ', e)
         print('errordist, error orient: ', error_dist, error_orient)

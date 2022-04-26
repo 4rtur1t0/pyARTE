@@ -22,6 +22,7 @@ from sceneconfig.scene_configs import init_simulation_KUKALBR
 
 DELTA_TIME = 50.0/1000.0
 
+
 def null_space_projector(J):
     n = J.shape[1]
     I = np.eye(n)
@@ -78,7 +79,7 @@ def minimize_w_lateral(J, q, qmax, qmin):
 
 def inversekinematics_line(robot, target_position, target_orientation, q0, vmax=0.5):
     Ttarget = HomogeneousMatrix(target_position, target_orientation)
-    Ti = robot.direct_kinematics(q0)
+    Ti = robot.directkinematics(q0)
     Qcurrent = Ti.Q()
     Qtarget = target_orientation.Q()
     p_current = Ti.pos()

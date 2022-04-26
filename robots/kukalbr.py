@@ -71,8 +71,6 @@ class RobotKUKALBR(Robot):
         return J, Jv, Jw
 
     def directkinematics(self, q):
-        # T = eval_symbolic_T_KUKALBR(q)
-        # T1 = HomogeneousMatrix(T)
         T = self.serialrobot.directkinematics(q)
         return T # homogeneousmatrix.HomogeneousMatrix(T)
 
