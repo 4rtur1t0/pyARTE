@@ -30,27 +30,27 @@ class RobotDyor(Robot):
             self.wait(10)
 
     def forward(self):
-        wheel_speeds = [10, 10]
+        wheel_speeds = [5, 5]
         for i in range(2):
             errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[i],
                                                        targetVelocity=wheel_speeds[i],
                                                        operationMode=sim.simx_opmode_oneshot)
     def backwards(self):
-        wheel_speeds = [-10, -10]
+        wheel_speeds = [-5, -5]
         for i in range(2):
             errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[i],
                                                        targetVelocity=wheel_speeds[i],
                                                        operationMode=sim.simx_opmode_oneshot)
 
     def left(self):
-        wheel_speeds = [-10, 10]
+        wheel_speeds = [-5, 5]
         for i in range(2):
             errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[i],
                                                        targetVelocity=wheel_speeds[i],
                                                        operationMode=sim.simx_opmode_oneshot)
 
     def right(self):
-        wheel_speeds = [10, -10]
+        wheel_speeds = [5, -5]
         for i in range(2):
             errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[i],
                                                        targetVelocity=wheel_speeds[i],
