@@ -10,9 +10,7 @@ RobotABBIRB140 is a derived class of the Robot base class that
 
 """
 import numpy as np
-# from artelib import homogeneousmatrix
 from robots.robot import Robot
-# from kinematics.kinematics_ur5 import eval_symbolic_jacobian_UR5, eval_symbolic_T_UR5
 
 
 class RobotABBIRB140(Robot):
@@ -46,10 +44,4 @@ class RobotABBIRB140(Robot):
         if precision:
             self.wait(10)
 
-    # def get_jacobian(self, q):
-        # J, Jv, Jw = eval_symbolic_jacobian_UR5(q)
-        # return J, Jv, Jw
 
-    # def direct_kinematics(self, q):
-    #     T = eval_symbolic_T_UR5(q)
-    #     return homogeneousmatrix.HomogeneousMatrix(T)

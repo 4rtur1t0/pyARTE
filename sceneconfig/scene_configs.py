@@ -9,11 +9,11 @@ Configuration function for scenes/ur5.ttt.
 import time
 import sim
 import sys
-
 from robots.abbirb140 import RobotABBIRB140
 from robots.grippers import GripperRG2, GripperBarretHand
 from robots.kukalbr import RobotKUKALBR
 from robots.planar4dof import Planar4DOF
+from robots.robot_dyor import RobotDyor
 from robots.ur5 import RobotUR5
 from artelib.scene import Sphere
 import numpy as np
@@ -203,4 +203,21 @@ def init_simulation_ABBIRB140():
                            armjoints=armjoints, base=robotbase,
                            end_effector=end_effector, gripper=gripper,
                            target=target, camera=camera)
+    return robot
+
+
+def init_simulation_mobile_robot():
+    clientID = init_sim()
+    wheeljoints = []
+    # Get the handles of the relevant objects
+    errorCode, robotbase = sim.simxGetObjectHandle(clientID, 'ROBOT_DYOR', sim.simx_opmode_oneshot_wait)
+    errorCode, wheel1 = sim.simxGetObjectHandle(clientID, 'motor_L', sim.simx_opmode_oneshot_wait)
+    errorCode, wheel2 = sim.simxGetObjectHandle(clientID, 'motor_R', sim.simx_opmode_oneshot_wait)
+
+    wheeljoints.append(wheel1)
+    wheeljoints.append(wheel2)
+
+    robot = RobotDyor(clientID=clientID, wheeljoints=wheeljoints,
+                     armjoints=[], base=robotbase,
+                     end_effector=None, gripper=None, target=None, camera=None)
     return robot
