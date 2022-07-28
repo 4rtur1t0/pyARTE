@@ -3,25 +3,29 @@
 """
 The orientation class
 @Authors: Arturo Gil
-@Time: April 2021
-
+@Time: July 2022
 """
 import numpy as np
-from artelib.tools import rot2quaternion
+from artelib.tools import rot2quaternion, rot2euler
 from artelib import euler, quaternion, homogeneousmatrix
+import matplotlib.pyplot as plt
 
 
 class RotationMatrix():
 
     def __init__(self, *args):
         orientation = args[0]
+        # constructor from a np array
         if isinstance(orientation, np.ndarray):
             self.array = orientation
-            self.array = self.array[0:3, 0:3]
+            # self.array = self.array[0:3, 0:3]
+        elif isinstance(orientation, int):
+            self.array = np.eye(orientation)
         elif isinstance(orientation, euler.Euler):
             self.array = orientation.R()
         elif isinstance(orientation, quaternion.Quaternion):
             self.array = orientation.R()
+        # copy constructor
         elif isinstance(orientation, RotationMatrix):
             self.array = orientation.toarray()
         else:
@@ -39,5 +43,81 @@ class RotationMatrix():
     def Q(self):
         return quaternion.Quaternion(rot2quaternion(self.array))
 
+    def euler(self):
+        return euler.Euler(rot2euler(self.array))
+
     def homogeneous(self):
         return homogeneousmatrix.HomogeneousMatrix(np.zeros(3), self)
+
+    def __mul__(self, other):
+        R = np.dot(self.array, other.array)
+        return RotationMatrix(R)
+
+    def plot(self, title='Rotation Matrix', block=False):
+        """
+        Plot the rotation matrix as 2D or 3D vectors
+        """
+        n = self.array.shape[0]
+        fig = plt.figure()
+        if n == 2:
+            # origin = np.array([[0, 0], [0, 0]])  # origin point
+            plt.quiver((0, 0), (0, 0), self.array[0, :], self.array[1, :], color=['red', 'green'], angles='xy',
+                       scale_units='xy', scale=1)
+            plt.draw()
+            plt.xlim([-1, 1])
+            plt.ylim([-1, 1])
+            plt.xlabel('X')
+            plt.ylabel('Y')
+        elif n == 3:
+            ax = fig.add_subplot(projection='3d')
+            # first drawing the "-" . Next drawing two lines for each head ">"
+            colors = ['red', 'green', 'blue', 'red', 'red', 'green', 'green', 'blue', 'blue']
+            ax.view_init(15, 35)
+            ax.quiver(0, 0, 0, self.array[0, :], self.array[1, :], self.array[2, :], color=colors)
+            ax.set_xlim([-1, 1])
+            ax.set_ylim([-1, 1])
+            ax.set_zlim([-1, 1])
+            ax.set_xlabel('X')
+            ax.set_ylabel('Y')
+            ax.set_zlabel('Z')
+        plt.title(title)
+        plt.show(block=block)
+
+
+def R2(theta):
+    """
+    A 2x2 rotation matrix.
+    """
+    R = np.array([[np.cos(theta), -np.sin(theta)],
+                  [np.sin(theta), np.cos(theta)]])
+    return RotationMatrix(R)
+
+
+def Rx(theta):
+    """
+    A fundamental rotation along the X axis.
+    """
+    R = np.array([[1,       0,                    0],
+                  [0, np.cos(theta), -np.sin(theta)],
+                  [0, np.sin(theta), np.cos(theta)]])
+    return RotationMatrix(R)
+
+
+def Ry(theta):
+    """
+    A fundamental rotation along the Y axis.
+    """
+    R = np.array([[np.cos(theta), 0,    np.sin(theta)],
+                  [0,             1,                0],
+                  [-np.sin(theta),  0,     np.cos(theta)]])
+    return RotationMatrix(R)
+
+
+def Rz(theta):
+    """
+    A fundamental rotation along the Z axis.
+    """
+    R = np.array([[np.cos(theta), -np.sin(theta),  0],
+                  [np.sin(theta),  np.cos(theta),  0],
+                  [0,              0,        1]])
+    return RotationMatrix(R)
