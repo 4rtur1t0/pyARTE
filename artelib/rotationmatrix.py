@@ -37,6 +37,9 @@ class RotationMatrix():
     def toarray(self):
         return self.array
 
+    def inv(self):
+        return RotationMatrix(self.array.T)
+
     def R(self):
         return self
 
@@ -44,7 +47,8 @@ class RotationMatrix():
         return quaternion.Quaternion(rot2quaternion(self.array))
 
     def euler(self):
-        return euler.Euler(rot2euler(self.array))
+        eul = rot2euler(self.array)
+        return euler.Euler(eul[0]), euler.Euler(eul[1])
 
     def homogeneous(self):
         return homogeneousmatrix.HomogeneousMatrix(np.zeros(3), self)

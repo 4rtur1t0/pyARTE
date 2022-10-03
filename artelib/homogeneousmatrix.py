@@ -39,11 +39,14 @@ class HomogeneousMatrix():
     def toarray(self):
         return self.array
 
+    def inv(self):
+        return HomogeneousMatrix(np.linalg.inv(self.array))
+
     def Q(self):
         return quaternion.Quaternion(rot2quaternion(self.array))
 
     def R(self):
-        return rotationmatrix.RotationMatrix(self.array[0:3][0:3])
+        return rotationmatrix.RotationMatrix(self.array[0:3, 0:3])
 
     def pos(self):
         return self.array[0:3, 3]
@@ -59,6 +62,9 @@ class HomogeneousMatrix():
     def __sub__(self, other):
         T = self.array-other.array
         return HomogeneousMatrix(T)
+
+    def __getitem__(self, item):
+        return self.array[item[0], item[1]]
 
 
 
