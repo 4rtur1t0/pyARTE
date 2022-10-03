@@ -27,6 +27,13 @@ def normalize(q):
         return q
 
 
+def normalize_angle(eul):
+    e = []
+    for i in range(len(eul)):
+        e.append(np.arctan2(np.sin(eul[i]), np.cos(eul[i])))
+    return e
+
+
 def compute_w_between_orientations(orientation, targetorientation):
     # R1 = euler2rot(orientation.R
     # R2 = euler2rot(targetorientation)
@@ -210,29 +217,59 @@ def euler2rot(abg):
     R = np.matmul(R, Rz)
     return R
 
+# def rot2euler(R):
+#     """
+#     Computes Euler angles for the expression Rx(alpha)Ry(beta)Rz(gamma)
+#     Caution: convention is XYZ
+#     :param R:
+#     :return:
+#     """
+#     R = R[0:3, 0:3]
+#     # caution, c-like indexes in python!
+#     sbeta = R[0, 2]
+#     if abs(sbeta) == 1.0:
+#         # degenerate case in which sin(beta)=+-1 and cos(beta)=0
+#         # arbitrarily set alpha to zero
+#         alpha = 0.0
+#         beta = np.arcsin(sbeta)
+#         gamma = np.arctan2(R[1, 1], R[1, 0])
+#     else:
+#         # standard way to compute alpha beta and gamma
+#         alpha = -np.arctan2(R[1, 2], R[2, 2])
+#         beta = np.arctan2(np.cos(alpha) * R[0, 2], R[2, 2])
+#         gamma = -np.arctan2(R[0, 1], R[0, 0])
+#     return [alpha, beta, gamma]
+
 
 def rot2euler(R):
-    """
-    Computes Euler angles for the expression Rx(alpha)Ry(beta)Rz(gamma)
-    Caution: convention is XYZ
-    :param R:
-    :return:
-    """
-    R = R[0:3, 0:3]
-    # caution, c-like indexes in python!
-    sbeta = R[0, 2]
-    if abs(sbeta) == 1.0:
-        # degenerate case in which sin(beta)=+-1 and cos(beta)=0
-        # arbitrarily set alpha to zero
-        alpha = 0.0
-        beta = np.arcsin(sbeta)
-        gamma = np.arctan2(R[1, 1], R[1, 0])
+    th = np.abs(np.abs(R[0, 2])-1.0)
+    # caso no degenerado
+    if th > 0.0001:
+        beta1 = np.arcsin(R[0, 2])
+        beta2 = np.pi - beta1
+        s1 = np.sign(np.cos(beta1))
+        s2 = np.sign(np.cos(beta2))
+        alpha1 = np.arctan2(-s1*R[1][2], s1*R[2][2])
+        gamma1 = np.arctan2(-s1*R[0][1], s1*R[0][0])
+        alpha2 = np.arctan2(-s2*R[1][2], s2*R[2][2])
+        gamma2 = np.arctan2(-s2*R[0][1], s2*R[0][0])
     else:
-        # standard way to compute alpha beta and gamma
-        alpha = -np.arctan2(R[1, 2], R[2, 2])
-        beta = np.arctan2(np.cos(alpha) * R[0, 2], R[2, 2])
-        gamma = -np.arctan2(R[0, 1], R[0, 0])
-    return [alpha, beta, gamma]
+        alpha1 = 0
+        alpha2 = np.pi
+        beta1 = np.arcsin(R[0, 2])
+        if beta1 > 0:
+            beta2 = np.pi/2
+            gamma1 = np.arctan2(R[1][0], R[1][1])
+            gamma2 = np.arctan2(R[1][0], R[1][1])-alpha2
+        else:
+            beta2 = -np.pi/2
+            gamma1 = np.arctan2(-R[1][0], R[1][1])
+            gamma2 = np.arctan2(-R[1][0], R[1][1])-alpha2
+    # finally normalize to +-pi
+    e1 = normalize_angle([alpha1, beta1, gamma1])
+    e2 = normalize_angle([alpha2, beta2, gamma2])
+    return e1, e2
+
 
 
 def euler2q(abg):

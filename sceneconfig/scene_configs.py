@@ -178,15 +178,14 @@ def init_simulation_ABBIRB140():
     errorCode, robotbase = sim.simxGetObjectHandle(clientID, 'IRB140', sim.simx_opmode_oneshot_wait)
     errorCode, end_effector = sim.simxGetObjectHandle(clientID, 'end_effector', sim.simx_opmode_oneshot_wait)
 
-    errorCode, q1 = sim.simxGetObjectHandle(clientID, 'R1_q1', sim.simx_opmode_oneshot_wait)
-    errorCode, q2 = sim.simxGetObjectHandle(clientID, 'R1_q2', sim.simx_opmode_oneshot_wait)
-    errorCode, q3 = sim.simxGetObjectHandle(clientID, 'R1_q3', sim.simx_opmode_oneshot_wait)
-    errorCode, q4 = sim.simxGetObjectHandle(clientID, 'R1_q4', sim.simx_opmode_oneshot_wait)
-    errorCode, q5 = sim.simxGetObjectHandle(clientID, 'R1_q5', sim.simx_opmode_oneshot_wait)
-    errorCode, q6 = sim.simxGetObjectHandle(clientID, 'R1_q6', sim.simx_opmode_oneshot_wait)
+    errorCode, q1 = sim.simxGetObjectHandle(clientID, 'joint1', sim.simx_opmode_oneshot_wait)
+    errorCode, q2 = sim.simxGetObjectHandle(clientID, 'joint2', sim.simx_opmode_oneshot_wait)
+    errorCode, q3 = sim.simxGetObjectHandle(clientID, 'joint3', sim.simx_opmode_oneshot_wait)
+    errorCode, q4 = sim.simxGetObjectHandle(clientID, 'joint4', sim.simx_opmode_oneshot_wait)
+    errorCode, q5 = sim.simxGetObjectHandle(clientID, 'joint5', sim.simx_opmode_oneshot_wait)
+    errorCode, q6 = sim.simxGetObjectHandle(clientID, 'joint6', sim.simx_opmode_oneshot_wait)
 
-    errorCode, gripper_joint1 = sim.simxGetObjectHandle(clientID, 'Barrett_openCloseJoint', sim.simx_opmode_oneshot_wait)
-    errorCode, gripper_joint2 = sim.simxGetObjectHandle(clientID, 'Barrett_openCloseJoint0', sim.simx_opmode_oneshot_wait)
+    errorCode, gripper_joint1 = sim.simxGetObjectHandle(clientID, 'RG2_openCloseJoint', sim.simx_opmode_oneshot_wait)
 
     errorCode, target = sim.simxGetObjectHandle(clientID, 'target', sim.simx_opmode_oneshot_wait)
     errorCode, camera = sim.simxGetObjectHandle(clientID, 'camera', sim.simx_opmode_oneshot_wait)
@@ -197,7 +196,7 @@ def init_simulation_ABBIRB140():
     armjoints.append(q4)
     armjoints.append(q5)
     armjoints.append(q6)
-    gripper = GripperBarretHand(clientID=clientID, joints=[gripper_joint1, gripper_joint2])
+    gripper = GripperRG2(clientID=clientID, joints=[gripper_joint1])
 
     robot = RobotABBIRB140(clientID=clientID, wheeljoints=[],
                            armjoints=armjoints, base=robotbase,

@@ -20,15 +20,16 @@ def rot2euler(R):
     if th > 0.0001:
         beta1 = np.arcsin(R[0, 2])
         beta2 = np.pi - beta1
-        alpha1 = np.arctan2(-R[1][2]/np.cos(beta1), R[2][2]/np.cos(beta1))
-        gamma1 = np.arctan2(-R[0][1]/np.cos(beta1), R[0][0]/np.cos(beta1))
-        alpha2 = np.arctan2(-R[1][2]/np.cos(beta2), R[2][2]/np.cos(beta2))
-        gamma2 = np.arctan2(-R[0][1]/np.cos(beta2), R[0][0]/np.cos(beta2))
+        s1 = np.sign(np.cos(beta1))
+        s2 = np.sign(np.cos(beta2))
+        alpha1 = np.arctan2(-s1*R[1][2], s1*R[2][2])
+        gamma1 = np.arctan2(-s1*R[0][1], s1*R[0][0])
+        alpha2 = np.arctan2(-s2*R[1][2], s2*R[2][2])
+        gamma2 = np.arctan2(-s2*R[0][1], s2*R[0][0])
     else:
         alpha1 = 0
         alpha2 = np.pi
         beta1 = np.arcsin(R[0, 2])
-
         if beta1 > 0:
             beta2 = np.pi/2
             gamma1 = np.arctan2(R[1][0], R[1][1])
@@ -111,5 +112,6 @@ if __name__ == '__main__':
     print(e)
     test_solution(R, euler2rot(e[0]))
     test_solution(R, euler2rot(e[1]))
+
 
 

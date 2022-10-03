@@ -21,17 +21,17 @@ class GripperRG2():
 
     def open_gripper(self, precision=False):
         sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.joints[0],
-                                       targetPosition=0.05, operationMode=sim.simx_opmode_oneshot)
+                                       targetPosition=0.04, operationMode=sim.simx_opmode_oneshot)
         sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.joints[0],
-                                 force=20.0, operationMode=sim.simx_opmode_oneshot)
+                                 force=50.0, operationMode=sim.simx_opmode_oneshot)
         if precision:
             self.wait(10)
 
     def close_gripper(self, precision=False):
         sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.joints[0],
-                                       targetPosition=-0.05, operationMode=sim.simx_opmode_oneshot)
+                                       targetPosition=-0.04, operationMode=sim.simx_opmode_oneshot)
         sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.joints[0],
-                                 force=-20.0, operationMode=sim.simx_opmode_oneshot)
+                                 force=50.0, operationMode=sim.simx_opmode_oneshot)
         if precision:
             self.wait(10)
 
@@ -50,10 +50,6 @@ class GripperBarretHand():
                                        targetVelocity=0.1, operationMode=sim.simx_opmode_oneshot)
         sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[1],
                                        targetVelocity=0.1, operationMode=sim.simx_opmode_oneshot)
-        # sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.joints[0],
-        #                          force=20.0, operationMode=sim.simx_opmode_oneshot)
-        # sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.joints[1],
-        #                          force=20.0, operationMode=sim.simx_opmode_oneshot)
         if precision:
             self.wait(15)
 
