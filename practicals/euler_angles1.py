@@ -14,6 +14,9 @@ def euler2rot(abg, convention):
         Ra = rot(abg[0], 'x')
         Rb = rot(abg[1], 'z')
         Rc = rot(abg[2], 'x')
+    else:
+        print('UNKNOWN EULER ANGLE CONVENTION!')
+        raise Exception
     R = np.dot(Ra, np.dot(Rb, Rc))
     return R
 

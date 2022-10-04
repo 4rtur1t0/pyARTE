@@ -4,7 +4,6 @@
 A number of useful functions
 @Authors: Arturo Gil
 @Time: April 2021
-
 """
 import numpy as np
 
@@ -217,31 +216,12 @@ def euler2rot(abg):
     R = np.matmul(R, Rz)
     return R
 
-# def rot2euler(R):
-#     """
-#     Computes Euler angles for the expression Rx(alpha)Ry(beta)Rz(gamma)
-#     Caution: convention is XYZ
-#     :param R:
-#     :return:
-#     """
-#     R = R[0:3, 0:3]
-#     # caution, c-like indexes in python!
-#     sbeta = R[0, 2]
-#     if abs(sbeta) == 1.0:
-#         # degenerate case in which sin(beta)=+-1 and cos(beta)=0
-#         # arbitrarily set alpha to zero
-#         alpha = 0.0
-#         beta = np.arcsin(sbeta)
-#         gamma = np.arctan2(R[1, 1], R[1, 0])
-#     else:
-#         # standard way to compute alpha beta and gamma
-#         alpha = -np.arctan2(R[1, 2], R[2, 2])
-#         beta = np.arctan2(np.cos(alpha) * R[0, 2], R[2, 2])
-#         gamma = -np.arctan2(R[0, 1], R[0, 0])
-#     return [alpha, beta, gamma]
-
 
 def rot2euler(R):
+    """
+    Conversion from the rotation matrix R to Euler angles.
+    The XYZ convention in mobile axes is assumed.
+    """
     th = np.abs(np.abs(R[0, 2])-1.0)
     # caso no degenerado
     if th > 0.0001:
