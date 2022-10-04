@@ -30,7 +30,7 @@ class RobotABBIRB140(Robot):
         max_joint_speeds = np.array([180, 180, 180, 180, 180, 180, 180])
         max_joint_speeds = max_joint_speeds * np.pi / 180.0
         # max and min joint ranges (an
-        joint_ranges = np.array([[-180, -90, -230, -200, -360, -400],
+        joint_ranges = np.array([[-180, -90, -230, -200, -115, -400],
                                  [180,   110,  50,  200,  115, 400]])
         joint_ranges = joint_ranges * np.pi / 180.0
         self.max_iterations_inverse_kinematics = 15000
@@ -135,13 +135,13 @@ class RobotABBIRB140(Robot):
             gamma = np.arccos(a)
         else:
             print('ERROR IN CURRENT SOLUTION: CANNOT COMPUTE INVERSE KINEMATICS FOR THE ABB IRB140 ROBOT. The point is out of the workspace')
-            gamma = np.nan
+            gamma = 0
 
         if np.abs(b) < 1.0:
             eta = np.arccos(b)
         else:
             print('ERROR IN CURRENT SOLUTION: CANNOT COMPUTE INVERSE KINEMATICS FOR THE ABB IRB140 ROBOT. The point is out of the workspace')
-            eta = np.nan
+            eta = 0
         # elbow  up
         q2_1 = np.pi / 2 - beta - gamma
         q3_1 = np.pi / 2 - eta

@@ -7,7 +7,7 @@ The orientation class
 
 """
 import numpy as np
-from artelib.tools import euler2rot, euler2q, quaternion2rot, q2euler, rot2quaternion
+from artelib.tools import euler2rot, euler2q
 from artelib import quaternion, rotationmatrix
 
 

@@ -36,23 +36,37 @@ def get_closest_to(qa, qb):
     return qa[:, idx]
 
 
-
-
 def try_to_reach():
     robot = init_simulation_ABBIRB140()
-    q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
-    target_position = [0.5, -0.1, 0.6]
+    q0 = np.pi / 6*np.array([1, 1, 1, 1, 1, 1])
+    target_position = [0.5, 0.0, 0.7]
     target_orientation = [0, np.pi/2, 0]
+
+    robot.set_joint_target_positions(q0, precision=True)
+
 
     q = inverse_kinematics(robot=robot, target_position=target_position,
                            target_orientation=Euler(target_orientation))
 
-    robot.set_joint_target_positions(q0, precision=True)
+    for i in range(8):
+        qi = q[:, i]
+        T = robot.directkinematics(qi)
+        print(30*'*')
+        print(i)
+        print(qi)
+        print(T)
 
+    robot.set_joint_target_positions(q0, precision=True)
     for i in range(8):
         qi = q[:, i]
         robot.set_joint_target_positions(qi, precision=True)
-        robot.wait(2)
+
+
+    # for i in range(8):
+    #     qj = [0, 0, 0, 0, 0, 0]
+    #     for j in range(5, 0, -1):
+    #         qj[j] = q[j, i]
+    #         robot.set_joint_target_positions(qj, precision=True)
 
     # Stop arm and simulation
     robot.stop_arm()

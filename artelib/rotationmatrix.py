@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-The orientation class
+The Rotation Matrix class
 @Authors: Arturo Gil
 @Time: July 2022
 """
@@ -57,7 +57,7 @@ class RotationMatrix():
         R = np.dot(self.array, other.array)
         return RotationMatrix(R)
 
-    def plot(self, title='Rotation Matrix', block=False):
+    def plot(self, title='Rotation Matrix', block=True):
         """
         Plot the rotation matrix as 2D or 3D vectors
         """
@@ -77,7 +77,10 @@ class RotationMatrix():
             # first drawing the "-" . Next drawing two lines for each head ">"
             colors = ['red', 'green', 'blue', 'red', 'red', 'green', 'green', 'blue', 'blue']
             ax.view_init(15, 35)
-            ax.quiver(0, 0, 0, self.array[0, :], self.array[1, :], self.array[2, :], color=colors)
+            # plot identity
+            I = np.eye(3)
+            ax.quiver(0, 0, 0, I[0, :], I[1, :], I[2, :], color=colors, linestyle='dashed', linewidth=3)
+            ax.quiver(0, 0, 0, self.array[0, :], self.array[1, :], self.array[2, :], color=colors, linewidth=3)
             ax.set_xlim([-1, 1])
             ax.set_ylim([-1, 1])
             ax.set_zlim([-1, 1])
