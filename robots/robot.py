@@ -44,7 +44,7 @@ class Robot():
         # max iterations to achieve a joint target in coppelia
         self.max_iterations_joint_target = 50
         # admit this error in q
-        self.epsilonq = 0.005
+        self.epsilonq = 0.01
         self.q_path = []
 
         # max errors during computation of inverse kinematics
@@ -216,6 +216,9 @@ class Robot():
                 break
             if n_iterations > self.max_iterations_joint_target:
                 print('ERROR, joint position could not be achieved, try increasing max_iterations')
+                print('Errors (q)')
+                print(q_target-q_actual)
+                print('Total error is:', np.linalg.norm(q_target-q_actual))
                 break
             n_iterations += 1
 
@@ -232,15 +235,6 @@ class Robot():
     def directkinematics(self, q):
         T = self.serialrobot.directkinematics(q)
         return T # self.direct_kinematics(q)
-
-    # def compute_vref_wref(self, targetposition, targetorientation):
-    #     position, orientation = self.get_end_effector_position_orientation()
-    #     vref = np.array(targetposition)-np.array(position)
-    #     wref = compute_w_between_orientations(orientation, targetorientation)
-    #     vref = vref/np.linalg.norm(vref)
-    #     wref = wref/np.linalg.norm(wref)
-    #     vwref = np.hstack((vref, wref))
-    #     return vwref, vref, wref
 
     def compute_target_error(self, targetposition, targetorientation):
         """
@@ -321,7 +315,7 @@ class Robot():
         valid_indexes = []
         for i in range(0, len(q)):
             # greater than min and lower than max
-            if (self.joint_ranges[0, i] < q[i]) and (self.joint_ranges[1, i] > q[i]):
+            if (self.joint_ranges[0, i] <= q[i]) and (self.joint_ranges[1, i] >= q[i]):
                 valid_indexes.append(True)
                 continue
             else:
