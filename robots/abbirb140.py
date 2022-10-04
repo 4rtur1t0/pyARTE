@@ -40,6 +40,7 @@ class RobotABBIRB140(Robot):
         # self.ikmethod = 'moore-penrose'
         # whether to apply joint limits in inversekinematics
         self.do_apply_joint_limits = True
+        self.epsilonq = 0.01
 
         # DH parameters of the robot
         # robot.name = 'ABB_IRB140_M2000';
@@ -113,8 +114,8 @@ class RobotABBIRB140(Robot):
             q[3:6, i+1] = w2
 
         # % normalize         q         to[-pi, pi]
-        for i in range(8):
-            q[:, i] = normalize_angle(q[:, i])
+        # for i in range(8):
+        #     q[:, i] = normalize_angle(q[:, i])
         return q
 
     def solve_for_theta23(self, q1, Pm):

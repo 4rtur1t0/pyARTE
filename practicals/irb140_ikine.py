@@ -39,7 +39,7 @@ def get_closest_to(qa, qb):
 def try_to_reach():
     robot = init_simulation_ABBIRB140()
     q0 = np.pi / 6*np.array([1, 1, 1, 1, 1, 1])
-    target_position = [0.5, 0.0, 0.7]
+    target_position = [0.4, 0.0, 0.8]
     target_orientation = [0, np.pi/2, 0]
 
     robot.set_joint_target_positions(q0, precision=True)
@@ -58,7 +58,12 @@ def try_to_reach():
 
     robot.set_joint_target_positions(q0, precision=True)
     for i in range(8):
+        print(i)
         qi = q[:, i]
+        print(qi)
+        total, partial = robot.check_joints(qi)
+        print('JOINT LIMITS ARE: ')
+        print(total, partial)
         robot.set_joint_target_positions(qi, precision=True)
 
 
