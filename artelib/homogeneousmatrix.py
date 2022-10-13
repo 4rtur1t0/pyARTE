@@ -39,6 +39,13 @@ class HomogeneousMatrix():
     def toarray(self):
         return self.array
 
+    def print_nice(self):
+        temp_array = self.array
+        th = 0.01
+        idx = np.abs(temp_array) < th
+        temp_array[idx] = 0
+        print(np.array_str(self.array, precision=1, suppress_small=True))
+
     def inv(self):
         return HomogeneousMatrix(np.linalg.inv(self.array))
 

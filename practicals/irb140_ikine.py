@@ -22,63 +22,70 @@ def inverse_kinematics(robot, target_position, target_orientation):
     return q
 
 
-def get_closest_to(qa, qb):
+def view_solutions(robot, q):
     """
-    From a column wise list of solutions in qa, find the closest to qb.
+    q es un array de 6 filas x n columnas, donde n es el número de soluciones válidas de la cinemática inversa
     """
-    distances = []
-    for i in range(8):
-        d = np.linalg.norm(qa[:, i]-qb)
-        distances.append(d)
-    distances = np.array(distances)
-    distances = np.nan_to_num(distances, nan=np.inf)
-    idx = np.argmin(distances)
-    return qa[:, idx]
+    n_valid_solutions = q.shape[1]
+    print('SOLUCIONES DE LA CINEMÁTICA INVERSA: ')
+    print(np.array_str(q, precision=2, suppress_small=True))
+    print('HAY ', n_valid_solutions, ' SOLUCIONES VÁLIDAS')
+    # observa las soluciones
+    for i in range(n_valid_solutions):
+        qi = q[:, i]
+        T = robot.directkinematics(qi)
+        print(100*'*')
+        print('Solución: ', i)
+        print('Valores articulares q: ', np.array_str(qi, precision=2, suppress_small=True))
+        print('Posición y orientación alcanzadas (T): ')
+        T.print_nice()
 
 
-def try_to_reach():
-    robot = init_simulation_ABBIRB140()
-    q0 = np.pi / 6*np.array([1, 1, 1, 1, 1, 1])
-    target_position = [0.4, 0.0, 0.8]
-    target_orientation = [0, np.pi/2, 0]
+def reach_solutions(robot, q):
+    n_valid_solutions = q.shape[1]
+    n_in_range = 0
+    for i in range(n_valid_solutions):
+        print(i)
+        qi = q[:, i]
+        print(np.array_str(qi, precision=2, suppress_small=True))
+        total, partial = robot.check_joints(qi)
+        if total:
+            n_in_range += 1
+        if total:
+            print('ALL JOINTS WITHIN RANGE!!')
+            robot.set_joint_target_positions(qi, precision=True)
+        else:
+            print('ONE OR MORE JOINTS OUT OF RANGE!')
+            print(partial)
+    print('Found ', n_in_range, 'SOLUTIONS in RANGE, out of ', n_valid_solutions, ' VALID SOLUTIONS')
 
+
+def irb140_ikine():
+    robot, _ = init_simulation_ABBIRB140()
+
+    # set initial position
+    q0 = np.array([0, 0, 0, 0, 0, 0])
     robot.set_joint_target_positions(q0, precision=True)
 
+    # 8 Válidas y 8 alcanzables
+    # target_position = [0.4, 0.0, 0.8]
+    # target_orientation = [0, np.pi/2, 0]
+    target_position = [0.5, 0.0, 0.9]
+    target_orientation = [0, np.pi/2, 0]
 
     q = inverse_kinematics(robot=robot, target_position=target_position,
                            target_orientation=Euler(target_orientation))
 
-    for i in range(8):
-        qi = q[:, i]
-        T = robot.directkinematics(qi)
-        print(30*'*')
-        print(i)
-        print(qi)
-        print(T)
-
-    robot.set_joint_target_positions(q0, precision=True)
-    for i in range(8):
-        print(i)
-        qi = q[:, i]
-        print(qi)
-        total, partial = robot.check_joints(qi)
-        print('JOINT LIMITS ARE: ')
-        print(total, partial)
-        robot.set_joint_target_positions(qi, precision=True)
-
-
-    # for i in range(8):
-    #     qj = [0, 0, 0, 0, 0, 0]
-    #     for j in range(5, 0, -1):
-    #         qj[j] = q[j, i]
-    #         robot.set_joint_target_positions(qj, precision=True)
+    # Son validas matemáticamente?
+    view_solutions(robot, q)
+    # son realizables físicamente?
+    reach_solutions(robot, q)
 
     # Stop arm and simulation
     robot.stop_arm()
     robot.stop_simulation()
-    robot.plot_trajectories()
 
 
 if __name__ == "__main__":
-    try_to_reach()
+    irb140_ikine()
 

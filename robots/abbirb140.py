@@ -1,27 +1,18 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/abb_irb140.ttt scene before using this class.
+Please open the scenes/irb140.ttt scene before using this class.
 
 RobotABBIRB140 is a derived class of the Robot base class that
 
 @Authors: Arturo Gil
 @Time: April 2021
-
 """
 import numpy as np
-
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.seriallink import SerialRobot
 from artelib.tools import buildT, normalize_angle
 from robots.robot import Robot
-
-
-# def normalize(eul):
-#     e = []
-#     for i in range(len(eul)):
-#         e.append(np.arctan2(np.sin(eul[i]), np.cos(eul[i])))
-#     return e
 
 
 class RobotABBIRB140(Robot):
@@ -79,7 +70,7 @@ class RobotABBIRB140(Robot):
         """
         Ttarget = buildT(target_position, target_orientation)
         Ttarget = HomogeneousMatrix(Ttarget)
-
+        # get the value from the robot class (last link length)
         L6 = self.serialrobot.transformations[5].d
 
         # Position of the end effector
@@ -102,21 +93,31 @@ class RobotABBIRB140(Robot):
              [0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0]])
-
+        # make them real numbers!
         q = np.real(q)
 
+        # normalize q1 (first row)
+        q[0, :] = normalize_angle(q[0, :])
+
+        final_q_solution = []
+        # solve the last three joints
+        # skip nan values
         for i in range(0, 8, 2):
             qi = q[0:6, i]
-            # Ti = self.serialrobot.directkinematics(qi)
-            # print(Ti)
+            qip = q[0:6, i+1]
+            # if q1 or q2 or q3 are invalid (nan), then continue
+            if np.isnan(np.sum(qi)):
+                continue
             w1, w2 = self.solve_spherical_wrist(qi, Ttarget)
-            q[3:6, i] = w1
-            q[3:6, i+1] = w2
-
-        # % normalize         q         to[-pi, pi]
-        # for i in range(8):
-        #     q[:, i] = normalize_angle(q[:, i])
-        return q
+            # append the two solutions to the last three joints
+            qi[3:6] = normalize_angle(w1)
+            final_q_solution.append(qi)
+            qip[3:6] = normalize_angle(w2)
+            final_q_solution.append(qip)
+        final_q_solution = np.array(final_q_solution)
+        # transpose, solutions are arranged by columns
+        final_q_solution = final_q_solution.T
+        return final_q_solution
 
     def solve_for_theta23(self, q1, Pm):
         # See arm geometry
@@ -124,7 +125,7 @@ class RobotABBIRB140(Robot):
         L3 = self.serialrobot.transformations[3].d
         A01 = self.serialrobot.transformations[0].dh(q1)
         Pm = np.concatenate((Pm, [1]), axis=0)
-        # % Express     Pm in the     reference     system     1,    for convenience
+        # Express     Pm in the     reference     system     1,    for convenience
         p1 = np.dot(A01.inv().toarray(), Pm.T)
         r = np.linalg.norm(np.array([p1[0], p1[1]]))
         beta = np.arctan2(-p1[1], p1[0])
@@ -135,14 +136,14 @@ class RobotABBIRB140(Robot):
         if np.abs(a) < 1.0:
             gamma = np.arccos(a)
         else:
-            print('ERROR IN CURRENT SOLUTION: CANNOT COMPUTE INVERSE KINEMATICS FOR THE ABB IRB140 ROBOT. The point is out of the workspace')
-            gamma = 0
+            print('WARNING: ONE OF THE INVERSE KINEMATIC SOLUTIONS IS NOT FEASIBLE (ABB IRB140 ROBOT). The point is out of the workspace')
+            gamma = np.nan
 
         if np.abs(b) < 1.0:
             eta = np.arccos(b)
         else:
-            print('ERROR IN CURRENT SOLUTION: CANNOT COMPUTE INVERSE KINEMATICS FOR THE ABB IRB140 ROBOT. The point is out of the workspace')
-            eta = 0
+            print('WARNING: ONE OF THE INVERSE KINEMATIC SOLUTIONS IS NOT FEASIBLE (ABB IRB140 ROBOT). The point is out of the workspace')
+            eta = np.nan
         # elbow  up
         q2_1 = np.pi / 2 - beta - gamma
         q3_1 = np.pi / 2 - eta

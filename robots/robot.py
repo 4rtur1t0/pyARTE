@@ -9,7 +9,6 @@ Base Robot Class
 """
 import sim
 import numpy as np
-
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.inverse_kinematics import delta_q
 from artelib.path_planning import generate_target_positions, generate_target_orientations, \
@@ -43,8 +42,8 @@ class Robot():
         self.max_iterations_inverse_kinematics = 15000
         # max iterations to achieve a joint target in coppelia
         self.max_iterations_joint_target = 50
-        # admit this error in q
-        self.epsilonq = 0.01
+        # admit this error in |q|2
+        self.epsilonq = 0.0005
         self.q_path = []
 
         # max errors during computation of inverse kinematics
@@ -283,27 +282,6 @@ class Robot():
         total_time = dist/vmax
         return total_time
 
-    # def compute_actions(self, Tcurrent, Ttarget, vmax=1.0, total_time=1.0):
-    #     """
-    #     Compute the movement that allows to bring Tcurrent to Ttarget with a given linear max speed
-    #     """
-    #     # current position of the end effector and target position
-    #     p_current = Tcurrent[0:3, 3]
-    #     p_target = Ttarget[0:3, 3]
-    #     # a vector along the line
-    #     vref = np.array(p_target-p_current)
-    #     dist = np.linalg.norm(vref)
-    #     error_dist = dist
-    #     # normalize linear velocity
-    #     if dist > 0.0:
-    #         vref = np.dot(vmax/dist, vref)
-    #     # Compute error in distance and error in orientation.The error in orientation is computed considering the
-    #     # angular speed from R1 to R2 needed in total_time seconds.
-    #     wref = compute_w_between_R(Tcurrent, Ttarget, total_time=total_time)
-    #     error_orient = np.linalg.norm(wref)
-    #     vwref = np.hstack((vref, wref))
-    #     return vwref, error_dist, error_orient
-
     def check_joints(self, q):
         """
         Check that each joint is within range.
@@ -319,9 +297,9 @@ class Robot():
                 valid_indexes.append(True)
                 continue
             else:
-                print(30*'*')
-                print('JOINT ERROR: RANGE ERROR! Joint: q', i+1, ' is out of range')
-                print(30 * '*')
+                # print(30*'*')
+                # print('JOINT ERROR: RANGE ERROR! Joint: q', i+1, ' is out of range')
+                # print(30 * '*')
                 valid = False
                 valid_indexes.append(False)
         return valid, valid_indexes
