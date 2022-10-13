@@ -13,6 +13,7 @@ from robots.abbirb140 import RobotABBIRB140
 from robots.grippers import GripperRG2, GripperBarretHand
 from robots.kukalbr import RobotKUKALBR
 from robots.planar4dof import Planar4DOF
+from robots.proxsensor import ProxSensor
 from robots.robot_dyor import RobotDyor
 from robots.ur5 import RobotUR5
 from artelib.scene import Sphere
@@ -190,6 +191,7 @@ def init_simulation_ABBIRB140():
     errorCode, target = sim.simxGetObjectHandle(clientID, 'target', sim.simx_opmode_oneshot_wait)
     errorCode, camera = sim.simxGetObjectHandle(clientID, 'camera', sim.simx_opmode_oneshot_wait)
 
+    errorCode, conveyor_sensor = sim.simxGetObjectHandle(clientID, 'conveyor__sensor', sim.simx_opmode_oneshot_wait)
     armjoints.append(q1)
     armjoints.append(q2)
     armjoints.append(q3)
@@ -202,7 +204,10 @@ def init_simulation_ABBIRB140():
                            armjoints=armjoints, base=robotbase,
                            end_effector=end_effector, gripper=gripper,
                            target=target, camera=camera)
-    return robot
+
+    conveyor_sensor = ProxSensor(clientID, conveyor_sensor)
+
+    return robot, conveyor_sensor
 
 
 def init_simulation_mobile_robot():
