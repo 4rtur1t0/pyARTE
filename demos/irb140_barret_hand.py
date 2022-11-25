@@ -8,7 +8,7 @@ Please open the scenes/irb140.ttt scene before running this script.
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs import init_simulation_ABBIRB140
+from sceneconfig.scene_configs import init_simulation_ABBIRB140, init_simulation_ABBIRB140_BarretHand
 
 
 def filter_joint_limits(robot, q):
@@ -57,10 +57,10 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
 def pick(robot):
     # target_positions = [[0.6, 0.25, 0.4],  # approximation
     #                     [0.6, 0.25, 0.385]] # pick
-    target_positions = [[0.6, 0.267, 0.45],  # approximation
-                        [0.6, 0.267, 0.39]] # pick
-    target_orientations = [[0, np.pi, 0],
-                           [0, np.pi, 0]]
+    target_positions = [[0.4, 0.267, 0.4],  # approximation
+                        [0.45, 0.267, 0.3]] # pick
+    target_orientations = [[0, np.pi/2, np.pi/2],
+                           [0, np.pi/2, np.pi/2]]
     q0 = np.array([0, 0, 0, 0, 0, 0])
     q1 = inverse_kinematics(robot=robot, target_position=target_positions[0],
                             target_orientation=Euler(target_orientations[0]), q0=q0)
@@ -104,7 +104,7 @@ def place(robot, i):
 
 
 def pick_and_place():
-    robot, conveyor_sensor = init_simulation_ABBIRB140()
+    robot, conveyor_sensor = init_simulation_ABBIRB140_BarretHand()
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
     robot.set_joint_target_positions(q0, precision=True)
     n_pieces = 48

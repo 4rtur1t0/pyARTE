@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # set initial position of robot
     robot.set_joint_target_positions(q0, precision=True)
 
-    robot.direct_kinematics(q=q0)
+    robot.directkinematics(q=q0)
 
     robot.set_target_position_orientation(target_positions[0], target_orientations[0])
     q_path = robot.inversekinematics_line(target_position=target_positions[0],
