@@ -17,11 +17,12 @@ from sceneconfig.scene_configs import init_simulation_KUKALBR
 
 
 # move on the null space (with vh, column 6)
-def null_space_along(robot, m, col, indexpos, n_steps=30):
+def null_space_along(robot, m, col, indexpos, n_steps=100):
     """
     Define the task (m)
     Define the direction of movement (column of V)
     Define the number of movements (n_steps)
+    null_space_along will perform a movement along the selected null space for a number of steps.
     """
     q_path = []
     q = robot.get_joint_positions()
@@ -33,7 +34,7 @@ def null_space_along(robot, m, col, indexpos, n_steps=30):
         qd = vh.T[:, col]
         if qd[indexpos] > 0:
             qd = -qd
-        q = q + 0.05*qd
+        q = q + 0.02*qd
         q_path.append(q)
     robot.set_joint_target_trajectory(q_path, precision='last')
     robot.plot_trajectories()
@@ -41,8 +42,13 @@ def null_space_along(robot, m, col, indexpos, n_steps=30):
 
 if __name__ == "__main__":
     [robot, _] = init_simulation_KUKALBR()
-    q0 = np.pi / 8 * np.array([-3, 3, 3, -3, 2, 2, 1])
     # set initial position of robot
+    q0 = np.pi / 8 * np.array([-3, 3, 3, -3, 2, 2, 1])
+    # CASE A: TASK m=6, n=7GDL. col=6, selects the 7th column of v (the null space)
+    robot.set_joint_target_positions(q0, precision=True)
+    null_space_along(robot, m=6, col=6, indexpos=2)
+    # CASE B: TASK m=3 (vx, vy, vz). n=7GDL. We can select different null spaces with col=3, 4, 5, 6
+    # (there are 4 vectors in the null space)
     robot.set_joint_target_positions(q0, precision=True)
     null_space_along(robot, m=3, col=3, indexpos=2)
     robot.set_joint_target_positions(q0, precision=True)

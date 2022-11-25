@@ -47,20 +47,47 @@ class GripperBarretHand():
 
     def open_gripper(self, precision=False):
         sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[0],
-                                       targetVelocity=0.1, operationMode=sim.simx_opmode_oneshot)
+                                       targetVelocity=0.5, operationMode=sim.simx_opmode_oneshot)
         sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[1],
-                                       targetVelocity=0.1, operationMode=sim.simx_opmode_oneshot)
+                                       targetVelocity=0.5, operationMode=sim.simx_opmode_oneshot)
         if precision:
             self.wait(15)
 
     def close_gripper(self, precision=False):
         sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[0],
-                                       targetVelocity=-0.1, operationMode=sim.simx_opmode_oneshot)
+                                       targetVelocity=-0.5, operationMode=sim.simx_opmode_oneshot)
         sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[1],
-                                       targetVelocity=-0.1, operationMode=sim.simx_opmode_oneshot)
+                                       targetVelocity=-0.5, operationMode=sim.simx_opmode_oneshot)
 
         if precision:
             self.wait(15)
+
+    def wait(self, steps=1):
+        for i in range(steps):
+            sim.simxSynchronousTrigger(clientID=self.clientID)
+
+
+
+class SuctionPad():
+    """
+    A standard suction pad in Coppelia. The suction pad acts on the environment by setting the enabled=true
+    variable on the Lua script associated to the Suction pad in Coppelia
+    """
+    def __init__(self, clientID, joints=None):
+        self.clientID = clientID
+        self.joints = joints
+
+    def open_gripper(self, precision=False):
+        """
+        Deactivates suction (void): thus suction==0
+        """
+        returnCode = sim.simxSetIntegerSignal(self.clientID, 'enable_suction_pad', 0, sim.simx_opmode_oneshot)
+
+    def close_gripper(self, precision=False):
+        """
+        activates suction
+        """
+        returnCode = sim.simxSetIntegerSignal(self.clientID, 'enable_suction_pad', 1, sim.simx_opmode_oneshot)
 
     def wait(self, steps=1):
         for i in range(steps):

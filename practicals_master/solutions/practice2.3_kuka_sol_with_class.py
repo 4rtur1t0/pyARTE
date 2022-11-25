@@ -3,6 +3,8 @@
 """
 Please open the scenes/kuka_14_R820.ttt scene before running this script.
 
+In the scene. A KUKA 14 R820 is presented. The script allows to pick and place pieces from a conveyor belt.
+
 @Authors: Arturo Gil
 @Time: April 2021
 """

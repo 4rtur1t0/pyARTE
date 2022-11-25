@@ -105,11 +105,9 @@ if __name__ == '__main__':
     test_solution(R, euler2rot(e[1]))
 
     # ángulos arbitrarios
-    R = euler2rot([-np.pi/4, np.pi/4, np.pi/4])
+    R = euler2rot([np.pi/4, np.pi/2, np.pi/4])
     e = rot2euler(R)
     print('ANGULOS DE EULER ')
     print(e)
     test_solution(R, euler2rot(e[0]))
     test_solution(R, euler2rot(e[1]))
-
-

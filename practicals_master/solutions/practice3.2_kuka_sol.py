@@ -32,7 +32,7 @@ def move_null_space(robot):
     q0 = np.array([-np.pi / 8, np.pi/8, np.pi/8, -np.pi / 2, 0.1, 0.1, 0.1])
     robot.set_joint_target_positions(q0, precision=True)
     # ok perform n movements in null space
-    n_movements_in_null_space = 500
+    n_movements_in_null_space = 800
     q = q0
     q_path = []
     qd_path = []
@@ -43,7 +43,7 @@ def move_null_space(robot):
         # integrate movement. Please check that Delta_time matches coppelia simulation time step
         if qd[2] < 0:
             qd = -qd
-        qd = 0.1*normalize(qd)
+        qd = 0.01*normalize(qd)
         qd_path.append(qd)
         q = q + qd
         [q, _] = robot.apply_joint_limits(q)

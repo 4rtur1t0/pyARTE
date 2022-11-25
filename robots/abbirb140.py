@@ -9,6 +9,8 @@ RobotABBIRB140 is a derived class of the Robot base class that
 @Time: April 2021
 """
 import numpy as np
+
+from artelib import homogeneousmatrix
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.seriallink import SerialRobot
 from artelib.tools import buildT, normalize_angle
@@ -201,6 +203,9 @@ class RobotABBIRB140(Robot):
         wrist2 = [q4_, q5_, q6_]
         return np.array(wrist1), np.array(wrist2)
 
+    def directkinematics(self, q):
+        T = self.serialrobot.directkinematics(q)
+        return homogeneousmatrix.HomogeneousMatrix(T)
 
 
 
