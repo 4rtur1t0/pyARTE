@@ -4,8 +4,8 @@
 Please open the scenes/kuka_14_R820.ttt scene before running this script.
 
     EXERCISE: SOLVE the inverse kinematics problem in a 7DOF redundant robot.
-                as a secondary target, minimize the sum of square differences:
-                    w = \sum_i (q[i] - qcentral[i])^2
+                as a secondary target, minimize the lateral function to avoid
+                exceeding the joint limits.
 
 @Authors: Arturo Gil
 @Time: April 2021
@@ -20,7 +20,7 @@ from artelib.plottools import plot_vars
 from artelib.tools import  compute_kinematic_errors
 from sceneconfig.scene_configs import init_simulation_KUKALBR
 
-DELTA_TIME = 50.0/1000.0
+# DELTA_TIME = 50.0/1000.0
 
 
 def null_space_projector(J):
@@ -74,7 +74,6 @@ def minimize_w_lateral(J, q, qmax, qmin):
         return qdb / norma
     else:
         return qdb
-
 
 
 def inversekinematics_line(robot, target_position, target_orientation, q0, vmax=0.5):
@@ -146,7 +145,7 @@ def pick_and_place(robot, step_number):
 
     # initial arm position
     q0 = np.array([-np.pi / 8, 0, 0, -np.pi / 2, 0.1, 0.1, 0.1])
-
+    # q0 = np.array([0,0,0,0,0,0,0])
     # plan trajectories
     q1_path = inversekinematics_line(robot=robot, target_position=target_positions[0],
                                      target_orientation=Euler(target_orientations[0]), q0=q0)

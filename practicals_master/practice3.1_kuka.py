@@ -10,6 +10,8 @@ INSTRUCTIONS:
 @Time: April 2021
 """
 import numpy as np
+
+from artelib.euler import Euler
 from sceneconfig.scene_configs import init_simulation_KUKALBR
 
 
@@ -35,15 +37,15 @@ def pick_and_place(robot, step_number):
     robot.secondary_objective = False
     # plan trajectories
     q1_path = robot.inversekinematics_line(target_position=target_positions[0],
-                                           target_orientation=target_orientations[0], q0=q0, vmax=vmax)
+                                           target_orientation=Euler(target_orientations[0]), q0=q0, vmax=vmax)
     q2_path = robot.inversekinematics_line(target_position=target_positions[1],
-                                           target_orientation=target_orientations[1], q0=q1_path[-1], vmax=vmax)
+                                           target_orientation=Euler(target_orientations[1]), q0=q1_path[-1], vmax=vmax)
     q3_path = robot.inversekinematics_line(target_position=target_positions[2],
-                                           target_orientation=target_orientations[2], q0=q2_path[-1], vmax=vmax)
+                                           target_orientation=Euler(target_orientations[2]), q0=q2_path[-1], vmax=vmax)
     q4_path = robot.inversekinematics_line(target_position=target_positions[3],
-                                           target_orientation=target_orientations[3], q0=q3_path[-1], vmax=vmax)
+                                           target_orientation=Euler(target_orientations[3]), q0=q3_path[-1], vmax=vmax)
     q5_path = robot.inversekinematics_line(target_position=target_positions[4],
-                                           target_orientation=target_orientations[4], q0=q4_path[-1], vmax=vmax)
+                                           target_orientation=Euler(target_orientations[4]), q0=q4_path[-1], vmax=vmax)
 
     # NOW execute trajectories computed before.
     # set initial position of robot

@@ -20,7 +20,7 @@ from artelib.plottools import plot_vars
 from artelib.tools import  compute_kinematic_errors
 from sceneconfig.scene_configs import init_simulation_KUKALBR
 
-DELTA_TIME = 50.0/1000.0
+# DELTA_TIME = 50.0/1000.0
 
 
 def diff_w_central(q, qcentral, K):

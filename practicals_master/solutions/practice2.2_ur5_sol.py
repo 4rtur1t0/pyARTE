@@ -14,6 +14,7 @@ from sceneconfig.scene_configs import init_simulation_UR5
 # standard delta time for Coppelia, please modify if necessary
 DELTA_TIME = 50.0/1000.0
 
+
 def n_movements(p_current, p_target, vmax):
     total_time = np.linalg.norm(np.array(p_target) - np.array(p_current)) / vmax
     n = total_time / DELTA_TIME

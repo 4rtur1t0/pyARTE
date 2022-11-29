@@ -23,6 +23,9 @@ def n_movements(p_current, p_target, vmax):
 
 
 def path_planning_p(p_current, p_target, n):
+    """
+    Generates n points over the line defined by p_current and p_target.
+    """
     # DEVUELVA N puntos entre p_current y p_target
 
     return target_positions

@@ -40,6 +40,7 @@ class RobotKUKALBR(Robot):
         self.ikmethod = 'moore-penrose-damped'
         # self.ikmethod = 'moore-penrose'
         # self.ikmethod = 'transpose'
+        self.epsilonq = 0.001
         # whether joint limits should be applied during inverse kinematics
         self.do_apply_joint_limits = True
         self.secondary_objective = True
@@ -54,7 +55,7 @@ class RobotKUKALBR(Robot):
         self.serialrobot.append(th=0, d=0.111, a=0, alpha=0)
 
         Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera,
-                       max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges)
+                       max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges, epsilonq=self.epsilonq)
 
     def open_gripper(self, precision=False):
         self.gripper.open_gripper(precision=precision)
@@ -72,7 +73,7 @@ class RobotKUKALBR(Robot):
 
     def directkinematics(self, q):
         T = self.serialrobot.directkinematics(q)
-        return T # homogeneousmatrix.HomogeneousMatrix(T)
+        return T
 
     def inversekinematics(self, target_position, target_orientation, q0):
         """
