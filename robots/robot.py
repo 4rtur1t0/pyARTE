@@ -27,7 +27,7 @@ DELTA_TIME = 50.0/1000.0
 
 class Robot():
     def __init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera,
-                 max_joint_speeds, joint_ranges):
+                 max_joint_speeds, joint_ranges, epsilonq=0.001):
         self.clientID = clientID
         self.wheeljoints = wheeljoints
         self.armjoints = armjoints
@@ -43,7 +43,7 @@ class Robot():
         # max iterations to achieve a joint target in coppelia
         self.max_iterations_joint_target = 50
         # admit this error in |q|2
-        self.epsilonq = 0.0005
+        self.epsilonq = epsilonq
         self.q_path = []
 
         # max errors during computation of inverse kinematics
@@ -251,23 +251,6 @@ class Robot():
         error_orient = Qorientation[1:4]-Qtargetorientation[1:4]
         return np.linalg.norm(error_dist), np.linalg.norm(error_orient)
 
-    # def compute_errors(self, Ttarget, Tcurrent):
-    #     """
-    #     computes a euclidean distance in px, py, pz between target position and the robot's end effector
-    #     computes a orientation error based on the quaternion orientation vectors
-    #     """
-    #     # current position of the end effector and target position
-    #     p_current = Tcurrent[0:3, 3]
-    #     p_target = Ttarget[0:3, 3]
-    #     # a vector along the line
-    #     vref = np.array(p_target - p_current)
-    #     # total time to complete the movement given vmax
-    #     wref = compute_w_between_R(Tcurrent, Ttarget, total_time=1)
-    #     # Compute error in distance and error in orientation.
-    #     # The error in orientation is computed
-    #     error_dist = np.linalg.norm(vref)
-    #     error_orient = np.linalg.norm(wref)
-    #     return error_dist, error_orient
 
     def compute_time(self, Tcurrent, Ttarget, vmax=1.0):
         """

@@ -11,10 +11,9 @@ RobotUR5 is a derived class of the Robot base class that
 """
 import numpy as np
 from artelib import homogeneousmatrix
-from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.seriallink import SerialRobot
 from robots.robot import Robot
-from kinematics.kinematics_ur5 import eval_symbolic_jacobian_UR5, eval_symbolic_T_UR5
+from kinematics.kinematics_ur5 import eval_symbolic_jacobian_UR5
 
 
 class RobotUR5(Robot):
@@ -34,6 +33,7 @@ class RobotUR5(Robot):
         # self.ikmethod = 'moore-penrose'
         # whether to apply joint limits in inversekinematics
         self.do_apply_joint_limits = True
+        self.epsilonq = 0.0005
 
         self.serialrobot = SerialRobot(n=6, T0=np.eye(4), TCP=np.eye(4), name='UR5')
         self.serialrobot.append(th=-np.pi/2, d=0.089159, a=0, alpha=np.pi/2)
@@ -44,7 +44,8 @@ class RobotUR5(Robot):
         self.serialrobot.append(th=0,        d=0.0823,   a=0, alpha=0)
 
         Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target,
-                       max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges, camera=camera)
+                       max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges,
+                       camera=camera, epsilonq=self.epsilonq)
 
     def open_gripper(self, precision=False):
         self.gripper.open_gripper(precision=precision)

@@ -21,13 +21,12 @@ The script is used to freely move the UR5 robot based on:
 
 """
 import numpy as np
-# from artelib.tools import T2quaternion
 import matplotlib.pyplot as plt
 from pynput import keyboard
 from sceneconfig.scene_configs import init_simulation_KUKALBR
 
 # standard delta time for Coppelia, please modify if necessary
-DELTA_TIME = 50.0/1000.0
+# DELTA_TIME = 50.0/1000.0
 
 actions = {'1': '0+',
            'q': '0-',
