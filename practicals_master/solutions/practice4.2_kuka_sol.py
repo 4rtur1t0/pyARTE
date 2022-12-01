@@ -12,7 +12,7 @@ The demo represents a KUKA LBR IIWA robot trying to maximize the distance to obs
 """
 import numpy as np
 from artelib.tools import null_space, compute_kinematic_errors
-from sceneconfig.scene_configs import init_simulation_KUKALBR
+from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
 
 DELTA_TIME = 50.0/1000.0
 

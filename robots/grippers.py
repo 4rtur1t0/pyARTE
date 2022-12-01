@@ -19,16 +19,12 @@ class GripperRG2():
     def open_gripper(self, precision=False):
         sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.joints[0],
                                        targetPosition=0.1, operationMode=sim.simx_opmode_oneshot)
-        # sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.joints[0],
-        #                          force=500.0, operationMode=sim.simx_opmode_oneshot)
         if precision:
             self.wait(10)
 
     def close_gripper(self, precision=False):
         sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.joints[0],
                                        targetPosition=-0.1, operationMode=sim.simx_opmode_oneshot)
-        # sim.simxSetJointMaxForce(clientID=self.clientID, jointHandle=self.joints[0],
-        #                          force=500.0, operationMode=sim.simx_opmode_oneshot)
         if precision:
             self.wait(10)
 

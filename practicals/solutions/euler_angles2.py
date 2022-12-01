@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+The example converts from Euler angles to a rotation matrix and, from a rotation matrix to three Euler angles.
+
+euler2rot --> Euler to rotation matrix.
+rot2euler --> From rotation matrix to Euler angles. (includes the degenerate case)
+
+@Authors: Arturo Gil
+@Time: April 2021
+"""
 import numpy as np
 
 

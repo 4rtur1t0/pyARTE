@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+Simple matrix multiplication in numpy.
+
+@Authors: Arturo Gil
+@Time: April 2021
+"""
 import numpy as np
 
 

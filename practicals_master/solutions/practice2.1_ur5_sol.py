@@ -10,7 +10,7 @@ import numpy as np
 from artelib.euler import Euler
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.tools import compute_kinematic_errors
-from sceneconfig.scene_configs import init_simulation_UR5
+from sceneconfig.scene_configs_ur5 import init_simulation_UR5
 
 
 def delta_q_transpose(J, e):

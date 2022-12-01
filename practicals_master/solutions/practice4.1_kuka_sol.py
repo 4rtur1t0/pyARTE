@@ -12,9 +12,7 @@ import numpy as np
 from artelib.euler import Euler
 from artelib.path_planning import move_target_positions_obstacles, generate_target_positions, generate_target_orientations_Q, n_movements
 from artelib.plottools import plot3d
-from sceneconfig.scene_configs import init_simulation_KUKALBR
-
-DELTA_TIME = 50.0/1000.0
+from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
 
 
 def planif_path_task_space(target_positions, target_orientations, sphere_position):

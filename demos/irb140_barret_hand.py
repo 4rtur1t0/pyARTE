@@ -8,7 +8,7 @@ Please open the scenes/irb140.ttt scene before running this script.
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs import init_simulation_ABBIRB140, init_simulation_ABBIRB140_BarretHand
+from sceneconfig.scene_configs_irb140 import init_simulation_ABBIRB140_BarretHand
 
 
 def filter_joint_limits(robot, q):

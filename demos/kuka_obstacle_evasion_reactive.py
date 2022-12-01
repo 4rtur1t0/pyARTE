@@ -9,14 +9,11 @@ The demo represents a KUKA LBR IIWA robot trying to avoid collisions with a sphe
 
 """
 import numpy as np
-
 from artelib.inverse_kinematics import moore_penrose_damped
 from artelib.euler import Euler
 from artelib.plottools import plot_vars, plot_xy
 from artelib.tools import buildT, compute_kinematic_errors
-from sceneconfig.scene_configs import init_simulation_KUKALBR
-
-DELTA_TIME = 50.0/1000.0
+from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
 
 
 def diff_w_central(q, qcentral, K):

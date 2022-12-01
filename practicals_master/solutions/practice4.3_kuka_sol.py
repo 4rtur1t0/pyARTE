@@ -17,7 +17,7 @@ from artelib.euler import Euler
 from artelib.path_planning import n_movements, generate_target_positions, generate_target_orientations_Q, move_target_positions_obstacles, potential
 from artelib.plottools import plot_xy
 from artelib.tools import null_space, compute_kinematic_errors
-from sceneconfig.scene_configs import init_simulation_KUKALBR
+from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
 
 Dds_global = []
 

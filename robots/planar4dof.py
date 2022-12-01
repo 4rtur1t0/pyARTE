@@ -25,7 +25,6 @@ class Planar4DOF(Robot):
         joint_ranges = joint_ranges * np.pi / 180.0
         self.max_error_dist_inversekinematics = 0.01
         self.max_error_orient_inversekinematics = 0.01
-
         # self.ikmethod = 'moore-penrose-damped'
         # self.ikmethod = 'moore-penrose'
         self.ikmethod = 'transpose'

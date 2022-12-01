@@ -10,7 +10,7 @@ import numpy as np
 from artelib.euler import Euler
 from artelib.quaternion import Quaternion
 from artelib.tools import buildT, compute_kinematic_errors, slerp
-from sceneconfig.scene_configs import init_simulation_UR5
+from sceneconfig.scene_configs_ur5 import init_simulation_UR5
 
 # standard delta time for Coppelia, please modify if necessary
 DELTA_TIME = 50.0/1000.0

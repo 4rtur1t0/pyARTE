@@ -1,7 +1,18 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+Given three Euler angles, compute a rotation matrix for a given convention, e. g. XYZ.
+
+@Authors: Arturo Gil
+@Time: April 2021
+"""
 import numpy as np
 
 
 def euler2rot(abg, convention):
+    """
+    Compute the rotation matrix for a given convention (e. g. XYZ) always working on mobile axes.
+    """
     if convention == 'xyz':
         Ra = rot(abg[0], 'x')
         Rb = rot(abg[1], 'y')
@@ -14,6 +25,9 @@ def euler2rot(abg, convention):
         Ra = rot(abg[0], 'x')
         Rb = rot(abg[1], 'z')
         Rc = rot(abg[2], 'x')
+    else:
+        print('UNDEFINED CONVENTION')
+        raise Exception
     R = np.dot(Ra, np.dot(Rb, Rc))
     return R
 

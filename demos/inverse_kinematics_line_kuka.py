@@ -11,10 +11,9 @@ line in task space.
 
 """
 import numpy as np
-
 from artelib.plottools import plot
 from artelib.tools import euler2q, euler2rot, w_lateral
-from sceneconfig.scene_configs import init_simulation_UR5, init_simulation_KUKALBR
+from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
 
 
 def ikineline():

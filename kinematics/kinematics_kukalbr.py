@@ -8,6 +8,7 @@ Simbolic functions to represent the Jacobian and direct kinematics of the KUKA L
 """
 import numpy as np
 
+
 def eval_symbolic_jacobian_KUKALBR(q):
     q1 = q[0]
     q2 = q[1]

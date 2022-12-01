@@ -10,16 +10,12 @@ RobotKUKALBR is a derived class of the Robot base class that particularizes some
 
 """
 import numpy as np
-
-from artelib import homogeneousmatrix
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.inverse_kinematics import delta_q
-from artelib.path_planning import generate_target_positions, generate_target_orientations_Q
 from artelib.seriallink import SerialRobot
-from artelib.tools import compute_kinematic_errors, buildT, rot2quaternion, minimize_w_central, minimize_w_lateral, \
-    w_lateral
+from artelib.tools import compute_kinematic_errors, minimize_w_lateral
 from robots.robot import Robot
-from kinematics.kinematics_kukalbr import eval_symbolic_jacobian_KUKALBR, eval_symbolic_T_KUKALBR
+from kinematics.kinematics_kukalbr import eval_symbolic_jacobian_KUKALBR
 
 
 DELTA_TIME = 50.0/1000.0

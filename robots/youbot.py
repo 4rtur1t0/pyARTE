@@ -15,26 +15,26 @@ import numpy as np
 DELTA_TIME = 50.0/1000.0
 
 
-def rot2eulXYZ(R):
-    """
-    Computes Euler angles for the expression Rx(alpha)Ry(beta)Rz(gamma)
-    :param R:
-    :return:
-    """
-    # caution, c-like indexes in python!
-    sbeta = R[0, 2]
-    if abs(sbeta) == 1.0:
-        # degenerate case in which sin(beta)=+-1 and cos(beta)=0
-        # arbitrarily set alpha to zero
-        alpha = 0.0
-        beta = np.arcsin(sbeta)
-        gamma = np.arctan2(R[1, 1], R[1, 0])
-    else:
-        # standard way to compute alpha beta and gamma
-        alpha = -np.arctan2(R[1, 2], R[2, 2])
-        beta = np.arctan2(np.cos(alpha) * R[0, 2], R[2, 2])
-        gamma = -np.arctan2(R[0, 1], R[0, 0])
-    return [alpha, beta, gamma]
+# def rot2eulXYZ(R):
+#     """
+#     Computes Euler angles for the expression Rx(alpha)Ry(beta)Rz(gamma)
+#     :param R:
+#     :return:
+#     """
+#     # caution, c-like indexes in python!
+#     sbeta = R[0, 2]
+#     if abs(sbeta) == 1.0:
+#         # degenerate case in which sin(beta)=+-1 and cos(beta)=0
+#         # arbitrarily set alpha to zero
+#         alpha = 0.0
+#         beta = np.arcsin(sbeta)
+#         gamma = np.arctan2(R[1, 1], R[1, 0])
+#     else:
+#         # standard way to compute alpha beta and gamma
+#         alpha = -np.arctan2(R[1, 2], R[2, 2])
+#         beta = np.arctan2(np.cos(alpha) * R[0, 2], R[2, 2])
+#         gamma = -np.arctan2(R[0, 1], R[0, 0])
+#     return [alpha, beta, gamma]
 
 class Robot():
     def __init__(self, clientID, wheeljoints, armjoints, base, gripper):

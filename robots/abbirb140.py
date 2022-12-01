@@ -9,7 +9,6 @@ RobotABBIRB140 is a derived class of the Robot base class that
 @Time: April 2021
 """
 import numpy as np
-
 from artelib import homogeneousmatrix
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.seriallink import SerialRobot

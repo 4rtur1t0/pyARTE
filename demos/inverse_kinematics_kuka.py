@@ -9,7 +9,7 @@ This demo presents a simple inverse kinematic scheme with the KUKA IIWA LBR arm
 @Time: April 2021
 """
 import numpy as np
-from sceneconfig.scene_configs import  init_simulation_KUKALBR
+from sceneconfig.scene_configs_kukalbr import  init_simulation_KUKALBR
 
 
 def ikine():

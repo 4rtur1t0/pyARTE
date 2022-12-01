@@ -7,7 +7,6 @@ RobotUR5 is a derived class of the Robot base class that
 
 @Authors: Arturo Gil
 @Time: April 2021
-
 """
 import numpy as np
 from artelib import homogeneousmatrix

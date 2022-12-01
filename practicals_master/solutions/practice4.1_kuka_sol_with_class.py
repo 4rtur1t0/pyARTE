@@ -10,7 +10,7 @@ The demo represents a KUKA LBR IIWA robot trying to avoid collisions with a sphe
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs import init_simulation_KUKALBR
+from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
 
 
 def follow_line_obstacle(robot, sphere):
