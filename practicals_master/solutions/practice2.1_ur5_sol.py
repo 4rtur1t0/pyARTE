@@ -13,13 +13,15 @@ from artelib.tools import compute_kinematic_errors
 from sceneconfig.scene_configs_ur5 import init_simulation_UR5
 
 
-def delta_q_transpose(J, e):
-    alpha1 = np.dot(np.dot(np.dot(J, J.T), e), e)
-    alpha2 = np.dot(np.dot(J, J.T), e)
-    alpha2 = np.dot(alpha2, alpha2)
-    alpha = alpha1/alpha2
-    dq = alpha*np.dot(J.T, e)
-    return dq
+def moore_penrose(J, e):
+    """
+    Compute qd given J and v.
+    Standard Moore Penrose pseudoinverse.
+    moore penrose pseudo inverse J^T(J*J^T)^{-1}
+    """
+    iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T)))
+    qd = 0.5*np.dot(iJ, e.T)
+    return qd
 
 
 def moore_penrose_damped(J, e):
@@ -27,20 +29,30 @@ def moore_penrose_damped(J, e):
     Compute qd given J and v.
     If close to singularity, used damped version.
     """
-    manip = np.linalg.det(np.dot(J, J.T))
-    print('Manip is: ', manip)
-    # normal case --> just compute pseudo inverse
-    # we are far from a singularity
+    # abs values during singular and noisy configurations
+    manip = np.abs(np.linalg.det(np.dot(J, J.T)))
+    # print('Manip is: ', manip)
+    # normal case --> just compute pseudo inverse if we are far from a singularity
     if manip > .01 ** 2:
+        # print('Standard solution')
         # moore penrose pseudo inverse J^T(J*J^T)^{-1}
         iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T)))
-        qd = np.dot(iJ, e.T)
+        qd = 0.5*np.dot(iJ, e.T)
         return qd
     print('Close to singularity: implementing DAMPED Least squares solution')
     K = 0.01 * np.eye(np.min(J.shape))
     iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + K))
     qd = np.dot(iJ, e.T)
     return qd
+
+
+def delta_q_transpose(J, e):
+    alpha1 = np.dot(np.dot(np.dot(J, J.T), e), e)
+    alpha2 = np.dot(np.dot(J, J.T), e)
+    alpha2 = np.dot(alpha2, alpha2)
+    alpha = alpha1/alpha2
+    dq = alpha*np.dot(J.T, e)
+    return dq
 
 
 def inverse_kinematics(robot, target_position, target_orientation, q0):
@@ -51,19 +63,24 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
     Ttarget = HomogeneousMatrix(target_position, target_orientation)
     q = q0
     max_iterations = 10000
-    for i in range(0, max_iterations):
-        print('Iteration number: ', i)
+    errs = []
+    for i in range(max_iterations):
+        # print('Iteration number: ', i)
         Ti = robot.directkinematics(q)
         J, Jv, Jw = robot.get_jacobian(q)
         e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
-        print('vwref: ', e)
-        print('errordist, error orient: ', error_dist, error_orient)
+        errs.append(error_dist)
+        # print('vwref: ', e)
+        # print('errordist, error orient: ', error_dist, error_orient)
         if error_dist < 0.01 and error_orient < 0.01:
-            print('Converged!!')
+            print('Converged in ', i, ' iterations!')
+            print(errs)
             break
         # compute delta q for the step
+        # EXERCISE: TEST THE THREE METHODS
+        qd = moore_penrose(J, e)
         # qd = moore_penrose_damped(J, e)
-        qd = delta_q_transpose(J, e)
+        # qd = delta_q_transpose(J, e)
         q = q + qd
         [q, _] = robot.apply_joint_limits(q)
     return q
@@ -84,7 +101,7 @@ def pick_and_place():
                            [-np.pi, 0, 0],
                            [-np.pi, 0, 0]]
     q0 = np.array([-np.pi, -np.pi/8, np.pi/2, 0, 0, 0])
-
+    # q0 = np.array([0, 0, 0, 0, 0, 0])
     # plan trajectories
     q1 = inverse_kinematics(robot=robot, target_position=target_positions[0],
                             target_orientation=Euler(target_orientations[0]), q0=q0)
