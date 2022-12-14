@@ -7,7 +7,7 @@ Please open the scenes/more/irb140_abb_conveyor_barret_hand.ttt scene before run
 @Time: April 2021
 """
 import numpy as np
-from sceneconfig.scene_configs import init_simulation_ABBIRB140
+from sceneconfig.scene_configs_irb140 import init_simulation_ABBIRB140
 
 
 def pick_and_place_rep():

@@ -13,7 +13,7 @@ Please open the scenes/kuka_14_R820.ttt scene before running this script.
 import numpy as np
 from artelib.plottools import plot_vars
 from artelib.tools import normalize
-from sceneconfig.scene_configs import init_simulation_KUKALBR
+from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
 
 DELTA_TIME = 50/1000
 

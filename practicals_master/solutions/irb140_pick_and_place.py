@@ -8,7 +8,7 @@ Please open the scenes/irb140.ttt scene before running this script.
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs import init_simulation_ABBIRB140
+from sceneconfig.scene_configs_irb140 import init_simulation_ABBIRB140
 
 
 def filter_joint_limits(robot, q):
@@ -57,10 +57,10 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
 def pick(robot):
     # target_positions = [[0.6, 0.25, 0.4],  # approximation
     #                     [0.6, 0.25, 0.385]] # pick
-    target_positions = [[0.6, 0.265, 0.45],  # approximation
-                        [0.6, 0.265, 0.35]] # pick
-    target_orientations = [[0, np.pi, np.pi/2],
-                           [0, np.pi, np.pi/2]]
+    target_positions = [[0.6, 0.267, 0.45],  # approximation
+                        [0.6, 0.267, 0.39]] # pick
+    target_orientations = [[0, np.pi, 0],
+                           [0, np.pi, 0]]
     q0 = np.array([0, 0, 0, 0, 0, 0])
     q1 = inverse_kinematics(robot=robot, target_position=target_positions[0],
                             target_orientation=Euler(target_orientations[0]), q0=q0)
@@ -76,25 +76,18 @@ def pick(robot):
 
 def place(robot, i):
     # base_target_position = [-0.2, -0.65, 0.385]  # pallet base position
-    base_target_position = [-0.1, -0.6, 0.3]  # pallet base position
+    base_target_position = [-0.2, -0.65, 0.425]  # pallet base position
     base_target_orientation = [0, np.pi, 0]
     q0 = np.array([0, 0, 0, 0, 0, 0])
     # define que piece length and a small gap
-    piece_length = 0.05
+    piece_length = 0.08
     # a gap between pieces
     piece_gap = 0.01
 
     n = 3 # n rows n columns
-    m = 1
     kx = i % n
-    ky = np.floor((i / n) % m)
-    kz = np.floor(i / (n * m))
-
-    if kz % 2 == 0:
-        base_target_orientation = [0, np.pi, 0]
-    else:
-        base_target_orientation = [0, np.pi, np.pi/2]
-
+    ky = np.floor((i / n) % n)
+    kz = np.floor(i / (n * n))
     target_position = base_target_position + kx*np.array([piece_length+piece_gap, 0, 0]) + \
                       ky*np.array([0, piece_length+piece_gap, 0]) + \
                       kz*np.array([0, 0, piece_length]) + np.array([0, 0, piece_gap])

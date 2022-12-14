@@ -5,14 +5,13 @@ Base Robot Class
 
 @Authors: Arturo Gil
 @Time: April 2021
-
 """
 import sim
 import numpy as np
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.inverse_kinematics import delta_q
-from artelib.path_planning import generate_target_positions, generate_target_orientations, \
-    generate_target_orientations_Q, move_target_positions_obstacles, n_movements
+from artelib.path_planning import generate_target_positions, generate_target_orientations_Q, \
+    move_target_positions_obstacles, n_movements
 from artelib.plottools import plot_vars, plot, plot3d
 from artelib.tools import compute_w_between_orientations, euler2rot, rot2quaternion, buildT, compute_w_between_R, \
     null_space, diff_w_central, w_central, null_space_projector, compute_kinematic_errors, rot2euler, quaternion2rot, \

@@ -12,7 +12,7 @@ line in task space.
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs import init_simulation_UR5
+from sceneconfig.scene_configs_ur5 import init_simulation_UR5
 
 
 def ikineline():

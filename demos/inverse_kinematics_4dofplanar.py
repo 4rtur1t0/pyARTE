@@ -14,7 +14,7 @@ Please open the scenes/kuka_14_R820.ttt scene before running this script.
 import numpy as np
 from artelib.plottools import plot_vars, plot
 from artelib.tools import buildT, compute_w_between_R
-from sceneconfig.scene_configs import init_simulation_KUKALBR, init_simulation_4dof_planar
+from sceneconfig.scene_configs_misc import init_simulation_4dof_planar
 
 DELTA_TIME = 50.0/1000.0
 

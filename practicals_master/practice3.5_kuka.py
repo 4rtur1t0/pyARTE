@@ -13,7 +13,7 @@ vectors that form the basis of the null space.
 @Time: April 2021
 """
 import numpy as np
-from sceneconfig.scene_configs import init_simulation_KUKALBR
+from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
 
 
 # move on the null space (with vh, column 6)

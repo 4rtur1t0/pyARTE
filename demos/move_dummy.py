@@ -4,7 +4,7 @@ Use with scenes/euler.ttt
 """
 from sceneconfig.scene_configs import init_sim
 import sim
-import numpy as np
+# import numpy as np
 
 
 def move_reference_frame():

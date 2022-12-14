@@ -11,7 +11,7 @@ the results.
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs import init_simulation_ABBIRB140
+from sceneconfig.scene_configs_irb140 import init_simulation_ABBIRB140
 
 
 def inverse_kinematics(robot, target_position, target_orientation):

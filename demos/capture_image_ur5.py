@@ -6,7 +6,7 @@ Please open the scenes/ur5.ttt scene before running this script.
 @Authors: Arturo Gil
 @Time: April 2021
 """
-from sceneconfig.scene_configs import init_simulation_UR5
+from sceneconfig.scene_configs_ur5 import init_simulation_UR5
 
 
 def capture_image():

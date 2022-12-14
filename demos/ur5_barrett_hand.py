@@ -11,7 +11,7 @@ The script provides an example to move a UR5 robot and get laser data.
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs import init_simulation_UR5BarrettHand
+from sceneconfig.scene_configs_ur5 import init_simulation_UR5BarrettHand
 
 
 if __name__ == "__main__":

@@ -18,9 +18,7 @@ from artelib.euler import Euler
 from artelib.path_planning import n_movements, generate_target_positions, generate_target_orientations_Q
 from artelib.plottools import plot_vars
 from artelib.tools import  compute_kinematic_errors
-from sceneconfig.scene_configs import init_simulation_KUKALBR
-
-# DELTA_TIME = 50.0/1000.0
+from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
 
 
 def diff_w_central(q, qcentral, K):
