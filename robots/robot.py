@@ -418,22 +418,35 @@ class Robot():
     def get_image(self):
         print('Capturing image of vision sensor ')
         # define here the fov of the camera
-        fov = 60 # degrees
+        # fov = 60 # degrees
         # change fov to rad
-        fov = fov * np.pi / 180.0
-        sim.simxSetObjectFloatParameter(self.clientID, self.camera,
-                                        sim.sim_visionfloatparam_perspective_angle,
-                                        fov,
-                                        sim.simx_opmode_oneshot_wait)
+        # fov = fov * np.pi / 180.0
+        # sim.simxSetObjectFloatParameter(self.clientID, self.camera,
+        #                                 sim.sim_visionfloatparam_perspective_angle,
+        #                                 fov,
+        #                                 sim.simx_opmode_oneshot_wait)
         # Get the image of vision sensor.
         # to ensure that the image is received, first streaming, then buffer
         errorCode, resolution, image = sim.simxGetVisionSensorImage(self.clientID, self.camera, 0,
                                                                     sim.simx_opmode_streaming)
-        time.sleep(0.5)
+        time.sleep(0.1)
         errorCode, resolution, image = sim.simxGetVisionSensorImage(self.clientID, self.camera, 0,
                                                                     sim.simx_opmode_buffer)
+
+        # _, _, _ = sim.simxGetVisionSensorImage(self.clientID, self.camera, 0,
+        #                                                             sim.simx_opmode_streaming)
         print('Image captured!')
         return image, resolution
+
+    def get_mean_color(self, image, resolution):
+        image = np.array(image, dtype=np.uint8)
+        image.resize([resolution[1], resolution[0], 3])
+        mean_color = np.mean(image, axis=(0, 1))
+        try:
+            return mean_color/np.linalg.norm(mean_color)
+        except:
+            return mean_color
+
 
     def save_image(self, image, resolution, filename):
         sensorImage = np.array(image, dtype=np.uint8)
