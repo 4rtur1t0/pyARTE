@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/ur5_velodyne.ttt scene before running this script.
+Please open the scenes/ur5_barret_hand.ttt scene before running this script.
 
 The script provides an example to move a UR5 robot and get laser data.
  Laser data may be used to rectonstruct the environment, recognise objects... etc.
