@@ -45,6 +45,12 @@ def path_planning_o(o_current, o_target, n):
     return target_orientations
 
 
+def inverse_kinematics_path(robot, path_p, path_o, q):
+
+    return q_path
+
+
+
 def pick_and_place():
     robot = init_simulation_UR5()
     target_positions = [[0.6, -0.3, 0.4],
@@ -63,6 +69,7 @@ def pick_and_place():
                            [-np.pi, 0, 0],
                            [-np.pi, 0, 0],
                            [-np.pi, 0, 0]]
+    # a simple way to open or close the gripper at each target
     open_gripper = [False,
                     True,  # initial in front of conveyor
                     False,  # pick the piece
@@ -78,7 +85,7 @@ def pick_and_place():
         n = n_movements(target_positions[i], target_positions[i+1], vmax=0.5)
         path_p = path_planning_p(target_positions[i], target_positions[i+1], n)
         path_o = path_planning_o(Euler(target_orientations[i]), Euler(target_orientations[i+1]), n)
-        q_path = robot.inversekinematics_path(path_p, path_o, q)
+        q_path = inversekinematics_path(robot, path_p, path_o, q)
         robot.set_joint_target_trajectory(q_path, precision='last')
 
         if open_gripper[i]:
