@@ -1,10 +1,10 @@
-# README #
+# README
 
-**ARTEpy** is a Python toolbox focussed on robotic manipulators.
+**pyARTE** is a Python toolbox focussed on robotic manipulators.
 
-The library uses Coppelia Sim
+The library uses Coppelia Sim as the main way to produce a representation of the robots and methods.
 
-The main features of **ARTEpy** are:
+The main features of **pyARTE** are:
 
 * Simulate some industrials robot within the Coppelia Sim environment.
 * Path planning and obstacle avoidance.
@@ -12,11 +12,12 @@ The main features of **ARTEpy** are:
 
 Created by [Arturo Gil](http://arvc.umh.es/personal/arturo/index.php?lang=en&vista=normal&dest=inicio&idp=arturo&type=per&ficha=on): arturo.gil@umh.es. [Miguel Hernández University, Spain.](http://www.umh.es)
 
-ARTEpy is distributed under LGPL license.
+pyARTE is distributed under LGPL license.
 
 
-**INSTALL**
+# INSTALL
 
+## DOWNLOAD THE CODE
 Clone this repository:
 
 ```
@@ -25,33 +26,69 @@ Clone this repository:
 
 Download and extract CoppeliaSim on your PC. Download Coppelia from https://www.coppeliarobotics.com/downloads.
 
-Next, create a directory named coppelia_API:
+Next, clone the coppelia_API:
 ```
->> mkdir coppelia_API
+>> git clone https://github.com/4rtur1t0/coppelia_API.git
 ```
-Look for the following directory in CoppeliaSim install directory: 
-CoppeliaSim/programming/remoteApiBindings/python/python
-copy its contents to the directory named coppelia_API. 
-Locate the following file and copy it to the directory named coppelia_API
-CoppeliaSim/programming/remoteApiBindings/lib/Ubuntu20\_04/remoteApi.so
+Please, note that the Coppelia API is part of the distribution of Coppelia and has been included in a different 
+repository for installation purposes. If using Windows or Mac, you should look for your corresponding system library interface.
 
-If using Windows or Mac, you should look for your corresponding system library interface.
 
-Open the project in Pycharm (or any other python editor). Use the option ''add root content'' in 
-File-Settings-Project Structure-- Add Content Root. Add the directory coppelia_API.
+## INSTALL SYSTEM PACKAGES
+Install python virtualenv
+```
+>> sudo  apt-get install virtualenv
+```
 
 Install python3-tk
 ```
->> apt-get install python3-tk
+>> sudo  apt-get install python3-tk
 ```
 
-**PRACTICALS**
+## CREATE A VIRTUAL ENVIRONMENT
+We will be creating a virtualn environment at your user's home/Applications directory: 
+```
+>> cd
+>> mkdir Applications
+>> cd Applications
+>> virtualenv venv
+```
 
+Next, install some needed python packages. We only require matplotlib, numpy and pynput:
+```
+>> cd /home/user/Applications/venv/bin
+>> ./pip install numpy matplotlib pynput
+```
+
+## CONFIGURE YOUR IDE
+
+Open the project in Pycharm (or any other python editor). Use the option ''add root content'' in 
+File-Settings-Project Structure-- Add Content Root. Under the root content (the files that will be included in the python
+execution), you should include:
+- Add the directory coppelia_API.
+- Add pyARTE itself.
+
+
+## INSTALL COPPELIA SIM
+Edu 
+
+## TEST
+Open Coppelia Sim
+Open the ur5_conveyor_belt.ttt scene
+Open the pyARTE/practicals/ur5_move_robot.py
+
+Execute ur5_move_robot.py. Use 1, 2, 3, 4, 5, 6 and the keys below to increment/decrement any joint qi. Use o or c to 
+open/close the gripper.
+
+
+##PRACTICALS
 Practical exercises are provided under the practicals directory.
 You can directly execute the practicals/solutions scripts that are provided on the develop branch.
 
-**YOUTUBE CHANNEL**
+##PRACTICAL EXERCISES WITH THE LIBRARY
+http://arvc.umh.es/arte/index_en.html#practicals
+
+
+##YOUTUBE CHANNEL
 http://www.youtube.com/playlist?list=PLClKgnzRFYe72qDYmj5CRpR9ICNnQehup
 
-**PRACTICAL EXERCISES WITH THE LIBRARY**
-http://arvc.umh.es/arte/index_en.html#practicals

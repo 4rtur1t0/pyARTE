@@ -14,7 +14,7 @@ def pick_and_place_rep():
     """
     A repeated pick and place application.
     """
-    robot = init_simulation_ABBIRB140()
+    robot, _ = init_simulation_ABBIRB140()
     q0 = np.array([0.0, 0.2, np.pi / 4, 0.1, 0.1, np.pi/2])
     robot.set_joint_target_positions(q0, precision=True)
     robot.open_gripper(precision=True)

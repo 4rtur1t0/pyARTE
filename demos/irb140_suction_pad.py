@@ -53,12 +53,11 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
     return q
 
 
-
 def pick(robot):
     # target_positions = [[0.6, 0.25, 0.4],  # approximation
     #                     [0.6, 0.25, 0.385]] # pick
     target_positions = [[0.6, 0.265, 0.45],  # approximation
-                        [0.6, 0.265, 0.25]] # pick
+                        [0.6, 0.265, 0.28]] # pick
     target_orientations = [[0, np.pi, np.pi/2],
                            [0, np.pi, np.pi/2]]
     q0 = np.array([0, 0, 0, 0, 0, 0])
@@ -76,24 +75,19 @@ def pick(robot):
 
 def place(robot, i):
     # base_target_position = [-0.2, -0.65, 0.385]  # pallet base position
-    base_target_position = [-0.1, -0.6, 0.3]  # pallet base position
+    base_target_position = [-0.1, -0.6, 0.305]  # pallet base position
     base_target_orientation = [0, np.pi, 0]
     q0 = np.array([0, 0, 0, 0, 0, 0])
     # define que piece length and a small gap
-    piece_length = 0.05
+    piece_length = 0.08
     # a gap between pieces
-    piece_gap = 0.01
+    piece_gap = 0.005
 
     n = 3 # n rows n columns
-    m = 1
+    m = 3
     kx = i % n
     ky = np.floor((i / n) % m)
     kz = np.floor(i / (n * m))
-
-    if kz % 2 == 0:
-        base_target_orientation = [0, np.pi, 0]
-    else:
-        base_target_orientation = [0, np.pi, np.pi/2]
 
     target_position = base_target_position + kx*np.array([piece_length+piece_gap, 0, 0]) + \
                       ky*np.array([0, piece_length+piece_gap, 0]) + \
@@ -114,7 +108,7 @@ def pick_and_place():
     robot, conveyor_sensor = init_simulation_ABBIRB140_suction_pad()
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
     robot.set_joint_target_positions(q0, precision=True)
-    n_pieces = 48
+    n_pieces = 27
     for i in range(n_pieces):
         while True:
             if conveyor_sensor.is_activated():

@@ -32,7 +32,7 @@ class RobotABBIRB140(Robot):
         # self.ikmethod = 'moore-penrose'
         # whether to apply joint limits in inversekinematics
         self.do_apply_joint_limits = True
-        self.epsilonq = 0.01
+        self.epsilonq = 0.001
 
         # DH parameters of the robot
         # robot.name = 'ABB_IRB140_M2000';
