@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/ur5.ttt scene before running this script.
+Please open the scenes/irb140.ttt scene before running this script.
 
 The script is used to freely move the UR5 robot based on:
 1) joint commands. Use the keys
@@ -12,7 +12,7 @@ The script is used to freely move the UR5 robot based on:
     (5, t) to increment/decrement joint 5
     (6, y) to increment/decrement joint 6
 
-2) v, w commands. Please specify a speedjoint commands. Use the keys
+2) Open/close the RG2 gripper with keys o and c.
 
 @Authors: Arturo Gil. arturo.gil@umh.es
           Universidad Miguel Hernandez de Elche
@@ -22,7 +22,12 @@ The script is used to freely move the UR5 robot based on:
 import numpy as np
 import matplotlib.pyplot as plt
 from pynput import keyboard
-from sceneconfig.scene_configs_irb140 import init_simulation_UR5
+from robots.grippers import GripperRG2
+from robots.kukalbr import RobotKUKALBR
+from robots.simulation import Simulation
+from robots.ur5 import RobotUR5
+from robots.abbirb140 import RobotABBIRB140
+# from sceneconfig.scene_configs_irb140 import init_simulation_ABBIRB140
 
 
 actions = {'1': '0+',
@@ -37,8 +42,6 @@ actions = {'1': '0+',
            't': '4-',
            '6': '5+',
            'y': '5-',
-           '7': '6+',
-           'u': '6-',
            'o': 'open_gripper',
            'c': 'close_gripper'
            }
@@ -46,9 +49,12 @@ actions = {'1': '0+',
 delta_increment = 0.05  # rad
 q = np.zeros(6)
 press_exit = False
-robot = init_simulation_UR5()
-# set initial position of robot
-robot.set_joint_target_positions(q, precision=True)
+
+global robot
+global gripper
+
+robot = None
+gripper = None
 
 
 def plot_trajectories(q_rs):
@@ -66,10 +72,10 @@ def on_press(key):
         print('Key pressed: {0} '.format(key.char))
         caracter = key.char
         if caracter == 'o':
-            robot.open_gripper(precision=True)
+            gripper.open(precision=True)
             return True
         elif caracter == 'c':
-            robot.close_gripper(precision=True)
+            gripper.close(precision=True)
             return True
         elif caracter == 'z':
             print('ARM RESET')
@@ -87,12 +93,12 @@ def on_press(key):
         [q, _] = robot.apply_joint_limits(q)
         robot.set_joint_target_positions(q, precision=False)
         # robot.wait()
-        [position, orientation] = robot.get_end_effector_position_orientation()
+        # [position, orientation] = robot.get_end_effector_position_orientation()
         T = robot.directkinematics(q)
         Q = T.Q()
         print('Current q is: ', q)
-        print('End effector position is (p): ', position)
-        print('End effector orientation is (alpha, betta, gamma): ', orientation)
+        # print('End effector position is (p): ', position)
+        # print('End effector orientation is (alpha, betta, gamma): ', orientation)
         print('End effector T is: ', T)
         print('End effector Q is: ', Q)
 
@@ -110,11 +116,32 @@ def on_release(key):
 
 
 if __name__ == "__main__":
-    print('Use: 1, 2, 3, 4, 5, 6 to increment q_i')
-    print('Use: q, w, e, r, t, y to decrement q_i')
+    simulation = Simulation()
+    clientID = simulation.start()
+
+    print('Use: 1, 2, 3, 4, 5, 6, 7 to increment q_i')
+    print('Use: q, w, e, r, t, y, u to decrement q_i')
     print('Use: o, c to open/close gripper')
     print('Use ESC to exit')
+    print("Robots:")
+    print("1 IRB140")
+    print("2 UR5")
+    print("3 KUKA LBR")
+    value = input("Please select a robot:\n")
+    if value == str(1):
+        robot = RobotABBIRB140(clientID=clientID)
+    elif value == str(2):
+        robot = RobotUR5(clientID=clientID)
+    else:
+        robot = RobotKUKALBR(clientID=clientID)
+
+    robot.start()
+    gripper = GripperRG2(clientID=clientID)
+    gripper.start()
+    robot.set_joint_target_positions(q, precision=True)
+
     # Collect events until released
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
-    robot.stop_arm()
+
+    simulation.stop()

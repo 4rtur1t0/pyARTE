@@ -16,7 +16,11 @@ from artelib.euler import Euler
 from artelib.path_planning import n_movements, generate_target_positions, generate_target_orientations_Q, move_target_positions_obstacles, potential
 from artelib.plottools import plot_xy
 from artelib.tools import null_space, compute_kinematic_errors
-from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
+from robots.grippers import GripperRG2
+from robots.kukalbr import RobotKUKALBR
+from robots.objects import Sphere
+from robots.simulation import Simulation
+# from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
 
 Dds_global = []
 
@@ -117,9 +121,9 @@ def follow_line_obstacle(robot, sphere):
                            [0, np.pi / 8, 0]]
     sphere_position = [0.7, 0.0, 0.5]
     # eval_potentials()
-    sphere.set_object_position(sphere_position)
+    sphere.set_position(sphere_position)
     q0 = np.array([0.9, 1.4, 1.35, 0.85, -0.75, -0.4,  0.])
-    robot.set_target_position_orientation(target_positions[0], target_orientations[0])
+    # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
     q0 = robot.inversekinematics(target_positions[0], Euler(target_orientations[0]), q0=q0)
     robot.set_joint_target_positions(q0, precision=True)
 
@@ -134,17 +138,25 @@ def follow_line_obstacle(robot, sphere):
     # plot_xy(np.arange(len(Dds_global)), np.array(Dds_global))
 
     robot.set_joint_target_positions([0, 0, 0, 0, 0, 0, 0], precision=True)
-    robot.set_target_position_orientation(target_positions[0], target_orientations[0])
+    # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
     robot.set_joint_target_positions(q1_path[0], precision=True)
-    robot.set_target_position_orientation(target_positions[1], target_orientations[1])
+    # robot.set_target_position_orientation(target_positions[1], target_orientations[1])
     robot.set_joint_target_trajectory(q1_path, precision='last')
 
 
 def application():
-    robot, sphere = init_simulation_KUKALBR()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotKUKALBR(clientID=clientID)
+    robot.start()
+    gripper = GripperRG2(clientID=clientID)
+    gripper.start()
+    sphere = Sphere(clientID=clientID)
+    sphere.start()
+
     follow_line_obstacle(robot, sphere)
-    robot.stop_arm()
-    robot.stop_simulation()
+
+    simulation.stop()
     robot.plot_trajectories()
 
 

@@ -14,7 +14,11 @@ Please: beware that increasing the image resolution may lead to a slow execution
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs_irb140 import init_simulation_ABBIRB140
+from robots.abbirb140 import RobotABBIRB140
+from robots.grippers import GripperRG2
+from robots.proxsensor import ProxSensor
+from robots.simulation import Simulation
+from robots.camera import Camera
 
 
 def filter_joint_limits(robot, q):
@@ -58,7 +62,8 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
     q = get_closest_to(q, q0)
     return q
 
-def find_color(robot):
+
+def find_color(robot, camera):
     """
     Places the camera on top of the piece.
     Saves the image for inspection.
@@ -75,23 +80,14 @@ def find_color(robot):
                             target_orientation=Euler(target_orientation), q0=q1)
     robot.set_joint_target_positions(q1, precision=True)
     robot.set_joint_target_positions(q2, precision=True)
-    image, resolution = robot.get_image()
-    # saves the image if needed
-    # robot.save_image(image=image, resolution=resolution, filename='image.png')
-    # get the mean color of the image captured
-    mean_color = robot.get_mean_color(image, resolution)
-    # define perfect colors as R, G, B. normalized
-    colors = np.array([[1, 0, 0], [0., 1, 0], [0, 0, 1]])
-    color_names = ['R', 'G', 'B']
-    d = np.linalg.norm(colors-mean_color, axis=1)
-    color_index = np.argmin(d)
-    # return the closest color found
-    color = color_names[color_index]
+
+    # capture an image and returns the closest color
+    color = camera.get_color_name()
     print('Piece is: ', color)
     return color
 
 
-def pick(robot):
+def pick(robot, gripper):
     """
     Picks the piece from the conveyor belt.
     """
@@ -105,14 +101,14 @@ def pick(robot):
     q2 = inverse_kinematics(robot=robot, target_position=target_positions[1],
                             target_orientation=Euler(target_orientations[1]), q0=q0)
 
-    robot.open_gripper(precision=True)
+    gripper.open(precision=True)
     robot.set_joint_target_positions(q1, precision=True)
     robot.set_joint_target_positions(q2, precision=True)
-    robot.close_gripper(precision=True)
+    gripper.close(precision=True)
     robot.set_joint_target_positions(q1, precision=True)
 
 
-def place(robot, i, color):
+def place(robot, gripper, color):
     """
     Places, at three different heaps
     """
@@ -133,12 +129,27 @@ def place(robot, i, color):
 
     robot.set_joint_target_positions(q3, precision=True)
     robot.set_joint_target_positions(q4, precision=True)
-    robot.open_gripper(precision=True)
+    gripper.open(precision=True)
     robot.set_joint_target_positions(q3, precision=True)
 
 
 def pick_and_place():
-    robot, conveyor_sensor = init_simulation_ABBIRB140()
+    # Start simulation
+    simulation = Simulation()
+    clientID = simulation.start()
+    # Connect to the robot
+    robot = RobotABBIRB140(clientID=clientID)
+    robot.start()
+    # Connect to the proximity sensor
+    conveyor_sensor = ProxSensor(clientID=clientID)
+    conveyor_sensor.start()
+    # Connect to the gripper
+    gripper = GripperRG2(clientID=clientID)
+    gripper.start()
+    # Connect a camera to obtain images
+    camera = Camera(clientID=clientID)
+    camera.start()
+
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
     robot.set_joint_target_positions(q0, precision=True)
     n_pieces = 48
@@ -149,14 +160,12 @@ def pick_and_place():
             robot.wait()
 
         robot.set_joint_target_positions(q0, precision=True)
-        color = find_color(robot)
-        pick(robot)
+        color = find_color(robot, camera)
+        pick(robot, gripper)
         robot.set_joint_target_positions(q0, precision=True)
-        place(robot, i, color)
+        place(robot, gripper, color)
 
-    # Stop arm and simulation
-    robot.stop_arm()
-    robot.stop_simulation()
+    simulation.stop()
 
 
 if __name__ == "__main__":

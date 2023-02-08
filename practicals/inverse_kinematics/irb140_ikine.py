@@ -11,7 +11,8 @@ the results.
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs_irb140 import init_simulation_ABBIRB140
+from robots.abbirb140 import RobotABBIRB140
+from robots.simulation import Simulation
 
 
 def inverse_kinematics(robot, target_position, target_orientation):
@@ -64,7 +65,12 @@ def reach_solutions(robot, q):
 
 
 def irb140_ikine():
-    robot, _ = init_simulation_ABBIRB140()
+    # Start simulation
+    simulation = Simulation()
+    clientID = simulation.start()
+    # Connect to the robot
+    robot = RobotABBIRB140(clientID=clientID)
+    robot.start()
 
     # set initial position
     q0 = np.array([0, 0, 0, 0, 0, 0])
@@ -85,8 +91,7 @@ def irb140_ikine():
     reach_solutions(robot, q)
 
     # Stop arm and simulation
-    robot.stop_arm()
-    robot.stop_simulation()
+    simulation.stop()
 
 
 if __name__ == "__main__":

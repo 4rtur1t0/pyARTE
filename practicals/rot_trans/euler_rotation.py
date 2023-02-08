@@ -5,7 +5,7 @@ from artelib.tools import buildT
 
 
 if __name__ == '__main__':
-    orientation1 = [np.pi/2, np.pi/4, np.pi/2]
+    orientation1 = [-np.pi/2,  0, 0]
     orientation2 = [np.pi / 4, np.pi / 4, np.pi / 2]
     position1 = [0.5, 0.7, 0.8]
     position2 = [0.5, 0.7, 0.8]
@@ -16,7 +16,11 @@ if __name__ == '__main__':
     print(e2.abg)
     # Conversión de Euler a Matriz de rotacion
     R1 = e1.R()
+    print('R1')
+    print(R1)
     R2 = e2.R()
+    print('R2')
+    print(R2)
     # combinacion de rotaciones
     R = R1*R2
     print('R1, R2 y R:')

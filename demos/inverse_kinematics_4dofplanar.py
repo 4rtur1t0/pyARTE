@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/kuka_14_R820.ttt scene before running this script.
-
-    EXERCISE: SOLVE the inverse kinematics problem in a 7DOF redundant robot.
-                as a secondary target, minimize the sum of square differences:
-                    w = \sum_i (q[i] - qcentral[i])^2
+Please open the scenes/4dof_planar.ttt scene before running this script.
 
 @Authors: Arturo Gil
 @Time: April 2021
 
 """
 import numpy as np
+
+from artelib.euler import Euler
+from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.plottools import plot_vars, plot
 from artelib.tools import buildT, compute_w_between_R
-from sceneconfig.scene_configs_misc import init_simulation_4dof_planar
+from robots.planar4dof import Planar4DOF
+from robots.simulation import Simulation
 
 DELTA_TIME = 50.0/1000.0
 
@@ -46,7 +46,7 @@ def delta_q_transpose(J, e):
 def inversekinematics_transpose(robot, target_position, target_orientation, q0):
     """
     """
-    Ttarget = buildT(target_position, target_orientation)
+    Ttarget = HomogeneousMatrix(target_position, target_orientation)
     q = q0
     max_iterations = 3000
     error_dists = []
@@ -116,19 +116,16 @@ def inversekinematics_moore_penrose(robot, target_position, target_orientation, 
 
 
 def inverse_kin_techniques(robot):
-    # target_positions = [[0.5, -0.2, 0.0]]  # drop the piece on the table
     target_positions = [[1.0, 0.0, 0.0]]  # drop the piece on the table
     target_orientations = [[0, 0, 0]]
 
     # initial arm position
     q0 = np.array([-np.pi, np.pi/2, -np.pi/2, np.pi/8])
 
-    robot.set_target_position_orientation(target_positions[0], target_orientations[0])
+    # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
 
-    # eval number of steps to converge
-    # eval smoothness
     q1 = inversekinematics_transpose(robot=robot, target_position=target_positions[0],
-                                     target_orientation=target_orientations[0], q0=q0)
+                                     target_orientation=Euler(target_orientations[0]), q0=q0)
 
     # NOW execute trajectories computed before.
     # set initial position of robot
@@ -138,11 +135,12 @@ def inverse_kin_techniques(robot):
 
 
 if __name__ == "__main__":
-    robot = init_simulation_4dof_planar()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = Planar4DOF(clientID=clientID)
+    robot.start()
 
     inverse_kin_techniques(robot)
 
-    # Stop arm and simulation
-    robot.stop_arm()
-    robot.stop_simulation()
+    simulation.stop()
     robot.plot_trajectories()

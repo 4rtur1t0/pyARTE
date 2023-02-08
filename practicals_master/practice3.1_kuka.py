@@ -11,10 +11,13 @@ INSTRUCTIONS:
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
+from robots.grippers import GripperRG2
+from robots.kukalbr import RobotKUKALBR
+from robots.simulation import Simulation
+# from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
 
 
-def pick_and_place(robot, step_number):
+def pick_and_place(robot, gripper, step_number):
     # max linear speed
     vmax = 0.5
     target_positions = [[0.6, -0.2, 0.25],  # initial in front of conveyor
@@ -50,16 +53,16 @@ def pick_and_place(robot, step_number):
     # set initial position of robot
     robot.set_joint_target_positions(q0, precision=False)
     robot.wait(15)
-    robot.open_gripper(precision=True)
+    gripper.open(precision=True)
     # set the target we are willing to reach on Coppelia
-    robot.set_target_position_orientation(target_positions[0], target_orientations[0])
+    # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
     robot.set_joint_target_trajectory(q1_path, precision='last')
     robot.set_joint_target_trajectory(q2_path, precision='last')
-    robot.close_gripper(precision=True)
+    gripper.close(precision=True)
     robot.set_joint_target_trajectory(q3_path, precision='last')
     robot.set_joint_target_trajectory(q4_path, precision='last')
     robot.set_joint_target_trajectory(q5_path, precision='last')
-    robot.open_gripper(precision=True)
+    gripper.open(precision=True)
     # reverse array, from q4 to q5 and now q5 to q4
     robot.set_joint_target_trajectory(q_path=q5_path[::-1])
     # back to initial
@@ -68,13 +71,18 @@ def pick_and_place(robot, step_number):
 
 
 def pallet_application():
-    robot, _ = init_simulation_KUKALBR()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotKUKALBR(clientID=clientID)
+    robot.start()
+    gripper = GripperRG2(clientID=clientID)
+    gripper.start()
+
     for i in range(0, 6):
-        pick_and_place(robot, i)
-    # Stop arm and simulation
-    robot.stop_arm()
-    robot.stop_simulation()
+        pick_and_place(robot, gripper, i)
+
     robot.plot_trajectories()
+    simulation.stop()
 
 
 if __name__ == "__main__":

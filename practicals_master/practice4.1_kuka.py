@@ -12,9 +12,12 @@ import numpy as np
 from artelib.euler import Euler
 from artelib.path_planning import move_target_positions_obstacles, generate_target_positions, generate_target_orientations_Q, n_movements
 from artelib.plottools import plot3d
+from robots.grippers import GripperRG2
+from robots.kukalbr import RobotKUKALBR
+from robots.simulation import Simulation
 from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
+from robots.objects import Sphere
 
-DELTA_TIME = 50.0/1000.0
 
 def slerp(Qa, Qb, c):
 
@@ -81,7 +84,7 @@ def follow_line_obstacle(robot, sphere):
                            [0, np.pi / 8, 0]]
     sphere_position = [0.55, 0.0, 0.5]
     # necesita cambiar la posición central
-    sphere.set_object_position(sphere_position)
+    sphere.set_position(sphere_position)
 
     # initial arm position
     q0 = np.array([-np.pi / 8, 0, 0, -np.pi / 2, 0, 0, 0])
@@ -96,18 +99,25 @@ def follow_line_obstacle(robot, sphere):
     robot.wait(15)
     # set the target we are willing to reach on Coppelia
     robot.set_joint_target_trajectory(q1_path, precision='last')
-    robot.set_target_position_orientation(target_positions[1], target_orientations[1])
+    # robot.set_target_position_orientation(target_positions[1], target_orientations[1])
     robot.set_joint_target_trajectory(q1_path[::-1], precision='last')
     robot.wait(15)
 
 
 def application():
-    robot, sphere = init_simulation_KUKALBR()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotKUKALBR(clientID=clientID)
+    robot.start()
+    gripper = GripperRG2(clientID=clientID)
+    gripper.start()
+    sphere = Sphere(clientID=clientID)
+    sphere.start()
+
     follow_line_obstacle(robot, sphere)
 
     # Stop arm and simulation
-    robot.stop_arm()
-    robot.stop_simulation()
+    simulation.stop()
     robot.plot_trajectories()
 
 

@@ -16,23 +16,28 @@ from artelib.seriallink import SerialRobot
 from artelib.tools import compute_kinematic_errors, minimize_w_lateral
 from robots.robot import Robot
 from kinematics.kinematics_kukalbr import eval_symbolic_jacobian_KUKALBR
+import sim
 
 
-DELTA_TIME = 50.0/1000.0
+# DELTA_TIME = 50.0/1000.0
 
 
 class RobotKUKALBR(Robot):
-    def __init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera):
+    def __init__(self, clientID):
+        # init base class attributes
+        Robot.__init__(self)
+        self.clientID = clientID
         # maximum joint speeds (rad/s)
         max_joint_speeds = np.array([180, 180, 180, 180, 180, 180, 180, 180])
-        max_joint_speeds = max_joint_speeds * np.pi / 180.0
+        self.max_joint_speeds = max_joint_speeds * np.pi / 180.0
         # max and min joint ranges
         joint_ranges = np.array([[-180, -180, -180, -180, -180, -180, -180],
                                  [180,   180,  180,  180,  180,  180,  180]])
-        joint_ranges = joint_ranges * np.pi / 180.0
+        self.joint_ranges = joint_ranges * np.pi / 180.0
         # max errors during computation of inverse kinematics
         self.max_error_dist_inversekinematics = 0.01
         self.max_error_orient_inversekinematics = 0.01
+        self.max_iterations_inverse_kinematics = 1500
         self.ikmethod = 'moore-penrose-damped'
         # self.ikmethod = 'moore-penrose'
         # self.ikmethod = 'transpose'
@@ -40,6 +45,11 @@ class RobotKUKALBR(Robot):
         # whether joint limits should be applied during inverse kinematics
         self.do_apply_joint_limits = True
         self.secondary_objective = True
+
+
+        self.do_apply_joint_limits = None
+        # wait these iterations before a WARNING is issued
+        self.max_iterations_joint_target = 100
 
         self.serialrobot = SerialRobot(n=7, T0=np.eye(4), TCP=np.eye(4), name='KUKALBR')
         self.serialrobot.append(th=0, d=0.36,  a=0, alpha=-np.pi/2, link_type='R')
@@ -50,18 +60,44 @@ class RobotKUKALBR(Robot):
         self.serialrobot.append(th=0, d=0,     a=0, alpha=np.pi/2, link_type='R')
         self.serialrobot.append(th=0, d=0.111, a=0, alpha=0)
 
-        Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera,
-                       max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges, epsilonq=self.epsilonq)
+        # Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera,
+        #                max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges, epsilonq=self.epsilonq)
 
-    def open_gripper(self, precision=False):
-        self.gripper.open_gripper(precision=precision)
-        if precision:
-            self.wait(10)
+    # def open_gripper(self, precision=False):
+    #     self.gripper.open_gripper(precision=precision)
+    #     if precision:
+    #         self.wait(10)
+    #
+    # def close_gripper(self, precision=False):
+    #     self.gripper.close_gripper(precision=precision)
+    #     if precision:
+    #         self.wait(10)
 
-    def close_gripper(self, precision=False):
-        self.gripper.close_gripper(precision=precision)
-        if precision:
-            self.wait(10)
+    def start(self, base_name='/LBR_iiwa_14_R820', joint_name='LBR_iiwa_14_R820_joint'):
+        errorCode, robotbase = sim.simxGetObjectHandle(self.clientID, base_name, sim.simx_opmode_oneshot_wait)
+        errorCode, q1 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '1',
+                                                sim.simx_opmode_oneshot_wait)
+        errorCode, q2 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '2',
+                                                sim.simx_opmode_oneshot_wait)
+        errorCode, q3 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '3',
+                                                sim.simx_opmode_oneshot_wait)
+        errorCode, q4 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '4',
+                                                sim.simx_opmode_oneshot_wait)
+        errorCode, q5 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '5',
+                                                sim.simx_opmode_oneshot_wait)
+        errorCode, q6 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '6',
+                                                sim.simx_opmode_oneshot_wait)
+        errorCode, q7 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '7',
+                                                sim.simx_opmode_oneshot_wait)
+        joints = []
+        joints.append(q1)
+        joints.append(q2)
+        joints.append(q3)
+        joints.append(q4)
+        joints.append(q5)
+        joints.append(q6)
+        joints.append(q7)
+        self.joints = joints
 
     def get_jacobian(self, q):
         J, Jv, Jw = eval_symbolic_jacobian_KUKALBR(q)

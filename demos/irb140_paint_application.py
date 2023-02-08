@@ -8,7 +8,8 @@ Please open the scenes/irb140_paint_gun.ttt scene before running this script.
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs_irb140 import init_simulation_ABBIRB140
+from robots.abbirb140 import RobotABBIRB140
+from robots.simulation import Simulation
 
 
 def filter_joint_limits(robot, q):
@@ -54,7 +55,11 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
 
 
 def paint():
-    robot, conveyor_sensor = init_simulation_ABBIRB140()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotABBIRB140(clientID=clientID)
+    robot.start()
+
     q0 = np.array([0, 0, 0, 0, 0, 0])
     robot.set_joint_target_positions(q0, precision=True)
 
@@ -73,8 +78,7 @@ def paint():
                                 target_orientation=Euler(target_orientations[i]), q0=q0)
         robot.set_joint_target_positions(qi, precision=True)
 
-    robot.stop_arm()
-    robot.stop_simulation()
+    simulation.stop()
 
 
 if __name__ == "__main__":

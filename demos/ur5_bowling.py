@@ -9,7 +9,10 @@ import numpy as np
 from artelib.euler import Euler
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.tools import compute_kinematic_errors
-from sceneconfig.scene_configs_ur5 import init_simulation_UR5BarrettHand
+# from sceneconfig.scene_configs_ur5 import init_simulation_UR5BarrettHand
+from robots.grippers import GripperBarretHand
+from robots.simulation import Simulation
+from robots.ur5 import RobotUR5
 
 
 def delta_q_t(J, e):
@@ -55,9 +58,15 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
         [q, _] = robot.apply_joint_limits(q)
     return q
 
-#Funcion para calcular los movimientos del robot
+# Funcion para calcular los movimientos del robot
 def posicionamiento():
-    robot = init_simulation_UR5BarrettHand()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotUR5(clientID=clientID)
+    robot.start()
+    gripper = GripperBarretHand(clientID=clientID)
+    gripper.start()
+
     target_positions = [[0.31, 0.22, 0.55], #Posicion delante de la bola
                         [0.31, 0.22, 0.55], #Coger la bola
                         [0.31, 0.22, 0.65], #Levantarla y girar
@@ -111,11 +120,11 @@ def posicionamiento():
     #Ejecutar las trayectorias anteriores
     robot.set_joint_target_positions(q0, precision=True)
     robot.wait(15)
-    robot.open_gripper(precision=True)
-    robot.set_target_position_orientation(target_positions[0], target_orientations[0])
+    gripper.open(precision=True)
+    # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
     robot.set_joint_target_positions(q1, precision=True)
     robot.set_joint_target_positions(q2, precision=True)
-    robot.close_gripper(precision=True)
+    gripper.close(precision=True)
     robot.set_joint_target_positions(q3, precision=True)
     robot.set_joint_target_positions(q4, precision=True)
     robot.set_joint_target_positions(q5, precision=True)
@@ -126,11 +135,11 @@ def posicionamiento():
     robot.set_joint_target_positions(q10, precision=True)
     robot.wait(20)
     robot.set_joint_target_positions(q11, precision=True)
-    robot.open_gripper(precision=True)
+    gripper.open(precision=True)
     #Tiempo de espera para visualizar el lanzamiento
     robot.wait(300)
-    robot.stop_arm()
-    robot.stop_simulation()
+
+    simulation.stop()
     #Graficar las trayectorias articulares
     robot.plot_trajectories()
 

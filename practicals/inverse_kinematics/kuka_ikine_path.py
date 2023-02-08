@@ -11,13 +11,22 @@ line in task space.
 
 """
 import numpy as np
+
+from artelib.euler import Euler
 from artelib.plottools import plot
 from artelib.tools import euler2q, euler2rot, w_lateral
-from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
+from robots.grippers import GripperRG2
+from robots.kukalbr import RobotKUKALBR
+from robots.simulation import Simulation
 
 
 def ikineline():
-    robot, _ = init_simulation_KUKALBR()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotKUKALBR(clientID=clientID)
+    robot.start()
+    gripper = GripperRG2(clientID=clientID)
+    gripper.start()
     target_positions = [[0.4, -0.4, 0.5],
                         [0.41, -0.4, 0.5],
                         [0.42, -0.4, 0.5],
@@ -58,9 +67,9 @@ def ikineline():
     robot.set_joint_target_positions(q, precision=True)
     w = []
     for i in range(len(target_positions)):
-        robot.set_target_position_orientation(target_positions[i], target_orientations[i])
+        # robot.set_target_position_orientation(target_positions[i], target_orientations[i])
         q_path = robot.inversekinematics_line(target_position=target_positions[i],
-                                              target_orientation=euler2q(target_orientations[i]), q0=q)
+                                              target_orientation=Euler(target_orientations[i]), q0=q)
         robot.set_joint_target_trajectory(q_path=q_path, precision='last')
         q = q_path[-1]
 
@@ -70,8 +79,8 @@ def ikineline():
         wi = w_lateral(q, qmax=robot.joint_ranges[1], qmin=robot.joint_ranges[0])
         w.append(wi)
     plot(w)
-    robot.stop_arm()
-    robot.stop_simulation()
+
+    simulation.stop()
     robot.plot_trajectories()
 
 

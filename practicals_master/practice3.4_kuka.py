@@ -18,7 +18,10 @@ from artelib.euler import Euler
 from artelib.path_planning import n_movements, generate_target_positions, generate_target_orientations_Q
 from artelib.plottools import plot_vars
 from artelib.tools import  compute_kinematic_errors
-from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
+# from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
+from robots.grippers import GripperRG2
+from robots.kukalbr import RobotKUKALBR
+from robots.simulation import Simulation
 
 DELTA_TIME = 50.0/1000.0
 
@@ -110,7 +113,7 @@ def inversekinematics_secondary(robot, target_position, target_orientation, q0):
     return q
 
 
-def pick_and_place(robot, step_number):
+def pick_and_place(robot, gripper, step_number):
     target_positions = [[0.6, -0.2, 0.25],  # initial in front of conveyor
                         [0.6, 0.1, 0.25],  # pick the piece
                         [0.6, -0.1, 0.50],  # bring the piece up (and backwards)
@@ -144,16 +147,16 @@ def pick_and_place(robot, step_number):
     # set initial position of robot
     robot.set_joint_target_positions(q0, precision=False)
     robot.wait(20)
-    robot.open_gripper(precision=False)
+    gripper.open(precision=False)
     # set the target we are willing to reach on Coppelia
-    robot.set_target_position_orientation(target_positions[0], target_orientations[0])
+    # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
     robot.set_joint_target_trajectory(q1_path, precision='last')
     robot.set_joint_target_trajectory(q2_path, precision='last')
-    robot.close_gripper(precision=True)
+    gripper.close(precision=True)
     robot.set_joint_target_trajectory(q3_path, precision='last')
     robot.set_joint_target_trajectory(q4_path, precision='last')
     robot.set_joint_target_trajectory(q5_path, precision='last')
-    robot.open_gripper(precision=True)
+    gripper.open(precision=True)
     robot.set_joint_target_trajectory(q5_path[::-1], precision='last')
     # # # back to initial
     robot.set_joint_target_positions(q0, precision=False)
@@ -161,12 +164,16 @@ def pick_and_place(robot, step_number):
 
 
 def pallet_application():
-    robot, _ = init_simulation_KUKALBR()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotKUKALBR(clientID=clientID)
+    robot.start()
+    gripper = GripperRG2(clientID=clientID)
+    gripper.start()
     for i in range(0, 6):
-        pick_and_place(robot, i)
-    # Stop arm and simulation
-    robot.stop_arm()
-    robot.stop_simulation()
+        pick_and_place(robot, gripper, i)
+
+    simulation.stop()
     robot.plot_trajectories()
 
 

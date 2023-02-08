@@ -14,17 +14,24 @@ from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.seriallink import SerialRobot
 from artelib.tools import buildT, normalize_angle
 from robots.robot import Robot
+import sim
 
 
 class RobotABBIRB140(Robot):
-    def __init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera):
+
+    def __init__(self, clientID):
+        # init base class attributes
+        Robot.__init__(self)
+        self.clientID = clientID
+
         # maximum joint speeds (rad/s)
         max_joint_speeds = np.array([180, 180, 180, 180, 180, 180, 180])
-        max_joint_speeds = max_joint_speeds * np.pi / 180.0
+        self.max_joint_speeds = max_joint_speeds * np.pi / 180.0
         # max and min joint ranges (an
         joint_ranges = np.array([[-180, -90, -230, -200, -115, -400],
                                  [180,   110,  50,  200,  115, 400]])
-        joint_ranges = joint_ranges * np.pi / 180.0
+        self.joint_ranges = joint_ranges * np.pi / 180.0
+
         self.max_iterations_inverse_kinematics = 15000
         self.max_error_dist_inversekinematics = 0.01
         self.max_error_orient_inversekinematics = 0.01
@@ -32,15 +39,9 @@ class RobotABBIRB140(Robot):
         # self.ikmethod = 'moore-penrose'
         # whether to apply joint limits in inversekinematics
         self.do_apply_joint_limits = True
-        self.epsilonq = 0.001
+        self.epsilonq = 0.0001
 
         # DH parameters of the robot
-        # robot.name = 'ABB_IRB140_M2000';
-        # robot.DH.theta = '[q(1) q(2)-pi/2 q(3) q(4) q(5) q(6)+pi]';
-        # robot.DH.d = '[0.352 0 0 0.380 0 0.065]';
-        # robot.DH.a = '[0.070 0.360 0 0 0 0]';
-        # robot.DH.alpha = '[-pi/2 0 -pi/2 pi/2 -pi/2 0]';
-        # robot.J = [];
         self.serialrobot = SerialRobot(n=6, T0=np.eye(4), TCP=np.eye(4), name='ABBIRB140')
         self.serialrobot.append(th=0, d=0.352, a=0.07, alpha=-np.pi / 2, link_type='R')
         self.serialrobot.append(th=-np.pi/2, d=0, a=0.36, alpha=0, link_type='R')
@@ -49,18 +50,27 @@ class RobotABBIRB140(Robot):
         self.serialrobot.append(th=0, d=0, a=0, alpha=-np.pi / 2, link_type='R')
         self.serialrobot.append(th=np.pi, d=0.065, a=0, alpha=0, link_type='R')
 
-        Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target,
-                       max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges, camera=camera)
 
-    def open_gripper(self, precision=False):
-        self.gripper.open_gripper(precision=precision)
-        if precision:
-            self.wait(10)
+    def start(self, base_name='/IRB140', joint_name='joint'):
+        armjoints = []
+        # Get the handles of the relevant objects
+        errorCode, robotbase = sim.simxGetObjectHandle(self.clientID, base_name, sim.simx_opmode_oneshot_wait)
 
-    def close_gripper(self, precision=False):
-        self.gripper.close_gripper(precision=precision)
-        if precision:
-            self.wait(10)
+        errorCode, q1 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '1', sim.simx_opmode_oneshot_wait)
+        errorCode, q2 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '2', sim.simx_opmode_oneshot_wait)
+        errorCode, q3 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '3', sim.simx_opmode_oneshot_wait)
+        errorCode, q4 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '4', sim.simx_opmode_oneshot_wait)
+        errorCode, q5 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '5', sim.simx_opmode_oneshot_wait)
+        errorCode, q6 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '6', sim.simx_opmode_oneshot_wait)
+
+        armjoints.append(q1)
+        armjoints.append(q2)
+        armjoints.append(q3)
+        armjoints.append(q4)
+        armjoints.append(q5)
+        armjoints.append(q6)
+        # must store the joints
+        self.joints = armjoints
 
     def inversekinematics(self, target_position, target_orientation, q0=None):
         """

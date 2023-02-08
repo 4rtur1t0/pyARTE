@@ -10,7 +10,9 @@ import numpy as np
 from artelib.euler import Euler
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.tools import compute_kinematic_errors
-from sceneconfig.scene_configs_ur5 import init_simulation_UR5
+from robots.grippers import GripperRG2
+from robots.simulation import Simulation
+from robots.ur5 import RobotUR5
 
 
 def moore_penrose(J, e):
@@ -87,7 +89,13 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
 
 
 def pick_and_place():
-    robot = init_simulation_UR5()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotUR5(clientID=clientID)
+    robot.start()
+    gripper = GripperRG2(clientID=clientID)
+    gripper.start()
+
     target_positions = [[0.6, -0.2, 0.25], # initial in front of conveyor
                         [0.6, 0.1, 0.25], # pick the piece
                         [0.6, 0.1, 0.35], # bring the piece up
@@ -120,22 +128,21 @@ def pick_and_place():
     # set initial position of robot
     robot.set_joint_target_positions(q0, precision=True)
     robot.wait(15)
-    robot.open_gripper(precision=True)
+    gripper.open(precision=True)
     # set the target we are willing to reach on Coppelia
-    robot.set_target_position_orientation(target_positions[0], target_orientations[0])
+    # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
     robot.set_joint_target_positions(q1, precision=True)
     robot.set_joint_target_positions(q2, precision=True)
-    robot.close_gripper(precision=True)
+    gripper.close(precision=True)
     robot.set_joint_target_positions(q3, precision=True)
     robot.set_joint_target_positions(q4, precision=True)
     robot.set_joint_target_positions(q5, precision=True)
     robot.set_joint_target_positions(q6, precision=True)
-    robot.open_gripper(precision=True)
+    gripper.open(precision=True)
     robot.set_joint_target_positions(q5)
 
     # Stop arm and simulation
-    robot.stop_arm()
-    robot.stop_simulation()
+    simulation.stop()
     robot.plot_trajectories()
 
 

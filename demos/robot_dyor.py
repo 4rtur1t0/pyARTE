@@ -1,16 +1,20 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/ur5.ttt scene before running this script.
+Please open the scenes/mobile_robot.ttt scene before running this script.
 
 @Authors: Arturo Gil
 @Time: April 2021
 """
-from sceneconfig.scene_configs_misc import init_simulation_mobile_robot
+from robots.robot_dyor import RobotDyor
+from robots.simulation import Simulation
 
 
 def move_robot():
-    robot = init_simulation_mobile_robot()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotDyor(clientID=clientID)
+    robot.start()
 
     robot.forward()
     robot.wait(100)
@@ -21,7 +25,7 @@ def move_robot():
     robot.right()
     robot.wait(100)
 
-    robot.stop_simulation()
+    simulation.stop()
 
 
 if __name__ == "__main__":

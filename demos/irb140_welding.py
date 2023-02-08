@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/irb140_welding.ttt scene before running this script.
+Please open the scenes/more/irb140_welding.ttt scene before running this script.
+
+TTD: As an exercise, the student should solve the inverse kinematic problem on a line,
+so as to perform a valid welding operation.
 
 @Authors: Arturo Gil
 @Time: April 2022
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs_irb140 import init_simulation_ABBIRB140
+from robots.abbirb140 import RobotABBIRB140
+from robots.simulation import Simulation
 
 
 def filter_joint_limits(robot, q):
@@ -56,7 +60,11 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
 
 
 def welding():
-    robot, conveyor_sensor = init_simulation_ABBIRB140()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotABBIRB140(clientID=clientID)
+    robot.start()
+
     q0 = np.array([np.pi, 0, 0, 0, 0, 0])
     target_positions = [[-0.3, 0.1, 0.75],
                         [-0.3, 0.494, 0.75],
@@ -77,12 +85,10 @@ def welding():
     qi = q1
     for target_position in target_positions:
         qi = inverse_kinematics(robot=robot, target_position=target_position,
-                            target_orientation=Euler(target_orientation), q0=qi)
+                                target_orientation=Euler(target_orientation), q0=qi)
         robot.set_joint_target_positions(qi, precision=True)
 
-    # Stop arm and simulation
-    robot.stop_arm()
-    robot.stop_simulation()
+    simulation.stop()
 
 
 if __name__ == "__main__":

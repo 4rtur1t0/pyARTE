@@ -11,7 +11,10 @@ The demo represents a KUKA LBR IIWA robot trying to maximize the distance to obs
 """
 import numpy as np
 from artelib.tools import null_space
-from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
+from robots.grippers import GripperRG2
+from robots.kukalbr import RobotKUKALBR
+from robots.simulation import Simulation
+from robots.objects import Sphere
 
 
 def move_null_space(robot, q0, dir, nsteps):
@@ -40,7 +43,7 @@ def maximize_distance_to_obstacles(robot, q):
 def follow_line_obstacle(robot, sphere):
     # initial arm position
     q0 = np.array([-np.pi / 8, np.pi/8, np.pi/8, -np.pi / 2, 0.1, 0.1, 0.1])
-    sphere.set_object_position([0.1, -0.4, 0.75])
+    sphere.set_position([0.1, -0.4, 0.75])
 
     # EJERCICIO: MUEVA AL ROBOT EN EL ESPACIO NULO Y
     # HALLE q0 que lo aleje lo más posible de los obstáculos
@@ -50,11 +53,18 @@ def follow_line_obstacle(robot, sphere):
 
 
 def application():
-    robot, sphere = init_simulation_KUKALBR()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotKUKALBR(clientID=clientID)
+    robot.start()
+    gripper = GripperRG2(clientID=clientID)
+    gripper.start()
+    sphere = Sphere(clientID=clientID)
+    sphere.start()
+
     follow_line_obstacle(robot, sphere)
     # Stop arm and simulation
-    robot.stop_arm()
-    robot.stop_simulation()
+    simulation.stop()
     robot.plot_trajectories()
 
 

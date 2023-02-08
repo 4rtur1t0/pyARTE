@@ -9,11 +9,15 @@ The demo represents a KUKA LBR IIWA robot trying to avoid collisions with a sphe
 
 """
 import numpy as np
+
+from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.inverse_kinematics import moore_penrose_damped
 from artelib.euler import Euler
 from artelib.plottools import plot_vars, plot_xy
 from artelib.tools import buildT, compute_kinematic_errors
-from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
+from robots.kukalbr import RobotKUKALBR
+from robots.objects import Sphere
+from robots.simulation import Simulation
 
 
 def diff_w_central(q, qcentral, K):
@@ -76,7 +80,7 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
     fine: whether to reach the target point with precision or not.
     vmax: linear velocity of the planner.
     """
-    Ttarget = buildT(target_position, target_orientation)
+    Ttarget = HomogeneousMatrix(target_position, target_orientation)
     q = q0
     max_iterations = 1500
     qc = [0, 0, 0, 0, 0, 0, 0]
@@ -89,7 +93,7 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
     # total_time = 0.2*total_time
     for i in range(0, max_iterations):
         print('Iteration number: ', i)
-        Ti = robot.direct_kinematics(q)
+        Ti = robot.directkinematics(q)
         pe = Ti[0:3, 3]
         # compute ATTRACTION
         # vwref, error_dist, error_orient = robot.compute_actions(Tcurrent=Ti, Ttarget=Ttarget, vmax=vmax,
@@ -127,10 +131,10 @@ def follow_line_obstacle(robot, sphere):
     q0 = np.array([-np.pi / 8, 0, 0, -np.pi / 2, 0, 0, 0])
 
     # necesita cambiar la posición central
-    sphere.set_object_position([0.55, 0.0, 0.45])
-    #sphere.set_object_position([0.5, 0.0, 0.5])
-    #sphere.set_object_position([0.5, 0.0, 0.4])
-    #sphere.set_object_position([0.35, 0.0, 0.4])
+    sphere.set_position([0.55, 0.0, 0.45])
+    # sphere.set_object_position([0.5, 0.0, 0.5])
+    # sphere.set_object_position([0.5, 0.0, 0.4])
+    # sphere.set_object_position([0.35, 0.0, 0.4])
 
     # plan trajectories
     [q1_path, _] = inversekinematics3(robot=robot, sphere=sphere, target_position=target_positions[0],
@@ -143,20 +147,24 @@ def follow_line_obstacle(robot, sphere):
     robot.set_joint_target_positions(q0, precision=False)
     robot.wait(15)
     # set the target we are willing to reach on Coppelia
-    robot.set_target_position_orientation(target_positions[0], target_orientations[0])
+    # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
     robot.set_joint_target_trajectory(q1_path, precision='last')
-    robot.set_target_position_orientation(target_positions[1], target_orientations[1])
+    # robot.set_target_position_orientation(target_positions[1], target_orientations[1])
     robot.set_joint_target_trajectory(q2_path, precision='last')
     robot.wait(15)
 
 
 def application():
-    robot, sphere = init_simulation_KUKALBR()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotKUKALBR(clientID=clientID)
+    robot.start()
+    sphere = Sphere(clientID=clientID)
+    sphere.start()
+
     follow_line_obstacle(robot, sphere)
 
-    # Stop arm and simulation
-    robot.stop_arm()
-    robot.stop_simulation()
+    simulation.stop()
     robot.plot_trajectories()
 
 

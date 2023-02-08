@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/irb140_barret_hand.ttt scene before running this script.
+Please open the scenes/irb140.ttt scene before running this script.
 
 @Authors: Arturo Gil
 @Time: April 2022
 """
 import numpy as np
 from artelib.euler import Euler
+# from sceneconfig.init_sim import init_sim
+
 from robots.abbirb140 import RobotABBIRB140
-from robots.grippers import GripperBarretHand
+from robots.grippers import GripperRG2, SuctionPad
 from robots.proxsensor import ProxSensor
 from robots.simulation import Simulation
+# from sceneconfig.scene_configs_irb140 import init_simulation_ABBIRB140
 
 
 def filter_joint_limits(robot, q):
@@ -57,50 +60,60 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
 
 
 def pick(robot, gripper):
-    target_positions = [[0.4, 0.267, 0.4],  # approximation
-                        [0.45, 0.267, 0.3]] # pick
-    target_orientations = [[0, np.pi/2, np.pi/2],
-                           [0, np.pi/2, np.pi/2]]
+    target_positions = [[0.55, 0.265, 0.55],  # approximation
+                        [0.55, 0.265, 0.295]]  # pick
+    target_orientations = [[0, np.pi/2, -np.pi/2],
+                           [0, np.pi/2, -np.pi/2]]
+
     q0 = np.array([0, 0, 0, 0, 0, 0])
     q1 = inverse_kinematics(robot=robot, target_position=target_positions[0],
                             target_orientation=Euler(target_orientations[0]), q0=q0)
     q2 = inverse_kinematics(robot=robot, target_position=target_positions[1],
-                            target_orientation=Euler(target_orientations[1]), q0=q0)
+                            target_orientation=Euler(target_orientations[1]), q0=q1)
 
-    gripper.open(precision=True)
+    gripper.suction_off()
     robot.set_joint_target_positions(q1, precision=True)
     robot.set_joint_target_positions(q2, precision=True)
-    gripper.close(precision=True)
+    gripper.suction_on()
     robot.set_joint_target_positions(q1, precision=True)
 
 
 def place(robot, gripper, i):
-    # base_target_position = [-0.2, -0.65, 0.385]  # pallet base position
-    base_target_position = [-0.2, -0.65, 0.425]  # pallet base position
-    base_target_orientation = [0, np.pi, 0]
     q0 = np.array([0, 0, 0, 0, 0, 0])
+    base_target_position = [-0.2, -0.65, 0.32]  # pallet base position
+    base_target_orientation = [np.pi/2, 0, np.pi]
+
     # define que piece length and a small gap
     piece_length = 0.08
     # a gap between pieces
-    piece_gap = 0.01
-
-    n = 2 # n rows n columns
+    piece_gap = 0.005
+    # calculamos las constantes kx, ky y kz para obtener la posicion
+    n = 3 # n rows n columns
     kx = i % n
     ky = np.floor((i / n) % n)
     kz = np.floor(i / (n * n))
+    # 0.5 m above
     target_position = base_target_position + kx*np.array([piece_length+piece_gap, 0, 0]) + \
-                      ky*np.array([0, piece_length+piece_gap, 0]) + \
-                      kz*np.array([0, 0, piece_length]) + np.array([0, 0, piece_gap])
-    q3 = inverse_kinematics(robot=robot, target_position=target_position,
-                            target_orientation=Euler(base_target_orientation), q0=q0)
-    target_position = target_position + np.array([0, 0, -piece_length])
-    q4 = inverse_kinematics(robot=robot, target_position=target_position,
+                     ky*np.array([0, piece_length+piece_gap, 0]) + \
+                     kz*np.array([0, 0, piece_length]) + np.array([0, 0, piece_gap]) + \
+                     np.array([0, 0, 0.3])
+
+    q1 = inverse_kinematics(robot=robot, target_position=target_position,
                             target_orientation=Euler(base_target_orientation), q0=q0)
 
+    target_position = target_position - np.array([0, 0, 0.3])
+
+    q2 = inverse_kinematics(robot=robot, target_position=target_position,
+                            target_orientation=Euler(base_target_orientation), q0=q0)
+    target_position = target_position + np.array([0, 0, -piece_length])
+    q3 = inverse_kinematics(robot=robot, target_position=target_position,
+                            target_orientation=Euler(base_target_orientation), q0=q0)
+
+    robot.set_joint_target_positions(q1, precision=True)
+    robot.set_joint_target_positions(q2, precision=True)
     robot.set_joint_target_positions(q3, precision=True)
-    robot.set_joint_target_positions(q4, precision=True)
-    gripper.open(precision=True)
-    robot.set_joint_target_positions(q3, precision=True)
+    gripper.suction_off()
+    robot.set_joint_target_positions(q2, precision=True)
 
 
 def pick_and_place():
@@ -113,10 +126,13 @@ def pick_and_place():
     # Connect to the proximity sensor
     conveyor_sensor = ProxSensor(clientID=clientID)
     conveyor_sensor.start()
-    # Connect to the gripper
-    gripper = GripperBarretHand(clientID=clientID)
+
+    # or, alternatively use the SuctioPad
+    # if using the SuctionPad, the target position and orientations should be changed in pick and place
+    gripper = SuctionPad(clientID=clientID)
     gripper.start()
 
+    # robot, conveyor_sensor = init_simulation_ABBIRB140()
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
     robot.set_joint_target_positions(q0, precision=True)
     n_pieces = 48
@@ -124,7 +140,7 @@ def pick_and_place():
         while True:
             if conveyor_sensor.is_activated():
                 break
-            robot.wait()
+            simulation.wait()
 
         robot.set_joint_target_positions(q0, precision=True)
         pick(robot, gripper)
