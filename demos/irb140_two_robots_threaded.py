@@ -7,6 +7,8 @@ Two abb robots and a pick and place application with palletizing.
 
 In this version, python Threads are used so that both robots can be used independently.
 
+CAUTION: One of the two proximity sensors shows an erratic beheviour at the beginning of the simulation.
+
 @Authors: Arturo Gil
 @Time: April 2022
 """
