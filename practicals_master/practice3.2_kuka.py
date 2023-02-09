@@ -41,7 +41,7 @@ def move_null_space(robot):
     qd_path = []
     for i in range(0, n_movements_in_null_space):
         print('Movement number: ', i)
-        J, Jv, Jw = robot.get_jacobian(q)
+        J, Jv, Jw = robot.manipulator_jacobian(q)
         qd = null_space(J)
         ######################################################################################################
         # CUIDADO: el movimiento definido por qd puede no ser suave o incluso ser errático

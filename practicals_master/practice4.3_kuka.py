@@ -41,7 +41,7 @@ def increase_distance_to_obstacles(robot, q):
     robot.set_joint_target_trajectory([q], precision='low')
     d1 = robot.get_min_distance_to_objects()
     f1 = potentialo(d1)
-    J, Jv, Jw = robot.get_jacobian(q)
+    J, Jv, Jw = robot.manipulator_jacobian(q)
     qd = null_space(J, 6)
     q = q + f1*qd
     robot.set_joint_target_trajectory([q], precision='low')
@@ -69,7 +69,7 @@ def inversekinematics_obstacles(robot, target_position, target_orientation, q0):
         if error_dist < robot.max_error_dist_inversekinematics and error_orient < robot.max_error_orient_inversekinematics:
             print('Converged!!')
             break
-        J, Jv, Jw = robot.get_jacobian(q)
+        J, Jv, Jw = robot.manipulator_jacobian(q)
         # compute joint speed to achieve the reference
         qda = moore_penrose_damped(J, e)
         [qdb, ds] = increase_distance_to_obstacles(robot, q)

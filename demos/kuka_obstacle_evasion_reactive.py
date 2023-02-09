@@ -106,7 +106,7 @@ def inversekinematics3(robot, sphere, target_position, target_orientation, q0, v
         if error_dist < robot.max_error_dist_inversekinematics and error_orient < robot.max_error_orient_inversekinematics:
             print('Converged!!')
             break
-        J, Jv, Jw = robot.get_jacobian(q)
+        J, Jv, Jw = robot.manipulator_jacobian(q)
         # compute joint speed to achieve the reference
         qda = 0.3*moore_penrose_damped(J, vwref)
         qdb = minimize_w_central(J, q, qc, K)

@@ -17,15 +17,12 @@ from artelib.tools import compute_w_between_orientations, euler2rot, rot2quatern
     null_space, diff_w_central, w_central, null_space_projector, compute_kinematic_errors, rot2euler, quaternion2rot, \
     q2euler, buildT
 import matplotlib.pyplot as plt
-import time
-from PIL import Image, ImageOps
 
 # standard Coppelia simulation time. PLEASE CHANGE THIS ACCORDINGLY
 # DELTA_TIME = 50.0/1000.0
 
 
 class Robot():
-    # def __init__(self, clientID, joints, max_joint_speeds, joint_ranges, epsilonq=0.001):
 
     def __init__(self):
         self.clientID = None
@@ -180,25 +177,6 @@ class Robot():
         error, distance = sim.simxGetFloatSignal(self.clientID, 'min_distance_to_objects', sim.simx_opmode_oneshot_wait)
         return distance
 
-    # def get_laser_data(self):
-    #     """
-    #     This reads the laserdata signal in Coppelia and returns it.
-    #     The laserdata signal must be defined as in the UR5_velodyne.ttt environment.
-    #     """
-    #     error, data = sim.simxGetStringSignal(self.clientID, 'laserdata', sim.simx_opmode_oneshot_wait)
-    #     # TODO: after unpacking the floats, some more-readable data structure should be built.
-    #     data = sim.simxUnpackFloats(data)
-    #     return data
-
-    # def stop_arm(self):
-    #     for armj in self.armjoints:
-    #         errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=armj,
-    #                                                    targetVelocity=0.0, operationMode=sim.simx_opmode_oneshot)
-
-    # def stop_simulation(self):
-    #     sim.simxStopSimulation(self.clientID, sim.simx_opmode_oneshot_wait)
-    #     sim.simxFinish(self.clientID)
-    #
     def wait(self, steps=1):
         for i in range(0, steps):
             sim.simxSynchronousTrigger(clientID=self.clientID)
@@ -222,10 +200,10 @@ class Robot():
                 break
             n_iterations += 1
 
-    def get_jacobian(self, q):
+    def get_symbolic_jacobian(self, q):
         # calling derived class get_jacobian
         # should be implemented at the UR5, UR10 classes etc.
-        return self.get_jacobian(q)
+        return self.get_symbolic_jacobian()
 
     def compute_manipulability(self, q):
         [J, _, _] = self.get_jacobian(q)
@@ -234,24 +212,7 @@ class Robot():
 
     def directkinematics(self, q):
         T = self.serialrobot.directkinematics(q)
-        return T # self.direct_kinematics(q)
-
-    # def compute_target_error(self, targetposition, targetorientation):
-    #     """
-    #     computes a euclidean distance in px, py, pz between target position and the robot's end effector
-    #     computes a orientation error based on the quaternion orientation vectors
-    #     """
-    #     position, orientation = self.get_end_effector_position_orientation()
-    #     error_dist = np.array(targetposition)-np.array(position)
-    #     # transform to rotation matrix and then to quaternion.
-    #     # please, beware that the orientation is not unique using alpha, beta, gamma
-    #     Rorientation = euler2rot(orientation)
-    #     Rtargetorientation = euler2rot(targetorientation)
-    #     Qorientation = rot2quaternion(Rorientation)
-    #     Qtargetorientation = rot2quaternion(Rtargetorientation)
-    #     error_orient = Qorientation[1:4]-Qtargetorientation[1:4]
-    #     return np.linalg.norm(error_dist), np.linalg.norm(error_orient)
-
+        return T
 
     def compute_time(self, Tcurrent, Ttarget, vmax=1.0):
         """
@@ -417,8 +378,6 @@ class Robot():
             q_path.append(q)
         return q_path
 
-
-
     def plot_trajectories(self):
         plt.figure()
         q_path = np.array(self.q_path)
@@ -433,4 +392,75 @@ class Robot():
 
     def get_trajectories(self):
         return self.q_path
+
+    def manipulator_jacobian(self, q):
+        """
+        Compute the manipulator Jacobian for the current joint position vector q.
+        """
+        # T = self.serialrobot.directkinematics(q)
+        # number  of  DOF
+        n = len(q)
+        # base rotation matrix
+        # R0 = np.eye(3)
+        R0 = self.serialrobot.T0[0:3, 0:3]
+        # Z vector on   each     reference     system
+        z0 = np.array([0, 0, 1])
+
+        # compute zi vectors. We first  start   by computing the   zi vectors   of    each    % reference    system
+        # from z0, z1, z2..., z_{n - 1}. Note that the last  rotational (translational)  joint  acts   on z_{n - 1}
+        # Array  to   store    every     z     vector
+        z = []
+
+        # this loop  computes vectors from z0 to z_{n - 1}
+        for i in range(n):
+            zi = np.dot(R0, z0)
+            # store the  vector in a list
+            z.append(zi)
+            # compute  the  DH    transformation   matrix   from system  i - 1     to    system    i
+            A = self.serialrobot.get_dh_transformation(q, i)
+            # obtain  now    the    global transformation    by     postmultiplying     the rotational
+            #     part. In     the     following    iteration   we     include    the    last    DH transformation
+            R0 = np.dot(R0, A[0:3, 0:3])
+        z = np.array(z)
+        z = z.T
+
+        # compute  p{i - 1}n *  vectors   that  represent  the   position   of   the    end effector in the  {i - 1}
+        #  reference    system. Please  note  that  the  following code is not optimal (at all), the  total
+        # transformation  matrix    should  be  computed in the    loop   above. However, we  compute  it   now   using
+        # the directkinematic function for this particular  robot. Again, the    DH  matrices   are   computed    again.
+        T = self.serialrobot.directkinematics(q)
+        pn = np.zeros((3, n))
+        Ti = self.serialrobot.T0
+        v = Ti[0:3, 3]
+        for i in range(n):
+            pn[:, i] = T[0: 3, 3] - v
+            A = self.serialrobot.get_dh_transformation(q, i)
+            Ti = np.dot(Ti, A)
+            # v is the origin  of  the   ith  reference  system in base   coordinates
+            v = Ti[0:3, 3]
+        # nowcompute conventional Jacobian
+        J = np.zeros((6, n))
+        for i in range(n):
+            # rotational
+            if self.serialrobot.get_link_type(i) == 'R':
+                J[:, i] = np.concatenate((np.cross(z[:, i], pn[:, i]), z[:, i]))
+            else: # translational   joint
+                J[:, i] = np.concatenate((z[:, i], np.zeros((3, 1))))
+        return J, J[0:3, :], J[3:6, :]
+
+    # def compute_target_error(self, targetposition, targetorientation):
+    #     """
+    #     computes a euclidean distance in px, py, pz between target position and the robot's end effector
+    #     computes a orientation error based on the quaternion orientation vectors
+    #     """
+    #     position, orientation = self.get_end_effector_position_orientation()
+    #     error_dist = np.array(targetposition)-np.array(position)
+    #     # transform to rotation matrix and then to quaternion.
+    #     # please, beware that the orientation is not unique using alpha, beta, gamma
+    #     Rorientation = euler2rot(orientation)
+    #     Rtargetorientation = euler2rot(targetorientation)
+    #     Qorientation = rot2quaternion(Rorientation)
+    #     Qtargetorientation = rot2quaternion(Rtargetorientation)
+    #     error_orient = Qorientation[1:4]-Qtargetorientation[1:4]
+    #     return np.linalg.norm(error_dist), np.linalg.norm(error_orient)
 

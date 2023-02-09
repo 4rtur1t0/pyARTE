@@ -28,7 +28,7 @@ def null_space_along(robot, m, col, n_steps=20):
     q_path = []
     q = robot.get_joint_positions()
     for i in range(0, n_steps):
-        J, Jv, Jw = robot.get_jacobian(q)
+        J, Jv, Jw = robot.manipulator_jacobian(q)
         Jr = J[0:m, :]
         u, s, vh = np.linalg.svd(Jr, full_matrices=True)
         # caution, obtaining v transposed --> must transpose

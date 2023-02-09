@@ -26,7 +26,7 @@ def move_null_space(robot, q0, dir, nsteps):
     ds = []
     for i in range(0, n_movements_in_null_space):
         print('Movement number: ', i)
-        J, Jv, Jw = robot.get_jacobian(q)
+        J, Jv, Jw = robot.manipulator_jacobian(q)
         qd = null_space(J, 6)
         # EJERCICIO: COMPLETE LA FUNCIÓN
 

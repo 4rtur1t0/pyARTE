@@ -37,6 +37,12 @@ class SerialRobot():
         T = T*self.TCP
         return T
 
+    def get_dh_transformation(self, q, i):
+        return self.transformations[i].dh(q[i])
+
+    def get_link_type(self, i):
+        return self.transformations[i].link_type
+
 
 class SerialLink():
     def __init__(self, th, d, a, alpha, link_type='R'):
@@ -50,6 +56,9 @@ class SerialLink():
         return print('Seriallink with: '), str(self.th) , self.d, self.a, self.alpha
 
     def dh(self, q):
+        """
+        Here, q is the ith variable in the joint position vector used to compute the ith DH transformation matrix.
+        """
         # if rotational
         if self.link_type == 'R':
             theta = q + self.th

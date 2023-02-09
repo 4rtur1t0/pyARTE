@@ -27,7 +27,6 @@ from robots.kukalbr import RobotKUKALBR
 from robots.simulation import Simulation
 from robots.ur5 import RobotUR5
 from robots.abbirb140 import RobotABBIRB140
-# from sceneconfig.scene_configs_irb140 import init_simulation_ABBIRB140
 
 
 actions = {'1': '0+',

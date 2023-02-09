@@ -62,7 +62,7 @@ def inversekinematics_transpose(robot, target_position, target_orientation, q0):
         if error_dist < 0.001 and error_orient < 0.001:
             print('Converged!!')
             break
-        J, Jv, Jw = robot.get_jacobian(q)
+        J, Jv, Jw = robot.manipulator_jacobian(q)
         # adapt dimensions
         J = np.vstack((J[0:2], [J[-1]]))
         e = np.array([e[0], e[1], e[-1]])
@@ -100,7 +100,7 @@ def inversekinematics_moore_penrose(robot, target_position, target_orientation, 
         if error_dist < 0.01 and error_orient < 0.01:
             print('Converged!!')
             break
-        J, Jv, Jw = robot.get_jacobian(q)
+        J, Jv, Jw = robot.manipulator_jacobian(q)
         # adapt dimensions
         J = np.vstack((J[0:2], [J[-1]]))
         vwref = np.array([vwref[0], vwref[1], vwref[-1]])

@@ -71,7 +71,7 @@ class RobotUR5(Robot):
         joints.append(q6)
         self.joints = joints
 
-    def get_jacobian(self, q):
+    def get_symbolic_jacobian(self, q):
         J, Jv, Jw = eval_symbolic_jacobian_UR5(q)
         return J, Jv, Jw
 

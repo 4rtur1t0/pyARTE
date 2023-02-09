@@ -50,7 +50,6 @@ class RobotABBIRB140(Robot):
         self.serialrobot.append(th=0, d=0, a=0, alpha=-np.pi / 2, link_type='R')
         self.serialrobot.append(th=np.pi, d=0.065, a=0, alpha=0, link_type='R')
 
-
     def start(self, base_name='/IRB140', joint_name='joint'):
         armjoints = []
         # Get the handles of the relevant objects

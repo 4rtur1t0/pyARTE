@@ -92,7 +92,7 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
     for i in range(max_iterations):
         # print('Iteration number: ', i)
         Ti = robot.directkinematics(q)
-        J, Jv, Jw = robot.get_jacobian(q)
+        J, Jv, Jw = robot.manipulator_jacobian(q)
         e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
         errs.append(error_dist)
         # print('vwref: ', e)

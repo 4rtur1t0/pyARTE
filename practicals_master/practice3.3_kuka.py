@@ -89,7 +89,7 @@ def inversekinematics_secondary(robot, target_position, target_orientation, q0):
         if error_dist < 0.01 and error_orient < 0.01:
             print('Converged!!')
             break
-        J, Jv, Jw = robot.get_jacobian(q)
+        J, Jv, Jw = robot.manipulator_jacobian(q)
         # compute joint speed to achieve the reference
         qda = moore_penrose_damped(J, e)
         ###################################################################

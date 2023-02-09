@@ -19,9 +19,6 @@ from kinematics.kinematics_kukalbr import eval_symbolic_jacobian_KUKALBR
 import sim
 
 
-# DELTA_TIME = 50.0/1000.0
-
-
 class RobotKUKALBR(Robot):
     def __init__(self, clientID):
         # init base class attributes
@@ -45,8 +42,6 @@ class RobotKUKALBR(Robot):
         # whether joint limits should be applied during inverse kinematics
         self.do_apply_joint_limits = True
         self.secondary_objective = True
-
-
         self.do_apply_joint_limits = None
         # wait these iterations before a WARNING is issued
         self.max_iterations_joint_target = 100
@@ -59,19 +54,6 @@ class RobotKUKALBR(Robot):
         self.serialrobot.append(th=0, d=0.4,   a=0, alpha=-np.pi/2, link_type='R')
         self.serialrobot.append(th=0, d=0,     a=0, alpha=np.pi/2, link_type='R')
         self.serialrobot.append(th=0, d=0.111, a=0, alpha=0)
-
-        # Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera,
-        #                max_joint_speeds=max_joint_speeds, joint_ranges=joint_ranges, epsilonq=self.epsilonq)
-
-    # def open_gripper(self, precision=False):
-    #     self.gripper.open_gripper(precision=precision)
-    #     if precision:
-    #         self.wait(10)
-    #
-    # def close_gripper(self, precision=False):
-    #     self.gripper.close_gripper(precision=precision)
-    #     if precision:
-    #         self.wait(10)
 
     def start(self, base_name='/LBR_iiwa_14_R820', joint_name='LBR_iiwa_14_R820_joint'):
         errorCode, robotbase = sim.simxGetObjectHandle(self.clientID, base_name, sim.simx_opmode_oneshot_wait)
@@ -99,7 +81,7 @@ class RobotKUKALBR(Robot):
         joints.append(q7)
         self.joints = joints
 
-    def get_jacobian(self, q):
+    def get_symbolic_jacobian(self, q):
         J, Jv, Jw = eval_symbolic_jacobian_KUKALBR(q)
         return J, Jv, Jw
 
@@ -126,7 +108,7 @@ class RobotKUKALBR(Robot):
             if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
                 print('Converged!!')
                 break
-            J, Jv, Jw = self.get_jacobian(q)
+            J, Jv, Jw = self.manipulator_jacobian(q)
             qda = delta_q(J, e, method=self.ikmethod)
             if self.secondary_objective:
                 # qdb = minimize_w_central(J, q, qc, K)
