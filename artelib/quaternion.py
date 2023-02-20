@@ -8,8 +8,8 @@ The Quaternion orientation class
 """
 import numpy as np
 from artelib.tools import euler2rot, euler2q, quaternion2rot, q2euler, rot2quaternion
-from artelib import euler
-from artelib import rotationmatrix
+from artelib import euler, rotationmatrix, homogeneousmatrix
+
 
 
 class Quaternion():
@@ -18,6 +18,9 @@ class Quaternion():
 
     def R(self):
         return rotationmatrix.RotationMatrix(quaternion2rot(self.array))
+
+    def homogeneous(self):
+        return homogeneousmatrix.HomogeneousMatrix(np.zeros(3), self.R())
 
     def Euler(self):
         """

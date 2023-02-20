@@ -10,6 +10,10 @@ Classes to manage different objects in Coppelia simulations
 """
 import sim
 import numpy as np
+from artelib import rotationmatrix
+from artelib import homogeneousmatrix
+from artelib import vector
+from artelib import euler
 
 
 class Sphere():
@@ -36,7 +40,6 @@ class Sphere():
 
 
 class ReferenceFrame():
-
     def __init__(self, clientID):
         self.clientID = clientID
         self.handle = None
@@ -47,12 +50,29 @@ class ReferenceFrame():
         self.handle = handle
 
     def set_position(self, position):
-        position = np.array(position)
+        if isinstance(position, np.ndarray):
+            position = np.array(position)
+        elif isinstance(position, list):
+            position = np.array(position)
+        elif isinstance(position, vector.Vector):
+            position = position.array
+        elif isinstance(position, homogeneousmatrix.HomogeneousMatrix):
+            position = position.pos
         errorCode = sim.simxSetObjectPosition(self.clientID, self.handle, -1, position, sim.simx_opmode_oneshot_wait)
         sim.simxSynchronousTrigger(clientID=self.clientID)
 
-    def set_orientation(self, alpha_beta_gamma):
-        errorCode = sim.simxSetObjectOrientation(self.clientID, self.handle, sim.sim_handle_parent, alpha_beta_gamma, sim.simx_opmode_oneshot_wait)
+    def set_orientation(self, orientation):
+        # if orientation is given by a RotationMatrix
+        if isinstance(orientation, rotationmatrix.RotationMatrix):
+            abg = orientation.euler()[0]
+            abg = abg.abg
+            # errorCode = sim.simxSetObjectOrientation(self.clientID, self.handle, sim.sim_handle_parent, euler.abg,
+            #                                          sim.simx_opmode_oneshot_wait)
+        elif isinstance(orientation, list):
+            abg = np.array(orientation)
+        elif isinstance(orientation, euler.Euler):
+            abg = orientation.abg
+        errorCode = sim.simxSetObjectOrientation(self.clientID, self.handle, sim.sim_handle_parent, abg, sim.simx_opmode_oneshot_wait)
         sim.simxSynchronousTrigger(clientID=self.clientID)
 
     def get_position(self):

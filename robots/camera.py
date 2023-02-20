@@ -25,16 +25,8 @@ class Camera():
 
     def get_image(self):
         print('Capturing image of vision sensor ')
-        # Get the image of vision sensor.
-        # to ensure that the image is received, first streaming, then buffer
         errorCode, resolution, image = sim.simxGetVisionSensorImage(self.clientID, self.camera, 0,
-                                                                    sim.simx_opmode_streaming)
-        time.sleep(0.1)
-        errorCode, resolution, image = sim.simxGetVisionSensorImage(self.clientID, self.camera, 0,
-                                                                    sim.simx_opmode_buffer)
-
-        # _, _, _ = sim.simxGetVisionSensorImage(self.clientID, self.camera, 0,
-        #                                                             sim.simx_opmode_streaming)
+                                                                    sim.simx_opmode_oneshot_wait)
         # return image in openCV format.
         image = np.array(image, dtype=np.uint8)
         image.resize([resolution[1], resolution[0], 3])

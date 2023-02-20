@@ -80,10 +80,16 @@ def find_color(robot, camera):
                             target_orientation=Euler(target_orientation), q0=q1)
     robot.set_joint_target_positions(q1, precision=True)
     robot.set_joint_target_positions(q2, precision=True)
-
     # capture an image and returns the closest color
+    import time
+    print('get_image')
+    start_time = time.time()
     color = camera.get_color_name()
+    elapsed_time = time.time() - start_time
+    print(elapsed_time)
     print('Piece is: ', color)
+    robot.set_joint_target_positions(q1, precision=True)
+
     return color
 
 

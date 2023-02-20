@@ -44,15 +44,17 @@ def youbot_move():
     simulation.wait(1)
 
     # now move the arm
-    q0 = np.pi/8*np.array([1, 1, 1, 1, 1])
+    q0 = np.pi/16*np.array([0, 0, 2, 1, 1])
     robot.set_joint_target_positions(q0, precision=True)
     simulation.wait(100)
-    gripper.open(precision=True)
-    simulation.wait(100)
-    gripper.close(precision=True)
-    simulation.wait(100)
+    # gripper.open(precision=True)
+    # simulation.wait(100)
+    # gripper.close(precision=True)
+    # simulation.wait(100)
 
     color = camera.get_color_name()
+    image = camera.get_image()
+
     print('Color is: ', color)
     camera.save_image('image.png')
 
