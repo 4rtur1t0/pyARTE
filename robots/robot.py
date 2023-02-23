@@ -46,8 +46,22 @@ class Robot():
         # wait these iterations before a WARNING is issued
         self.max_iterations_joint_target = 100
 
-    def connect(self, clientID):
-        self.clientID = clientID
+        # base reference system transformation
+        self.T0 = HomogeneousMatrix(np.eye(4))
+        # end tool tcp transformation
+        self.Ttcp = HomogeneousMatrix(np.eye(4))
+
+    def set_T0(self, T0):
+        """
+        Set the reference frame of the base of the robot
+        """
+        self.T0 = T0
+
+    def set_TCP(self, Ttcp):
+        """
+        Set the TCP transformation
+        """
+        self.Ttcp = Ttcp
 
     def set_joint_target_velocities(self, qd):
         """
@@ -206,12 +220,13 @@ class Robot():
         return self.get_symbolic_jacobian()
 
     def compute_manipulability(self, q):
-        [J, _, _] = self.get_jacobian(q)
+        [J, _, _] = self.manipulator_jacobian(q)
         manip = np.sqrt(np.linalg.det(np.dot(J, J.T)))
         return manip
 
     def directkinematics(self, q):
-        T = self.serialrobot.directkinematics(q)
+        A = self.serialrobot.directkinematics(q)
+        T = self.T0*A*self.Ttcp
         return T
 
     def compute_time(self, Tcurrent, Ttarget, vmax=1.0):
@@ -326,7 +341,7 @@ class Robot():
             if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
                 print('Converged!!')
                 break
-            J, Jv, Jw = self.get_jacobian(q)
+            J, Jv, Jw = self.manipulator_jacobian(q)
             qd = delta_q(J, e, method=self.ikmethod)
             q = q + qd
             if self.do_apply_joint_limits:

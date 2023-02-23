@@ -31,12 +31,21 @@ class Vector():
     def homogeneous(self):
         return homogeneousmatrix.HomogeneousMatrix(self.array, np.eye(3))
 
+    def __add__(self, other):
+        return Vector(self.array + other.array)
+
+    def __sub__(self, other):
+        return Vector(self.array - other.array)
+
     def __mul__(self, other):
         """
         scalar product
         """
         scalar = np.dot(self.array, other.array)
         return scalar
+
+    def cross(self, other):
+        return Vector(np.cross(self.array, other.array))
 
     def T(self):
         """
@@ -84,7 +93,7 @@ class Vector():
             plt.quiver(x_pos, y_pos, z_pos, x_vector, y_vector, z_vector)
             ax.set_xlim([min(-x_vector, -1), max(x_vector, 1)])
             ax.set_ylim([min(-y_vector, -1), max(y_vector, 1)])
-            ax.set_zlim([min(-z_vector, 1), max(z_vector, 1)])
+            ax.set_zlim([min(-z_vector, -1), max(z_vector, 1)])
             ax.set_xlabel('X')
             ax.set_ylabel('Y')
             ax.set_zlabel('Z')

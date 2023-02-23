@@ -13,6 +13,7 @@ import numpy as np
 from artelib.rotationmatrix import Rx
 from artelib.vector import Vector
 from artelib.homogeneousmatrix import HomogeneousMatrix
+from artelib.euler import Euler
 
 if __name__ == "__main__":
     # Diferentes formas de crear una matriz homogénea
@@ -30,15 +31,20 @@ if __name__ == "__main__":
     T3 = HomogeneousMatrix(position, rotation_matrix)
     T3.plot('Transformation T3')
 
-    T4 = T2*T3
-    T4 = T4.inv()
+    position = Vector([1, 2, 3])
+    orientation = Euler([np.pi/4, np.pi/4, np.pi/4])
+    T4 = HomogeneousMatrix(position, orientation)
     T4.plot('Transformation T4')
+
+    T5 = T2*T3
+    T5 = T5.inv()
+    T5.plot('Transformation T4')
 
     # Transformar un vector
     u = Vector(np.array([1, 2, 3, 1]))
     u.plot('A 3D vector')
-    u = T4*u.T()
+    u = T5*u.T()
     print(u)
-    u.plot('A vector transformed by T4')
+    u.plot('A vector transformed by T5')
 
 

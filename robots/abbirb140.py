@@ -42,7 +42,7 @@ class RobotABBIRB140(Robot):
         self.epsilonq = 0.0001
 
         # DH parameters of the robot
-        self.serialrobot = SerialRobot(n=6, T0=np.eye(4), TCP=np.eye(4), name='ABBIRB140')
+        self.serialrobot = SerialRobot(n=6, T0=np.eye(4), name='ABBIRB140')
         self.serialrobot.append(th=0, d=0.352, a=0.07, alpha=-np.pi / 2, link_type='R')
         self.serialrobot.append(th=-np.pi/2, d=0, a=0.36, alpha=0, link_type='R')
         self.serialrobot.append(th=0, d=0, a=0, alpha=-np.pi / 2, link_type='R')
@@ -80,6 +80,10 @@ class RobotABBIRB140(Robot):
         """
         Ttarget = buildT(target_position, target_orientation)
         Ttarget = HomogeneousMatrix(Ttarget)
+
+        # Remove Ttcp, so that T_end_effector is specified
+        Ttarget = Ttarget*self.Ttcp.inv()
+
         # get the value from the robot class (last link length)
         L6 = self.serialrobot.transformations[5].d
 
@@ -211,9 +215,9 @@ class RobotABBIRB140(Robot):
         wrist2 = [q4_, q5_, q6_]
         return np.array(wrist1), np.array(wrist2)
 
-    def directkinematics(self, q):
-        T = self.serialrobot.directkinematics(q)
-        return homogeneousmatrix.HomogeneousMatrix(T)
+    # def directkinematics(self, q):
+    #     T = self.serialrobot.directkinematics(q)
+    #     return homogeneousmatrix.HomogeneousMatrix(T)
 
 
 

@@ -8,13 +8,13 @@ Please open the scenes/irb140.ttt scene before running this script.
 """
 import numpy as np
 from artelib.euler import Euler
-# from sceneconfig.init_sim import init_sim
-
+from artelib.homogeneousmatrix import HomogeneousMatrix
+from artelib.vector import Vector
+from artelib.rotationmatrix import RotationMatrix
 from robots.abbirb140 import RobotABBIRB140
 from robots.grippers import GripperRG2, SuctionPad
 from robots.proxsensor import ProxSensor
 from robots.simulation import Simulation
-# from sceneconfig.scene_configs_irb140 import init_simulation_ABBIRB140
 
 
 def filter_joint_limits(robot, q):
@@ -52,8 +52,12 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
     caution: closest tooooo
     """
     q = robot.inversekinematics(target_position, target_orientation)
+    if len(q) == 0:
+        print('ERROR: NO MATHEMATICAL SOLUTIONS TO THE INVERSE KINEMATICS EXIST')
     # filter in joint ranges
     q = filter_joint_limits(robot, q)
+    if len(q) == 0:
+        print('ERROR: NO SOLUTIONS WITHIN RANGE EXIST TO THE INVERSE KINEMATICS')
     # get closest solution to q0
     q = get_closest_to(q, q0)
     return q
@@ -61,10 +65,16 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
 
 def pick(robot, gripper):
     # if using the RG2 gripper
-    target_positions = [[0.6, 0.267, 0.45],  # approximation
-                        [0.6, 0.267, 0.39]] # pick
+    target_positions = [[0.6, 0.267, 0.25],  # approximation
+                        [0.6, 0.267, 0.19]] # pick
     target_orientations = [[0, np.pi, 0],
                            [0, np.pi, 0]]
+
+    # WHEN USING THE SUCTION PAD!!!
+    # target_positions = [[0.6, 0.267, 0.45],  # approximation
+    #                     [0.6, 0.267, 0.23]]  # pick
+    # target_orientations = [[0, np.pi, -np.pi/2],
+    #                        [0, np.pi, -np.pi/2]]
 
     q0 = np.array([0, 0, 0, 0, 0, 0])
     q1 = inverse_kinematics(robot=robot, target_position=target_positions[0],
@@ -80,10 +90,48 @@ def pick(robot, gripper):
 
 
 def place(robot, gripper, i):
-    base_target_position = [-0.2, -0.65, 0.425]  # pallet base position
-    base_target_orientation = [0, np.pi, 0]
     q0 = np.array([0, 0, 0, 0, 0, 0])
-    # define que piece length and a small gap
+    # pallet approximation
+    pallet_target_position = [-0.2, -0.65, 0.5]  # pallet base position
+    pallet_target_orientation = [0, np.pi, 0]
+
+    q0 = inverse_kinematics(robot=robot, target_position=pallet_target_position,
+                            target_orientation=Euler(pallet_target_orientation), q0=q0)
+
+    robot.set_joint_target_positions(q0, precision=True)
+    # when using the RG2 gripper
+    base_target_position = [-0.2, -0.65, 0.22]  # pallet base position
+    base_target_orientation = [0, np.pi, 0]
+
+    # when using the Suction pad
+    base_target_position = [-0.2, -0.7, 0.25]  # pallet base position
+    base_target_orientation = [0, np.pi, 0]
+
+    # i, j = np.indices((3, 4))
+    # print(i)
+    # print(j)
+    # i = i.flatten()
+    # j = j.flatten()
+    # v = []
+    # for k in range(3*4):
+    #     v.append([i[k], j[k]])
+
+    n_i = 2
+    n_j = 3
+    n_k = 4
+
+    i, j, k = np.indices((n_i, n_j, n_k))
+    print(i)
+    print(j)
+    i = i.flatten()
+    j = j.flatten()
+    k = k.flatten()
+    v = []
+    for n in range(n_i*n_j*n_k):
+        # v.append([i[n], j[n], k[n]])
+        v.append([j[n], k[n], i[n]])
+
+    # define que piece length and a small ga
     piece_length = 0.08
     # a gap between pieces
     piece_gap = 0.01
@@ -120,21 +168,23 @@ def pick_and_place():
     # Connect to the gripper
     gripper = GripperRG2(clientID=clientID)
     gripper.start()
+    # set the TCP of the RG2 gripper
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
 
     # para usar la ventosa
     # gripper = SuctionPad(clientID=clientID)
     # gripper.start()
+    # # set the TCP of the suction pad
+    # robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.11]), Euler([-np.pi/2, 0, 0])))
 
-    # robot, conveyor_sensor = init_simulation_ABBIRB140()
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
-    robot.set_joint_target_positions(q0, precision=True)
+
     n_pieces = 48
     for i in range(n_pieces):
         while True:
             if conveyor_sensor.is_activated():
                 break
             simulation.wait()
-
         robot.set_joint_target_positions(q0, precision=True)
         pick(robot, gripper)
         robot.set_joint_target_positions(q0, precision=True)

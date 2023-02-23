@@ -19,13 +19,21 @@ if __name__ == "__main__":
 
     # Traspuesto
     w = u.T()
-
+    # suma y resta
+    w = u + v
+    w = u - v
     # producto escalar
-    a = u*v.T()
-    print('producto escalar: ', a)
+    w = u*v.T()
+    print('producto escalar: ', w)
+
+    # producto vectorial
+    w = u.cross(v)
+    print('producto vectorial: ', w)
 
     u.plot()
     v.plot()
+    w.plot()
+
 
 
 

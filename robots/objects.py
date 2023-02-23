@@ -66,13 +66,36 @@ class ReferenceFrame():
         if isinstance(orientation, rotationmatrix.RotationMatrix):
             abg = orientation.euler()[0]
             abg = abg.abg
-            # errorCode = sim.simxSetObjectOrientation(self.clientID, self.handle, sim.sim_handle_parent, euler.abg,
-            #                                          sim.simx_opmode_oneshot_wait)
         elif isinstance(orientation, list):
             abg = np.array(orientation)
         elif isinstance(orientation, euler.Euler):
             abg = orientation.abg
         errorCode = sim.simxSetObjectOrientation(self.clientID, self.handle, sim.sim_handle_parent, abg, sim.simx_opmode_oneshot_wait)
+        sim.simxSynchronousTrigger(clientID=self.clientID)
+
+    def set_position_and_orientation(self, *args):
+        if len(args) == 1:
+            if isinstance(args[0], homogeneousmatrix.HomogeneousMatrix):
+                position = args[0].pos()
+                orientation = args[0].R().euler()[0].abg
+        elif len(args) == 2:
+            position = args[0]
+            orientation = args[1]
+            if isinstance(position, list):
+                position = np.array(position)
+            elif isinstance(position, vector.Vector):
+                position = np.array(position.array)
+            if isinstance(orientation, euler.Euler):
+                orientation = orientation.abg
+            elif isinstance(orientation, rotationmatrix.RotationMatrix):
+                orientation = orientation.euler()[0].abg
+            else:
+                raise Exception
+
+        errorCode = sim.simxSetObjectPosition(self.clientID, self.handle, -1, position,
+                                                      sim.simx_opmode_oneshot_wait)
+        errorCode = sim.simxSetObjectOrientation(self.clientID, self.handle, sim.sim_handle_parent, orientation,
+                                                     sim.simx_opmode_oneshot_wait)
         sim.simxSynchronousTrigger(clientID=self.clientID)
 
     def get_position(self):

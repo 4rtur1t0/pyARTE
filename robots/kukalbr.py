@@ -46,7 +46,7 @@ class RobotKUKALBR(Robot):
         # wait these iterations before a WARNING is issued
         self.max_iterations_joint_target = 100
 
-        self.serialrobot = SerialRobot(n=7, T0=np.eye(4), TCP=np.eye(4), name='KUKALBR')
+        self.serialrobot = SerialRobot(n=7, T0=np.eye(4), name='KUKALBR')
         self.serialrobot.append(th=0, d=0.36,  a=0, alpha=-np.pi/2, link_type='R')
         self.serialrobot.append(th=0, d=0,     a=0, alpha= np.pi/2, link_type='R')
         self.serialrobot.append(th=0, d=0.420, a=0, alpha= np.pi/2, link_type='R')
@@ -85,9 +85,9 @@ class RobotKUKALBR(Robot):
         J, Jv, Jw = eval_symbolic_jacobian_KUKALBR(q)
         return J, Jv, Jw
 
-    def directkinematics(self, q):
-        T = self.serialrobot.directkinematics(q)
-        return T
+    # def directkinematics(self, q):
+    #     T = self.serialrobot.directkinematics(q)
+    #     return T
 
     def inversekinematics(self, target_position, target_orientation, q0):
         """

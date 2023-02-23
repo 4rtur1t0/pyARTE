@@ -39,7 +39,7 @@ class RobotUR5(Robot):
         self.do_apply_joint_limits = True
         self.epsilonq = 0.005
 
-        self.serialrobot = SerialRobot(n=6, T0=np.eye(4), TCP=np.eye(4), name='UR5')
+        self.serialrobot = SerialRobot(n=6, T0=np.eye(4), name='UR5')
         self.serialrobot.append(th=-np.pi/2, d=0.089159, a=0, alpha=np.pi/2)
         self.serialrobot.append(th=+np.pi/2, d=0,        a=0.425, alpha=0)
         self.serialrobot.append(th=0,        d=0,        a=0.39225, alpha=0)
@@ -75,6 +75,6 @@ class RobotUR5(Robot):
         J, Jv, Jw = eval_symbolic_jacobian_UR5(q)
         return J, Jv, Jw
 
-    def directkinematics(self, q):
-        T = self.serialrobot.directkinematics(q)
-        return homogeneousmatrix.HomogeneousMatrix(T)
+    # def directkinematics(self, q):
+    #     T = self.serialrobot.directkinematics(q)
+    #     return homogeneousmatrix.HomogeneousMatrix(T)

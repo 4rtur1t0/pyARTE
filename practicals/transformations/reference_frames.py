@@ -30,6 +30,9 @@ if __name__ == "__main__":
     simulation.wait(50)
     frame.set_orientation(orientation=orientation)
     simulation.wait(50)
+    # same as before
+    frame.set_position_and_orientation(position, orientation)
+    simulation.wait(50)
 
     # using Vector and Euler
     position = Vector([.6, 0, .6])
@@ -38,7 +41,9 @@ if __name__ == "__main__":
     simulation.wait(50)
     frame.set_orientation(orientation=orientation)
     simulation.wait(50)
-
+    # same as before
+    frame.set_position_and_orientation(position, orientation)
+    simulation.wait(50)
     # using a HomogeneousMatrix
     T = HomogeneousMatrix([[0, 0, -1, 0.6],
                            [0, 1, 0, -0.3],
@@ -48,6 +53,8 @@ if __name__ == "__main__":
     simulation.wait(50)
     frame.set_orientation(orientation=T.R())
     simulation.wait(50)
+
+    frame.set_position_and_orientation(T)
 
     simulation.stop()
 

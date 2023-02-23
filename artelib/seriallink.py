@@ -15,11 +15,11 @@ from artelib import euler, quaternion, homogeneousmatrix
 
 
 class SerialRobot():
-    def __init__(self, n, T0, TCP, name):
+    def __init__(self, n, T0, name):
         self.name = name
         self.n = n
         self.T0 = HomogeneousMatrix(T0)
-        self.TCP = HomogeneousMatrix(TCP)
+        # self.TCP = HomogeneousMatrix(TCP)
         self.transformations = []
 
     def __str__(self):
@@ -34,7 +34,7 @@ class SerialRobot():
         for i in range(len(self.transformations)):
             A = self.transformations[i].dh(q[i])
             T = T*A
-        T = T*self.TCP
+        # T = T*self.TCP
         return T
 
     def get_dh_transformation(self, q, i):
