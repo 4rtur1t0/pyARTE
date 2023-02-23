@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/ur5.ttt scene before using this class.
-
-RobotUR5 is a derived class of the Robot base class that
+Please open the scenes/mobile_robot.ttt scene before using this class.
 
 @Authors: Arturo Gil
 @Time: April 2021
@@ -13,45 +11,45 @@ import sim
 
 
 class RobotDyor(Robot):
-    def __init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera):
+    def __init__(self, clientID):
+        Robot.__init__(self)
+        self.clientID = clientID
 
-        Robot.__init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target,
-                       max_joint_speeds=None, joint_ranges=None, camera=camera)
-
-    def open_gripper(self, precision=False):
-        self.gripper.open_gripper(precision=precision)
-        if precision:
-            self.wait(10)
-
-    def close_gripper(self, precision=False):
-        self.gripper.close_gripper(precision=precision)
-        if precision:
-            self.wait(10)
+    def start(self):
+        # Get the handles of the relevant objects
+        errorCode, robotbase = sim.simxGetObjectHandle(self.clientID, 'ROBOT_DYOR', sim.simx_opmode_oneshot_wait)
+        errorCode, wheel1 = sim.simxGetObjectHandle(self.clientID, 'motor_L', sim.simx_opmode_oneshot_wait)
+        errorCode, wheel2 = sim.simxGetObjectHandle(self.clientID, 'motor_R', sim.simx_opmode_oneshot_wait)
+        wheeljoints = []
+        wheeljoints.append(wheel1)
+        wheeljoints.append(wheel2)
+        self.joints = wheeljoints
 
     def forward(self):
         wheel_speeds = [5, 5]
         for i in range(2):
-            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[i],
+            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[i],
                                                        targetVelocity=wheel_speeds[i],
                                                        operationMode=sim.simx_opmode_oneshot)
+
     def backwards(self):
         wheel_speeds = [-5, -5]
         for i in range(2):
-            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[i],
+            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[i],
                                                        targetVelocity=wheel_speeds[i],
                                                        operationMode=sim.simx_opmode_oneshot)
 
     def left(self):
         wheel_speeds = [-5, 5]
         for i in range(2):
-            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[i],
+            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[i],
                                                        targetVelocity=wheel_speeds[i],
                                                        operationMode=sim.simx_opmode_oneshot)
 
     def right(self):
         wheel_speeds = [5, -5]
         for i in range(2):
-            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[i],
+            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[i],
                                                        targetVelocity=wheel_speeds[i],
                                                        operationMode=sim.simx_opmode_oneshot)
 

@@ -38,7 +38,7 @@ def move_null_space(robot):
     qd_path = []
     for i in range(0, n_movements_in_null_space):
         print('Movement number: ', i)
-        J, Jv, Jw = robot.get_jacobian(q)
+        J, Jv, Jw = robot.manipulator_jacobian(q)
         qd = null_space(J)
         # integrate movement. Please check that Delta_time matches coppelia simulation time step
         if qd[2] < 0:

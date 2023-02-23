@@ -7,17 +7,18 @@ The Rotation Matrix class
 """
 import numpy as np
 from artelib.tools import rot2quaternion, rot2euler
-from artelib import euler, quaternion, homogeneousmatrix
+from artelib import euler, quaternion, homogeneousmatrix, vector
 import matplotlib.pyplot as plt
 
 
 class RotationMatrix():
-
     def __init__(self, *args):
         orientation = args[0]
         # constructor from a np array
         if isinstance(orientation, np.ndarray):
             self.array = orientation
+        elif isinstance(orientation, list):
+            self.array = np.array(orientation)
             # self.array = self.array[0:3, 0:3]
         elif isinstance(orientation, int):
             self.array = np.eye(orientation)
@@ -40,6 +41,15 @@ class RotationMatrix():
     def inv(self):
         return RotationMatrix(self.array.T)
 
+    def T(self):
+        """
+        transpose, as in numpy
+        """
+        return RotationMatrix(self.array.T)
+
+    def det(self):
+        return np.linalg.det(self.array)
+
     def R(self):
         return self
 
@@ -54,8 +64,15 @@ class RotationMatrix():
         return homogeneousmatrix.HomogeneousMatrix(np.zeros(3), self)
 
     def __mul__(self, other):
-        R = np.dot(self.array, other.array)
-        return RotationMatrix(R)
+        """
+        Multiply matrices or multiply a matrix and a vector.
+        """
+        if isinstance(other, RotationMatrix):
+            R = np.dot(self.array, other.array)
+            return RotationMatrix(R)
+        elif isinstance(other, vector.Vector):
+            u = np.dot(self.array, other.array)
+            return vector.Vector(u)
 
     def plot(self, title='Rotation Matrix', block=True):
         """

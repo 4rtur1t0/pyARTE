@@ -13,13 +13,12 @@ vectors that form the basis of the null space.
 @Time: April 2021
 """
 import numpy as np
-from sceneconfig.scene_configs_ur5 import init_simulation_UR5
-
-# standard delta time for Coppelia, please modify if necessary
-# DELTA_TIME = 50.0/1000.0
-
-
 # move on the null space (with vh, column 6)
+from robots.grippers import GripperRG2
+from robots.simulation import Simulation
+from robots.ur5 import RobotUR5
+
+
 def null_space_along(robot, m, col, n_steps=20):
     """
     Define the task (m)
@@ -29,7 +28,7 @@ def null_space_along(robot, m, col, n_steps=20):
     q_path = []
     q = robot.get_joint_positions()
     for i in range(0, n_steps):
-        J, Jv, Jw = robot.get_jacobian(q)
+        J, Jv, Jw = robot.manipulator_jacobian(q)
         Jr = J[0:m, :]
         u, s, vh = np.linalg.svd(Jr, full_matrices=True)
         # caution, obtaining v transposed --> must transpose
@@ -41,7 +40,13 @@ def null_space_along(robot, m, col, n_steps=20):
 
 
 if __name__ == "__main__":
-    robot = init_simulation_UR5()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotUR5(clientID=clientID)
+    robot.start()
+    gripper = GripperRG2(clientID=clientID)
+    gripper.start()
+
     q0 = np.pi / 8 * np.array([-6, 1, 3, 1, 2, 1])
     # set initial position of robot
     robot.set_joint_target_positions(q0, precision=True)
@@ -49,6 +54,6 @@ if __name__ == "__main__":
     null_space_along(robot, m=3, col=4)
     null_space_along(robot, m=3, col=5)
 
-    # robot.plot_trajectories()
-    robot.stop_arm()
+    robot.plot_trajectories()
+    simulation.stop()
 

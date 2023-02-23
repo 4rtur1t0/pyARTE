@@ -2,47 +2,37 @@
 Dummy movement of a Reference system using Euler angles XYZ in local coordinates
 Use with scenes/euler.ttt
 """
-from sceneconfig.scene_configs import init_sim
-import sim
-# import numpy as np
+from robots.objects import ReferenceFrame
+from robots.simulation import Simulation
 
 
 def move_reference_frame():
-    clientID = init_sim()
-    position = [0, 0, 0.2]
+    simulation = Simulation()
+    clientID = simulation.start()
+    # Connect to the robot
+    ref_frame = ReferenceFrame(clientID=clientID)
+    ref_frame.start()
+    position = [0.5, 0, 0.5]
 
-    # Get the handles of the relevant objects
-    errorCode, ref_frame = sim.simxGetObjectHandle(clientID, 'ReferenceFrame', sim.simx_opmode_oneshot_wait)
+    ref_frame.set_position(position)
 
-    errorCode = sim.simxSetObjectPosition(clientID=clientID, objectHandle=ref_frame,
-                                          relativeToObjectHandle=-1, position=position,
-                                          operationMode=sim.simx_opmode_oneshot_wait)
     alpha = 0
     beta = 0
     gamma = 0
 
     for i in range(100):
         alpha += .005
-        errorCode = sim.simxSetObjectOrientation(clientID=clientID, objectHandle=ref_frame,
-                                                 eulerAngles=[alpha, beta, gamma], relativeToObjectHandle=-1,
-                                                 operationMode=sim.simx_opmode_oneshot_wait)
-        sim.simxSynchronousTrigger(clientID=clientID)
+        ref_frame.set_orientation([alpha, beta, gamma])
 
     for i in range(100):
         beta += .005
-        errorCode = sim.simxSetObjectOrientation(clientID=clientID, objectHandle=ref_frame,
-                                                 eulerAngles=[alpha, beta, gamma], relativeToObjectHandle=-1,
-                                                 operationMode=sim.simx_opmode_oneshot_wait)
-        sim.simxSynchronousTrigger(clientID=clientID)
+        ref_frame.set_orientation([alpha, beta, gamma])
+
     for i in range(100):
         gamma += .005
-        errorCode = sim.simxSetObjectOrientation(clientID=clientID, objectHandle=ref_frame,
-                                                 eulerAngles=[alpha, beta, gamma], relativeToObjectHandle=-1,
-                                                 operationMode=sim.simx_opmode_oneshot_wait)
-        sim.simxSynchronousTrigger(clientID=clientID)
+        ref_frame.set_orientation([alpha, beta, gamma])
+    simulation.stop()
 
-        sim.simxStopSimulation(clientID, sim.simx_opmode_oneshot_wait)
-        sim.simxFinish(clientID)
 
 if __name__ == "__main__":
     move_reference_frame()

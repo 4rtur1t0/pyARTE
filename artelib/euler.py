@@ -20,3 +20,6 @@ class Euler():
 
     def Q(self):
         return quaternion.Quaternion(euler2q(self.abg))
+
+    def __str__(self):
+        return str(self.abg)

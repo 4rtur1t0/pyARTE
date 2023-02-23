@@ -14,6 +14,8 @@ Please open the scenes/kuka_14_R820.ttt scene before running this script.
 import numpy as np
 from artelib.plottools import plot_vars
 from artelib.tools import buildT
+from robots.kukalbr import RobotKUKALBR
+from robots.simulation import Simulation
 from sceneconfig.scene_configs_kukalbr import init_simulation_KUKALBR
 
 DELTA_TIME = 50/1000
@@ -39,7 +41,7 @@ def move_null_space(robot):
     qd_path = []
     for i in range(0, n_movements_in_null_space):
         print('Movement number: ', i)
-        J, Jv, Jw = robot.get_jacobian(q)
+        J, Jv, Jw = robot.manipulator_jacobian(q)
         qd = null_space(J)
         ######################################################################################################
         # CUIDADO: el movimiento definido por qd puede no ser suave o incluso ser errático
@@ -57,9 +59,13 @@ def move_null_space(robot):
 
 
 if __name__ == "__main__":
-    robot, _ = init_simulation_KUKALBR()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotKUKALBR(clientID=clientID)
+    robot.start()
+
     move_null_space(robot)
     # Stop arm and simulation
-    robot.stop_arm()
-    robot.stop_simulation()
+
+    simulation.stop()
     robot.plot_trajectories()

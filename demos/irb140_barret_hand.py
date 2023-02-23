@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/irb140.ttt scene before running this script.
+Please open the scenes/irb140_barret_hand.ttt scene before running this script.
 
 @Authors: Arturo Gil
 @Time: April 2022
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs_irb140 import init_simulation_ABBIRB140_BarretHand
+from robots.abbirb140 import RobotABBIRB140
+from robots.grippers import GripperBarretHand
+from robots.proxsensor import ProxSensor
+from robots.simulation import Simulation
 
 
 def filter_joint_limits(robot, q):
@@ -53,10 +56,7 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
     return q
 
 
-
-def pick(robot):
-    # target_positions = [[0.6, 0.25, 0.4],  # approximation
-    #                     [0.6, 0.25, 0.385]] # pick
+def pick(robot, gripper):
     target_positions = [[0.4, 0.267, 0.4],  # approximation
                         [0.45, 0.267, 0.3]] # pick
     target_orientations = [[0, np.pi/2, np.pi/2],
@@ -67,14 +67,14 @@ def pick(robot):
     q2 = inverse_kinematics(robot=robot, target_position=target_positions[1],
                             target_orientation=Euler(target_orientations[1]), q0=q0)
 
-    robot.open_gripper(precision=True)
+    gripper.open(precision=True)
     robot.set_joint_target_positions(q1, precision=True)
     robot.set_joint_target_positions(q2, precision=True)
-    robot.close_gripper(precision=True)
+    gripper.close(precision=True)
     robot.set_joint_target_positions(q1, precision=True)
 
 
-def place(robot, i):
+def place(robot, gripper, i):
     # base_target_position = [-0.2, -0.65, 0.385]  # pallet base position
     base_target_position = [-0.2, -0.65, 0.425]  # pallet base position
     base_target_orientation = [0, np.pi, 0]
@@ -99,12 +99,24 @@ def place(robot, i):
 
     robot.set_joint_target_positions(q3, precision=True)
     robot.set_joint_target_positions(q4, precision=True)
-    robot.open_gripper(precision=True)
+    gripper.open(precision=True)
     robot.set_joint_target_positions(q3, precision=True)
 
 
 def pick_and_place():
-    robot, conveyor_sensor = init_simulation_ABBIRB140_BarretHand()
+    # Start simulation
+    simulation = Simulation()
+    clientID = simulation.start()
+    # Connect to the robot
+    robot = RobotABBIRB140(clientID=clientID)
+    robot.start()
+    # Connect to the proximity sensor
+    conveyor_sensor = ProxSensor(clientID=clientID)
+    conveyor_sensor.start()
+    # Connect to the gripper
+    gripper = GripperBarretHand(clientID=clientID)
+    gripper.start()
+
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
     robot.set_joint_target_positions(q0, precision=True)
     n_pieces = 48
@@ -115,13 +127,12 @@ def pick_and_place():
             robot.wait()
 
         robot.set_joint_target_positions(q0, precision=True)
-        pick(robot)
+        pick(robot, gripper)
         robot.set_joint_target_positions(q0, precision=True)
-        place(robot, i)
+        place(robot, gripper, i)
 
     # Stop arm and simulation
-    robot.stop_arm()
-    robot.stop_simulation()
+    simulation.stop()
 
 
 if __name__ == "__main__":

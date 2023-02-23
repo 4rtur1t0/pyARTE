@@ -17,38 +17,51 @@ from artelib.tools import compute_w_between_orientations, euler2rot, rot2quatern
     null_space, diff_w_central, w_central, null_space_projector, compute_kinematic_errors, rot2euler, quaternion2rot, \
     q2euler, buildT
 import matplotlib.pyplot as plt
-import time
-from PIL import Image, ImageOps
 
 # standard Coppelia simulation time. PLEASE CHANGE THIS ACCORDINGLY
-DELTA_TIME = 50.0/1000.0
+# DELTA_TIME = 50.0/1000.0
 
 
 class Robot():
-    def __init__(self, clientID, wheeljoints, armjoints, base, gripper, end_effector, target, camera,
-                 max_joint_speeds, joint_ranges, epsilonq=0.001):
-        self.clientID = clientID
-        self.wheeljoints = wheeljoints
-        self.armjoints = armjoints
-        self.base = base
-        self.gripper = gripper
-        self.end_effector = end_effector
-        self.camera = camera
-        self.target = target
-        self.max_joint_speeds = max_joint_speeds
-        self.joint_ranges = joint_ranges
+
+    def __init__(self):
+        self.clientID = None
+        self.serialrobot = None
+        # a list of joint handles to move the robot
+        self.joints = None
+        self.max_joint_speeds = None
+        self.joint_ranges = None
         # parameters of the inverse kinematics algorith
-        self.max_iterations_inverse_kinematics = 15000
+        self.max_iterations_inverse_kinematics = None
         # max iterations to achieve a joint target in coppelia
-        self.max_iterations_joint_target = 50
+        self.max_iterations_joint_target = None
         # admit this error in |q|2
-        self.epsilonq = epsilonq
+        self.epsilonq = None
         self.q_path = []
 
         # max errors during computation of inverse kinematics
-        self.max_error_dist_inversekinematics = 0.01
-        self.max_error_orient_inversekinematics = 0.01
-        self.do_apply_joint_limits = False
+        self.max_error_dist_inversekinematics = None
+        self.max_error_orient_inversekinematics = None
+        self.do_apply_joint_limits = None
+        # wait these iterations before a WARNING is issued
+        self.max_iterations_joint_target = 100
+
+        # base reference system transformation
+        self.T0 = HomogeneousMatrix(np.eye(4))
+        # end tool tcp transformation
+        self.Ttcp = HomogeneousMatrix(np.eye(4))
+
+    def set_T0(self, T0):
+        """
+        Set the reference frame of the base of the robot
+        """
+        self.T0 = T0
+
+    def set_TCP(self, Ttcp):
+        """
+        Set the TCP transformation
+        """
+        self.Ttcp = Ttcp
 
     def set_joint_target_velocities(self, qd):
         """
@@ -58,7 +71,7 @@ class Robot():
         :return:
         """
         for i in range(len(qd)):
-            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.armjoints[i],
+            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[i],
                                                        targetVelocity=qd[i],
                                                        operationMode=sim.simx_opmode_oneshot)
 
@@ -71,7 +84,7 @@ class Robot():
         :return: None
         """
         for i in range(len(q_target)):
-            errorCode = sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.armjoints[i],
+            errorCode = sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.joints[i],
                                                        targetPosition=q_target[i],
                                                        operationMode=sim.simx_opmode_oneshot)
         if precision:
@@ -90,7 +103,7 @@ class Robot():
         """
         for i in range(len(q_target)):
             errorCode = sim.simxSetJointPosition(clientID=self.clientID,
-                                                 jointHandle=self.armjoints[i],
+                                                 jointHandle=self.joints[i],
                                                  position=q_target[i],
                                                  operationMode=sim.simx_opmode_oneshot_wait)
         # self.q_path.append(q_target)
@@ -137,39 +150,39 @@ class Robot():
                 self.set_joint_target_positions(q_path[i], precision=False)
 
     def get_joint_positions(self):
-        q_actual = np.zeros(len(self.armjoints))
-        n = len(self.armjoints)
+        q_actual = np.zeros(len(self.joints))
+        n = len(self.joints)
         for i in range(0, n):
             while True:
-                error, value = sim.simxGetJointPosition(clientID=self.clientID, jointHandle=self.armjoints[i],
+                error, value = sim.simxGetJointPosition(clientID=self.clientID, jointHandle=self.joints[i],
                                                         operationMode=sim.simx_opmode_oneshot_wait)
                 if error == 0:
                     q_actual[i] = value
                     break
         return q_actual
 
-    def get_end_effector_position_orientation(self):
-        errorCode, position = sim.simxGetObjectPosition(self.clientID, self.end_effector, -1,
-                                                        sim.simx_opmode_oneshot_wait)
-        errorCode, orientation = sim.simxGetObjectOrientation(self.clientID, self.end_effector, -1,
-                                                        sim.simx_opmode_oneshot_wait)
-        return position, orientation
-
-    def get_target_position_orientation(self):
-        errorCode, position = sim.simxGetObjectPosition(self.clientID, self.target, -1,
-                                                        sim.simx_opmode_oneshot_wait)
-        errorCode, orientation = sim.simxGetObjectOrientation(self.clientID, self.target, -1,
-                                                        sim.simx_opmode_oneshot_wait)
-        return position, orientation
-
-    def set_target_position_orientation(self, position, orientation):
-        errorCode = sim.simxSetObjectPosition(clientID=self.clientID, objectHandle=self.target,
-                                              relativeToObjectHandle=-1, position=position,
-                                              operationMode=sim.simx_opmode_oneshot_wait)
-        errorCode = sim.simxSetObjectOrientation(clientID=self.clientID, objectHandle=self.target,
-                                                 eulerAngles=orientation, relativeToObjectHandle=-1,
-                                                 operationMode=sim.simx_opmode_oneshot_wait)
-        return position, orientation
+    # def get_end_effector_position_orientation(self):
+    #     errorCode, position = sim.simxGetObjectPosition(self.clientID, self.end_effector, -1,
+    #                                                     sim.simx_opmode_oneshot_wait)
+    #     errorCode, orientation = sim.simxGetObjectOrientation(self.clientID, self.end_effector, -1,
+    #                                                     sim.simx_opmode_oneshot_wait)
+    #     return position, orientation
+    #
+    # def get_target_position_orientation(self):
+    #     errorCode, position = sim.simxGetObjectPosition(self.clientID, self.target, -1,
+    #                                                     sim.simx_opmode_oneshot_wait)
+    #     errorCode, orientation = sim.simxGetObjectOrientation(self.clientID, self.target, -1,
+    #                                                     sim.simx_opmode_oneshot_wait)
+    #     return position, orientation
+    #
+    # def set_target_position_orientation(self, position, orientation):
+    #     errorCode = sim.simxSetObjectPosition(clientID=self.clientID, objectHandle=self.target,
+    #                                           relativeToObjectHandle=-1, position=position,
+    #                                           operationMode=sim.simx_opmode_oneshot_wait)
+    #     errorCode = sim.simxSetObjectOrientation(clientID=self.clientID, objectHandle=self.target,
+    #                                              eulerAngles=orientation, relativeToObjectHandle=-1,
+    #                                              operationMode=sim.simx_opmode_oneshot_wait)
+    #     return position, orientation
 
     def get_min_distance_to_objects(self):
         """
@@ -177,25 +190,6 @@ class Robot():
         """
         error, distance = sim.simxGetFloatSignal(self.clientID, 'min_distance_to_objects', sim.simx_opmode_oneshot_wait)
         return distance
-
-    def get_laser_data(self):
-        """
-        This reads the laserdata signal in Coppelia and returns it.
-        The laserdata signal must be defined as in the UR5_velodyne.ttt environment.
-        """
-        error, data = sim.simxGetStringSignal(self.clientID, 'laserdata', sim.simx_opmode_oneshot_wait)
-        # TODO: after unpacking the floats, some more-readable data structure should be built.
-        data = sim.simxUnpackFloats(data)
-        return data
-
-    def stop_arm(self):
-        for armj in self.armjoints:
-            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=armj,
-                                                       targetVelocity=0.0, operationMode=sim.simx_opmode_oneshot)
-
-    def stop_simulation(self):
-        sim.simxStopSimulation(self.clientID, sim.simx_opmode_oneshot_wait)
-        sim.simxFinish(self.clientID)
 
     def wait(self, steps=1):
         for i in range(0, steps):
@@ -220,36 +214,20 @@ class Robot():
                 break
             n_iterations += 1
 
-    def get_jacobian(self, q):
+    def get_symbolic_jacobian(self, q):
         # calling derived class get_jacobian
         # should be implemented at the UR5, UR10 classes etc.
-        return self.get_jacobian(q)
+        return self.get_symbolic_jacobian()
 
     def compute_manipulability(self, q):
-        [J, _, _] = self.get_jacobian(q)
+        [J, _, _] = self.manipulator_jacobian(q)
         manip = np.sqrt(np.linalg.det(np.dot(J, J.T)))
         return manip
 
     def directkinematics(self, q):
-        T = self.serialrobot.directkinematics(q)
-        return T # self.direct_kinematics(q)
-
-    def compute_target_error(self, targetposition, targetorientation):
-        """
-        computes a euclidean distance in px, py, pz between target position and the robot's end effector
-        computes a orientation error based on the quaternion orientation vectors
-        """
-        position, orientation = self.get_end_effector_position_orientation()
-        error_dist = np.array(targetposition)-np.array(position)
-        # transform to rotation matrix and then to quaternion.
-        # please, beware that the orientation is not unique using alpha, beta, gamma
-        Rorientation = euler2rot(orientation)
-        Rtargetorientation = euler2rot(targetorientation)
-        Qorientation = rot2quaternion(Rorientation)
-        Qtargetorientation = rot2quaternion(Rtargetorientation)
-        error_orient = Qorientation[1:4]-Qtargetorientation[1:4]
-        return np.linalg.norm(error_dist), np.linalg.norm(error_orient)
-
+        A = self.serialrobot.directkinematics(q)
+        T = self.T0*A*self.Ttcp
+        return T
 
     def compute_time(self, Tcurrent, Ttarget, vmax=1.0):
         """
@@ -363,7 +341,7 @@ class Robot():
             if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
                 print('Converged!!')
                 break
-            J, Jv, Jw = self.get_jacobian(q)
+            J, Jv, Jw = self.manipulator_jacobian(q)
             qd = delta_q(J, e, method=self.ikmethod)
             q = q + qd
             if self.do_apply_joint_limits:
@@ -415,51 +393,6 @@ class Robot():
             q_path.append(q)
         return q_path
 
-    def get_image(self):
-        print('Capturing image of vision sensor ')
-        # define here the fov of the camera
-        # fov = 60 # degrees
-        # change fov to rad
-        # fov = fov * np.pi / 180.0
-        # sim.simxSetObjectFloatParameter(self.clientID, self.camera,
-        #                                 sim.sim_visionfloatparam_perspective_angle,
-        #                                 fov,
-        #                                 sim.simx_opmode_oneshot_wait)
-        # Get the image of vision sensor.
-        # to ensure that the image is received, first streaming, then buffer
-        errorCode, resolution, image = sim.simxGetVisionSensorImage(self.clientID, self.camera, 0,
-                                                                    sim.simx_opmode_streaming)
-        time.sleep(0.1)
-        errorCode, resolution, image = sim.simxGetVisionSensorImage(self.clientID, self.camera, 0,
-                                                                    sim.simx_opmode_buffer)
-
-        # _, _, _ = sim.simxGetVisionSensorImage(self.clientID, self.camera, 0,
-        #                                                             sim.simx_opmode_streaming)
-        print('Image captured!')
-        return image, resolution
-
-    def get_mean_color(self, image, resolution):
-        image = np.array(image, dtype=np.uint8)
-        image.resize([resolution[1], resolution[0], 3])
-        mean_color = np.mean(image, axis=(0, 1))
-        try:
-            return mean_color/np.linalg.norm(mean_color)
-        except:
-            return mean_color
-
-
-    def save_image(self, image, resolution, filename):
-        sensorImage = np.array(image, dtype=np.uint8)
-        sensorImage.resize([resolution[1], resolution[0], 3])
-        img = Image.fromarray(sensorImage)
-        img = ImageOps.flip(img)
-        print('Saving to file: ', filename)
-        img.save(filename)
-        # caution--> tell python to release memory now or a kill will be issued by the system!
-        del img
-        del sensorImage
-        print('Image saved!')
-
     def plot_trajectories(self):
         plt.figure()
         q_path = np.array(self.q_path)
@@ -474,4 +407,75 @@ class Robot():
 
     def get_trajectories(self):
         return self.q_path
+
+    def manipulator_jacobian(self, q):
+        """
+        Compute the manipulator Jacobian for the current joint position vector q.
+        """
+        # T = self.serialrobot.directkinematics(q)
+        # number  of  DOF
+        n = len(q)
+        # base rotation matrix
+        # R0 = np.eye(3)
+        R0 = self.serialrobot.T0[0:3, 0:3]
+        # Z vector on   each     reference     system
+        z0 = np.array([0, 0, 1])
+
+        # compute zi vectors. We first  start   by computing the   zi vectors   of    each    % reference    system
+        # from z0, z1, z2..., z_{n - 1}. Note that the last  rotational (translational)  joint  acts   on z_{n - 1}
+        # Array  to   store    every     z     vector
+        z = []
+
+        # this loop  computes vectors from z0 to z_{n - 1}
+        for i in range(n):
+            zi = np.dot(R0, z0)
+            # store the  vector in a list
+            z.append(zi)
+            # compute  the  DH    transformation   matrix   from system  i - 1     to    system    i
+            A = self.serialrobot.get_dh_transformation(q, i)
+            # obtain  now    the    global transformation    by     postmultiplying     the rotational
+            #     part. In     the     following    iteration   we     include    the    last    DH transformation
+            R0 = np.dot(R0, A[0:3, 0:3])
+        z = np.array(z)
+        z = z.T
+
+        # compute  p{i - 1}n *  vectors   that  represent  the   position   of   the    end effector in the  {i - 1}
+        #  reference    system. Please  note  that  the  following code is not optimal (at all), the  total
+        # transformation  matrix    should  be  computed in the    loop   above. However, we  compute  it   now   using
+        # the directkinematic function for this particular  robot. Again, the    DH  matrices   are   computed    again.
+        T = self.serialrobot.directkinematics(q)
+        pn = np.zeros((3, n))
+        Ti = self.serialrobot.T0
+        v = Ti[0:3, 3]
+        for i in range(n):
+            pn[:, i] = T[0: 3, 3] - v
+            A = self.serialrobot.get_dh_transformation(q, i)
+            Ti = np.dot(Ti, A)
+            # v is the origin  of  the   ith  reference  system in base   coordinates
+            v = Ti[0:3, 3]
+        # nowcompute conventional Jacobian
+        J = np.zeros((6, n))
+        for i in range(n):
+            # rotational
+            if self.serialrobot.get_link_type(i) == 'R':
+                J[:, i] = np.concatenate((np.cross(z[:, i], pn[:, i]), z[:, i]))
+            else: # translational   joint
+                J[:, i] = np.concatenate((z[:, i], np.zeros((3, 1))))
+        return J, J[0:3, :], J[3:6, :]
+
+    # def compute_target_error(self, targetposition, targetorientation):
+    #     """
+    #     computes a euclidean distance in px, py, pz between target position and the robot's end effector
+    #     computes a orientation error based on the quaternion orientation vectors
+    #     """
+    #     position, orientation = self.get_end_effector_position_orientation()
+    #     error_dist = np.array(targetposition)-np.array(position)
+    #     # transform to rotation matrix and then to quaternion.
+    #     # please, beware that the orientation is not unique using alpha, beta, gamma
+    #     Rorientation = euler2rot(orientation)
+    #     Rtargetorientation = euler2rot(targetorientation)
+    #     Qorientation = rot2quaternion(Rorientation)
+    #     Qtargetorientation = rot2quaternion(Rtargetorientation)
+    #     error_orient = Qorientation[1:4]-Qtargetorientation[1:4]
+    #     return np.linalg.norm(error_dist), np.linalg.norm(error_orient)
 

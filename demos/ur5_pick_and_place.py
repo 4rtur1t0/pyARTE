@@ -8,14 +8,22 @@ Please open the scenes/ur5.ttt scene before running this script.
 """
 import numpy as np
 from artelib.euler import Euler
-from sceneconfig.scene_configs_ur5 import init_simulation_UR5
+from robots.grippers import GripperRG2
+from robots.simulation import Simulation
+from robots.ur5 import RobotUR5
 
 
 def pick_and_place_rep():
     """
     A repeated pick and place application.
     """
-    robot = init_simulation_UR5()
+    simulation = Simulation()
+    clientID = simulation.start()
+    robot = RobotUR5(clientID=clientID)
+    robot.start()
+    gripper = GripperRG2(clientID=clientID)
+    gripper.start()
+
     target_positions = [[0.6, -0.2, 0.25],
                         [0.6, 0.1, 0.25],
                         [0.6, -0.1, 0.35],
@@ -24,9 +32,8 @@ def pick_and_place_rep():
                            [-np.pi/2, 0, -np.pi/2],
                            [-np.pi/2, 0, -np.pi/2],
                            [-np.pi, 0, 0]]
-
     # set the target we are willing to reach
-    robot.set_target_position_orientation(target_positions[0], target_orientations[0])
+    # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
     vmax = 0.5
 
     for i in range(0, 6):
@@ -51,18 +58,17 @@ def pick_and_place_rep():
         q6_path = robot.inversekinematics_line(target_position=target_pos,
                                                target_orientation=Euler(target_orient), q0=q5_path[-1])
         # execute trajectories
-        robot.open_gripper()
+        gripper.open()
         robot.set_joint_target_trajectory(q1_path, precision='last')
         robot.set_joint_target_trajectory(q2_path, precision='last')
-        robot.close_gripper(precision=True)
+        gripper.close(precision=True)
         robot.set_joint_target_trajectory(q3_path, precision='last')
         robot.set_joint_target_trajectory(q4_path, precision='last')
         robot.set_joint_target_trajectory(q5_path, precision='last')
-        robot.open_gripper(precision=True)
+        gripper.open(precision=True)
         robot.set_joint_target_trajectory(q6_path, precision='last')
 
-    robot.stop_arm()
-    robot.stop_simulation()
+    simulation.stop()
     robot.plot_trajectories()
 
 
