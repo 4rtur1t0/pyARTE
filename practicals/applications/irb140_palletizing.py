@@ -13,27 +13,43 @@ from artelib.vector import Vector
 from artelib.rotationmatrix import RotationMatrix
 from robots.abbirb140 import RobotABBIRB140
 from robots.grippers import GripperRG2, SuctionPad
+from robots.objects import ReferenceFrame
 from robots.proxsensor import ProxSensor
 from robots.simulation import Simulation
 
 
-def filter_joint_limits(robot, q):
-    n_valid_solutions = q.shape[1]
-    q_in_range = []
-    for i in range(n_valid_solutions):
-        qi = q[:, i]
-        total, partial = robot.check_joints(qi)
-        if total:
-            q_in_range.append(qi)
-    q_in_range = np.array(q_in_range).T
-    return q_in_range
+def compute_3D_coordinates(index, n_x, n_y, n_z, piece_length, piece_gap):
+    """
+    Compute 3D coordinates for cubic pieces in a 3D array.
+    """
+    dxy = piece_length + piece_gap
+    dz = piece_length
+    # get the indices of a n_i xn_j x n_k array
+    i, j, k = np.indices((n_z, n_x, n_y))
+    i = i.flatten()
+    j = j.flatten()
+    k = k.flatten()
+    pxyz = []
+    for n in range(n_z * n_x * n_y):
+        # pxyz.append([j[n], k[n], i[n]])
+        pxyz.append([j[n]*dxy, k[n]*dxy, i[n]*dz])
+    pxyz = np.array(pxyz)
+
+    if index < n_z * n_x * n_y:
+        return pxyz[index, :]
+    else:
+        print('CAUTION: N PIECES IS LARGER THAN NX*NY*NZ')
+        return pxyz[-1, :]
 
 
 def get_closest_to(qa, qb):
     """
     From a column wise list of solutions in qa, find the closest to qb.
     """
-    n_solutions = qa.shape[1]
+    if len(qa) > 0:
+        n_solutions = qa.shape[1]
+    else:
+        return []
     distances = []
     for i in range(n_solutions):
         d = np.linalg.norm(qa[:, i]-qb)
@@ -44,18 +60,24 @@ def get_closest_to(qa, qb):
     return qa[:, idx]
 
 
-def inverse_kinematics(robot, target_position, target_orientation, q0):
+def inverse_kinematics(robot, target_position, target_orientation, q0, show_target=True):
     """
     Find q that allows the robot to achieve the specified target position and orientaiton
     CAUTION: target_orientation must be specified as a quaternion in the robot.inversekinematics function
 
-    caution: closest tooooo
+    caution: returns the closest solution to the specified q0
     """
+    if show_target:
+        frame = ReferenceFrame(clientID=robot.clientID)
+        frame.start()
+        T = HomogeneousMatrix(target_position, target_orientation)
+        frame.set_position_and_orientation(T)
+
     q = robot.inversekinematics(target_position, target_orientation)
     if len(q) == 0:
         print('ERROR: NO MATHEMATICAL SOLUTIONS TO THE INVERSE KINEMATICS EXIST')
-    # filter in joint ranges
-    q = filter_joint_limits(robot, q)
+    # filter q according to joint ranges
+    q = robot.filter_joint_limits(q)
     if len(q) == 0:
         print('ERROR: NO SOLUTIONS WITHIN RANGE EXIST TO THE INVERSE KINEMATICS')
     # get closest solution to q0
@@ -64,24 +86,15 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
 
 
 def pick(robot, gripper):
-    # if using the RG2 gripper
-    target_positions = [[0.6, 0.267, 0.25],  # approximation
-                        [0.6, 0.267, 0.19]] # pick
-    target_orientations = [[0, np.pi, 0],
-                           [0, np.pi, 0]]
-
-    # WHEN USING THE SUCTION PAD!!!
-    # target_positions = [[0.6, 0.267, 0.45],  # approximation
-    #                     [0.6, 0.267, 0.23]]  # pick
-    # target_orientations = [[0, np.pi, -np.pi/2],
-    #                        [0, np.pi, -np.pi/2]]
-
     q0 = np.array([0, 0, 0, 0, 0, 0])
+    target_positions = [[0.6, 0.267, 0.23],  # approximation
+                        [0.6, 0.267, 0.19]] # pick
+    target_orientations = [Euler([0, np.pi, 0]),
+                           Euler([0, np.pi, 0])]
     q1 = inverse_kinematics(robot=robot, target_position=target_positions[0],
-                            target_orientation=Euler(target_orientations[0]), q0=q0)
+                            target_orientation=target_orientations[0], q0=q0)
     q2 = inverse_kinematics(robot=robot, target_position=target_positions[1],
-                            target_orientation=Euler(target_orientations[1]), q0=q1)
-
+                            target_orientation=target_orientations[1], q0=q1)
     gripper.open(precision=True)
     robot.set_joint_target_positions(q1, precision=True)
     robot.set_joint_target_positions(q2, precision=True)
@@ -90,69 +103,38 @@ def pick(robot, gripper):
 
 
 def place(robot, gripper, i):
-    q0 = np.array([0, 0, 0, 0, 0, 0])
-    # pallet approximation
-    pallet_target_position = [-0.2, -0.65, 0.5]  # pallet base position
-    pallet_target_orientation = [0, np.pi, 0]
-
-    q0 = inverse_kinematics(robot=robot, target_position=pallet_target_position,
-                            target_orientation=Euler(pallet_target_orientation), q0=q0)
-
-    robot.set_joint_target_positions(q0, precision=True)
-    # when using the RG2 gripper
-    base_target_position = [-0.2, -0.65, 0.22]  # pallet base position
-    base_target_orientation = [0, np.pi, 0]
-
-    # when using the Suction pad
-    base_target_position = [-0.2, -0.7, 0.25]  # pallet base position
-    base_target_orientation = [0, np.pi, 0]
-
-    # i, j = np.indices((3, 4))
-    # print(i)
-    # print(j)
-    # i = i.flatten()
-    # j = j.flatten()
-    # v = []
-    # for k in range(3*4):
-    #     v.append([i[k], j[k]])
-
-    n_i = 2
-    n_j = 3
-    n_k = 4
-
-    i, j, k = np.indices((n_i, n_j, n_k))
-    print(i)
-    print(j)
-    i = i.flatten()
-    j = j.flatten()
-    k = k.flatten()
-    v = []
-    for n in range(n_i*n_j*n_k):
-        # v.append([i[n], j[n], k[n]])
-        v.append([j[n], k[n], i[n]])
-
-    # define que piece length and a small ga
+    # define que piece length and a small gap
     piece_length = 0.08
-    # a gap between pieces
-    piece_gap = 0.01
+    piece_gap = 0.02
+    q0 = np.array([0, 0, 0, 0, 0, 0])
 
-    n = 3 # n rows n columns
-    kx = i % n
-    ky = np.floor((i / n) % n)
-    kz = np.floor(i / (n * n))
-    target_position = base_target_position + kx*np.array([piece_length+piece_gap, 0, 0]) + \
-                      ky*np.array([0, piece_length+piece_gap, 0]) + \
-                      kz*np.array([0, 0, piece_length]) + np.array([0, 0, piece_gap])
-    q1 = inverse_kinematics(robot=robot, target_position=target_position,
-                            target_orientation=Euler(base_target_orientation), q0=q0)
-    target_position = target_position + np.array([0, 0, -piece_length])
-    q2 = inverse_kinematics(robot=robot, target_position=target_position,
-                            target_orientation=Euler(base_target_orientation), q0=q0)
+    # POSICION BASE DEL PALLET A LA DERECHA DEL ROBOT
+    base_target_position = [-0.15, -0.65, 0.1]
+    base_target_orientation = Euler([0, 0, 0])
+    # POSICION BASE DEL PALLET A LA IZQUIERDA DEL ROBOT
+    # base_target_position = [-0.07, 0.36, 0.1]  # pallet 2 base position
+    # base_target_orientation = Euler([0, 0, np.pi/6])
+    T0m = HomogeneousMatrix(base_target_position, base_target_orientation)
+    # POSICION DE LA PIEZA i EN EL SISTEMA MÓVIL m
+    p = compute_3D_coordinates(index=i, n_x=3, n_y=4, n_z=2, piece_length=piece_length, piece_gap=piece_gap)
+    # POSICION INICIAL SOBRE EL PALLET
+    p0 = p + np.array([0, 0, 2.5 * piece_length])
+    # POSICIÓN EXACTA DE LA PIEZA (considerando la mitad de su lado)
+    p1 = p + np.array([0, 0, 0.5 * piece_length])
+    # Calculamos la transformación relativa en el sistema de referencia del pallet
+    Tmp = HomogeneousMatrix(p0, Euler([0, np.pi, 0]))
+    T = T0m * Tmp
+    q0 = inverse_kinematics(robot=robot, target_position=T.pos(), target_orientation=T.R(), q0=q0)
+    Tmp = HomogeneousMatrix(p1, Euler([0, np.pi, 0]))
+    T = T0m*Tmp
+    q1 = inverse_kinematics(robot=robot, target_position=T.pos(), target_orientation=T.R(), q0=q0)
 
+    # EJECUTAMOS LOS MOVIMIENTOS
+    robot.set_joint_target_positions(q0, precision=True)
     robot.set_joint_target_positions(q1, precision=True)
-    robot.set_joint_target_positions(q2, precision=True)
     gripper.open(precision=True)
     robot.set_joint_target_positions(q1, precision=True)
+    robot.set_joint_target_positions(q0, precision=True)
 
 
 def pick_and_place():
@@ -165,6 +147,8 @@ def pick_and_place():
     # Connect to the proximity sensor
     conveyor_sensor = ProxSensor(clientID=clientID)
     conveyor_sensor.start()
+
+
     # Connect to the gripper
     gripper = GripperRG2(clientID=clientID)
     gripper.start()
@@ -178,8 +162,7 @@ def pick_and_place():
     # robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.11]), Euler([-np.pi/2, 0, 0])))
 
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
-
-    n_pieces = 48
+    n_pieces = 24
     for i in range(n_pieces):
         while True:
             if conveyor_sensor.is_activated():
@@ -189,7 +172,6 @@ def pick_and_place():
         pick(robot, gripper)
         robot.set_joint_target_positions(q0, precision=True)
         place(robot, gripper, i)
-
     # Stop arm and simulation
     simulation.stop()
 

@@ -126,28 +126,29 @@ class Robot():
                     With this option, the movement of the robot may be non-smooth.
                     if wait=False: the movement is typically smoother, but the trajectory is not followed exaclty.
         """
+        n_cols = q_path.shape[1]
         # precision must be attained on all movements
         if precision == 'all' or precision is True:
-            samples = range(0, len(q_path), sampling)
+            samples = range(0, n_cols, sampling)
             for i in samples:
-                self.set_joint_target_positions(q_path[i], precision=True)
+                self.set_joint_target_positions(q_path[:, i], precision=True)
         # precision is low on any
         elif precision == 'low':
             self.epsilonq = 1000.0 * self.epsilonq
-            for i in range(0, len(q_path), sampling):
-                self.set_joint_target_positions(q_path[i], precision=True)
+            for i in range(0, n_cols, sampling):
+                self.set_joint_target_positions(q_path[:, i], precision=True)
             self.epsilonq = self.epsilonq / 1000.0
         # precision must be attained only on the last i in the path
         elif precision == 'last':
-            samples = range(0, len(q_path), sampling)
+            samples = range(0, n_cols, sampling)
             for i in samples[0:-1]:
-                self.set_joint_target_positions(q_path[i], precision=False)
+                self.set_joint_target_positions(q_path[:, i], precision=False)
             self.set_joint_target_positions(q_path[-1], precision=True)
         # precision must not be attained on any i in the path
         elif precision == 'none' or precision is False:
-            samples = range(0, len(q_path), sampling)
+            samples = range(0, n_cols, sampling)
             for i in samples:
-                self.set_joint_target_positions(q_path[i], precision=False)
+                self.set_joint_target_positions(q_path[:, i], precision=False)
 
     def get_joint_positions(self):
         q_actual = np.zeros(len(self.joints))
@@ -263,6 +264,23 @@ class Robot():
                 valid = False
                 valid_indexes.append(False)
         return valid, valid_indexes
+
+    def filter_joint_limits(self, q):
+        """
+        Returns the solutions in q (by columns) that are within the joint ranges.
+        """
+        if len(q) > 0:
+            n_valid_solutions = q.shape[1]
+        else:
+            n_valid_solutions = 0
+        q_in_range = []
+        for i in range(n_valid_solutions):
+            qi = q[:, i]
+            total, partial = self.check_joints(qi)
+            if total:
+                q_in_range.append(qi)
+        q_in_range = np.array(q_in_range).T
+        return q_in_range
 
     def apply_joint_limits(self, q):
         """

@@ -15,16 +15,23 @@ from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.rotationmatrix import RotationMatrix
 from artelib.vector import Vector
 from robots.abbirb140 import RobotABBIRB140
+from robots.objects import ReferenceFrame
 from robots.simulation import Simulation
 
 
-def inverse_kinematics(robot, target_position, target_orientation):
+def inverse_kinematics(robot, target_position, target_orientation, show_target=True):
     """
     Find q that allows the robot to achieve the specified target position and orientaiton
     CAUTION: target_orientation must be specified as a quaternion.
 
     caution: closest tooooo
     """
+    if show_target:
+        frame = ReferenceFrame(clientID=robot.clientID)
+        frame.start()
+        T = HomogeneousMatrix(target_position, target_orientation)
+        frame.set_position_and_orientation(T)
+
     q = robot.inversekinematics(target_position, target_orientation)
     return q
 
