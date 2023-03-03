@@ -8,7 +8,9 @@ Simple path planning functions.
 
 """
 import numpy as np
-from artelib.tools import euler2rot, rot2quaternion, slerp, rot2euler, quaternion2rot
+
+from artelib.homogeneousmatrix import HomogeneousMatrix
+from artelib.tools import euler2rot, rot2quaternion, slerp, rot2euler, quaternion2rot, slerp
 
 
 def potential(r):
@@ -30,6 +32,20 @@ def n_movements(p_current, p_target, vmax=1.0, delta_time=0.05):
         - simulation delta_time in Coppelia.
     """
     total_time = np.linalg.norm(np.array(p_target) - np.array(p_current)) / vmax
+    n = total_time / delta_time
+    n = np.ceil(n)
+    return int(n)
+
+
+def n_movements_slerp(Q_current, Q_target, wmax=3.0, delta_time=0.05):
+    """
+    Compute the number of points in orientation based on cosinus distance between quaternions
+        - constant speed wmax.
+        - simulation delta_time in Coppelia.
+    """
+    cth = Q_current.dot(Q_target)
+    th = np.arccos(cth)
+    total_time = th / wmax
     n = total_time / delta_time
     n = np.ceil(n)
     return int(n)
@@ -75,6 +91,33 @@ def generate_target_orientations_Q(Q1, Q2, n):
         Q = slerp(Q1, Q2, t)
         target_orientations.append(Q)
     return target_orientations
+
+
+def path_planning_line(current_position, current_orientation, target_position, target_orientation,
+                       linear_speed=1, angular_speed=0.5):
+    """
+    Plan a path along a line with linear interpolation between positions and orientations.
+    """
+    Ti = HomogeneousMatrix(current_position, current_orientation)
+    Ttarget = HomogeneousMatrix(target_position, target_orientation)
+    p_current = Ti.pos()
+    Qcurrent = Ti.Q()
+    p_target = Ttarget.pos()
+    Qtarget = target_orientation.Q()
+
+    # Two options:
+    # a) if p_current==p_target --> compute number of movements based on slerp distance
+    # b) if p_current != p_target--> compunte number of movements based on euclidean distance
+    n1 = n_movements(p_current, p_target, linear_speed)
+    n2 = n_movements_slerp(Qcurrent, Qtarget, angular_speed)
+
+    n = max(n1, n2)
+    # generate n target positions
+    target_positions = generate_target_positions(p_current, p_target, n)
+    # generating quaternions on the line. Use SLERP to interpolate between quaternions
+    target_orientations = generate_target_orientations_Q(Qcurrent, Qtarget, n)
+
+    return target_positions, target_orientations
 
 
 def move_target_positions_obstacles(target_positions, sphere_position):

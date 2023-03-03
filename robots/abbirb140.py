@@ -16,7 +16,8 @@ from artelib.tools import buildT, normalize_angle
 from robots.robot import Robot
 import sim
 from artelib.path_planning import generate_target_positions, generate_target_orientations_Q, \
-    move_target_positions_obstacles, n_movements
+    move_target_positions_obstacles, n_movements, n_movements_slerp, path_planning_line
+
 
 class RobotABBIRB140(Robot):
 
@@ -40,7 +41,7 @@ class RobotABBIRB140(Robot):
         # self.ikmethod = 'moore-penrose'
         # whether to apply joint limits in inversekinematics
         self.do_apply_joint_limits = True
-        self.epsilonq = 0.0001
+        self.epsilonq = 0.00001
 
         # DH parameters of the robot
         self.serialrobot = SerialRobot(n=6, T0=np.eye(4), name='ABBIRB140')
@@ -218,7 +219,7 @@ class RobotABBIRB140(Robot):
         return np.array(wrist1), np.array(wrist2)
 
 
-    def inversekinematics_line(self, target_position, target_orientation, vmax=1.0, q0=None):
+    def inversekinematics_line(self,  target_position, target_orientation, vmax=1.0, wmax=0.5, q0=None):
         """
         The end effector should follow a line in task space to reach target position and target orientation.
         A number of points is interpolated along the line, according to the speed vmax and simulation time
@@ -226,17 +227,9 @@ class RobotABBIRB140(Robot):
         The same number or points are also interpolated in orientation.
         Caution. target_orientationQ is specified as a quaternion
         """
-        Ttarget = HomogeneousMatrix(target_position, target_orientation)
         Ti = self.directkinematics(q0)
-        Qcurrent = Ti.Q()
-        Qtarget = target_orientation.Q()
-        p_current = Ti.pos()
-        p_target = Ttarget.pos()
-        n = n_movements(p_current, p_target, vmax)
-        # generate n target positions
-        target_positions = generate_target_positions(p_current, p_target, n)
-        # generating quaternions on the line. Use SLERP to interpolate between quaternions
-        target_orientations = generate_target_orientations_Q(Qcurrent, Qtarget, len(target_positions))
+        target_positions, target_orientations = path_planning_line(Ti.pos(), Ti.R(), target_position, target_orientation,
+                                                                   linear_speed=vmax, angular_speed=wmax)
 
         q_path = []
         q = q0

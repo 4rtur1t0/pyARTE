@@ -75,7 +75,7 @@ class Robot():
                                                        targetVelocity=qd[i],
                                                        operationMode=sim.simx_opmode_oneshot)
 
-    def set_joint_target_positions(self, q_target, precision=True):
+    def command_joint_target_positions(self, q_target, precision=True):
         """
         CAUTION: this function may only work if the "position control loop" is enabled at every arm joint.
         :param precision: whether to wait for Coppelia until que joint values are attained with precision
@@ -93,22 +93,22 @@ class Robot():
             self.wait()
         self.q_path.append(q_target)
 
-    def set_joint_positions(self, q_target):
-        """
-        CAUTION: this function may only work if the "position control loop" is enabled at every arm joint.
-        :param precision: whether to wait for Coppelia until que joint values are attained with precision
-                    precision=True: --> the method self.wait_till_joint_position_is_met is called. This method
-                    checks, at each simulation time, whether the specified joint values q_target have been achieved.
-        :return: None
-        """
-        for i in range(len(q_target)):
-            errorCode = sim.simxSetJointPosition(clientID=self.clientID,
-                                                 jointHandle=self.joints[i],
-                                                 position=q_target[i],
-                                                 operationMode=sim.simx_opmode_oneshot_wait)
-        # self.q_path.append(q_target)
+    # def set_joint_positions(self, q_target):
+    #     """
+    #     CAUTION: this function may only work if the "position control loop" is enabled at every arm joint.
+    #     :param precision: whether to wait for Coppelia until que joint values are attained with precision
+    #                 precision=True: --> the method self.wait_till_joint_position_is_met is called. This method
+    #                 checks, at each simulation time, whether the specified joint values q_target have been achieved.
+    #     :return: None
+    #     """
+    #     for i in range(len(q_target)):
+    #         errorCode = sim.simxSetJointPosition(clientID=self.clientID,
+    #                                              jointHandle=self.joints[i],
+    #                                              position=q_target[i],
+    #                                              operationMode=sim.simx_opmode_oneshot_wait)
+    #     # self.q_path.append(q_target)
 
-    def set_joint_target_trajectory(self, q_path, sampling=1, precision='last'):
+    def set_joint_target_positions(self, q_path, sampling=1, precision='last'):
         """
         A repeated call to set_joint_target_positions.
         param q: a list of qs (joint positions).
@@ -126,29 +126,31 @@ class Robot():
                     With this option, the movement of the robot may be non-smooth.
                     if wait=False: the movement is typically smoother, but the trajectory is not followed exaclty.
         """
+        # both commanding a single q or a path
+        if len(q_path.shape) == 1:
+            self.command_joint_target_positions(q_path, precision=True)
+            return
         n_cols = q_path.shape[1]
         # precision must be attained on all movements
         if precision == 'all' or precision is True:
             samples = range(0, n_cols, sampling)
             for i in samples:
-                self.set_joint_target_positions(q_path[:, i], precision=True)
+                self.command_joint_target_positions(q_path[:, i], precision=True)
         # precision is low on any
         elif precision == 'low':
             self.epsilonq = 1000.0 * self.epsilonq
             for i in range(0, n_cols, sampling):
-                self.set_joint_target_positions(q_path[:, i], precision=True)
+                self.command_joint_target_positions(q_path[:, i], precision=True)
             self.epsilonq = self.epsilonq / 1000.0
         # precision must be attained only on the last i in the path
         elif precision == 'last':
-            samples = range(0, n_cols, sampling)
-            for i in samples[0:-1]:
-                self.set_joint_target_positions(q_path[:, i], precision=False)
-            self.set_joint_target_positions(q_path[-1], precision=True)
+            for i in range(0, n_cols, sampling):
+                self.command_joint_target_positions(q_path[:, i], precision=False)
+            self.command_joint_target_positions(q_path[:, -1], precision=True)
         # precision must not be attained on any i in the path
         elif precision == 'none' or precision is False:
-            samples = range(0, n_cols, sampling)
-            for i in samples:
-                self.set_joint_target_positions(q_path[:, i], precision=False)
+            for i in range(0, n_cols, sampling):
+                self.command_joint_target_positions(q_path[:, i], precision=False)
 
     def get_joint_positions(self):
         q_actual = np.zeros(len(self.joints))

@@ -223,6 +223,9 @@ def rot2euler(R):
     The XYZ convention in mobile axes is assumed.
     """
     th = np.abs(np.abs(R[0, 2])-1.0)
+    R[0, 2] = min(R[0, 2], 1)
+    R[0, 2] = max(R[0, 2], -1)
+
     # caso no degenerado
     if th > 0.0001:
         beta1 = np.arcsin(R[0, 2])
@@ -264,19 +267,27 @@ def q2euler(Q):
     return abg
 
 
+
 def slerp(Q1, Q2, t):
     """
-    Interpolates between quaternions Q1 and Q2, given a fraction 1
+    Interpolates between quaternions Q1 and Q2, given a fraction t in [0, 1].
+    Caution: sign in the distance cth must be taken into account.
     """
     # caution using built-in class Quaternion  dot product
     cth = Q1.dot(Q2)
+    if cth < 0:
+        cth = -cth
+        Q2 = Q2*(-1)
+
     th = np.arccos(cth)
-    if np.abs(th) > 0:
-        Q = Q1*np.sin((1-t)*th)/np.sin(th) + Q2*np.sin(t*th)/np.sin(th)
-        return Q
-    # if th == 0, dividing by zero, just return Q1
-    else:
+    if np.abs(th) == 0:
         return Q1
+    sth = np.sin(th)
+    a = np.sin((1-t)*th)/sth
+    b = np.sin(t*th)/sth
+    Q = Q1*a + Q2*b
+    return Q
+
 
 
 def null_space(J, n):
