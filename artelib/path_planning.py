@@ -94,7 +94,7 @@ def generate_target_orientations_Q(Q1, Q2, n):
 
 
 def path_planning_line(current_position, current_orientation, target_position, target_orientation,
-                       linear_speed=1, angular_speed=0.5):
+                       linear_speed=0.5, angular_speed=0.2):
     """
     Plan a path along a line with linear interpolation between positions and orientations.
     """
@@ -116,7 +116,6 @@ def path_planning_line(current_position, current_orientation, target_position, t
     target_positions = generate_target_positions(p_current, p_target, n)
     # generating quaternions on the line. Use SLERP to interpolate between quaternions
     target_orientations = generate_target_orientations_Q(Qcurrent, Qtarget, n)
-
     return target_positions, target_orientations
 
 

@@ -18,12 +18,9 @@ from artelib.tools import compute_w_between_orientations, euler2rot, rot2quatern
     q2euler, buildT
 import matplotlib.pyplot as plt
 
-# standard Coppelia simulation time. PLEASE CHANGE THIS ACCORDINGLY
-# DELTA_TIME = 50.0/1000.0
 
 
 class Robot():
-
     def __init__(self):
         self.clientID = None
         self.serialrobot = None
@@ -126,6 +123,9 @@ class Robot():
                     With this option, the movement of the robot may be non-smooth.
                     if wait=False: the movement is typically smoother, but the trajectory is not followed exaclty.
         """
+        if len(q_path) == 0:
+            print('set_joint_target_positions ERROR: THE PATH IS EMPTY')
+            return
         # both commanding a single q or a path
         if len(q_path.shape) == 1:
             self.command_joint_target_positions(q_path, precision=True)
@@ -482,6 +482,17 @@ class Robot():
             else: # translational   joint
                 J[:, i] = np.concatenate((z[:, i], np.zeros((3, 1))))
         return J, J[0:3, :], J[3:6, :]
+
+    def random_q(self):
+        """
+        Generate a random q uniformly distributed in the joint ranges
+        """
+        q = []
+        for i in range(self.DOF):
+            qi = np.random.uniform(self.joint_ranges[0, i], self.joint_ranges[1, i], 1)
+            q.append(qi[0])
+        return np.array(q)
+
 
     # def compute_target_error(self, targetposition, targetorientation):
     #     """

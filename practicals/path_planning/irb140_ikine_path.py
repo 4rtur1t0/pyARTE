@@ -41,39 +41,59 @@ def get_closest_to(qa, qb):
     distances = np.array(distances)
     distances = np.nan_to_num(distances, nan=np.inf)
     idx = np.argmin(distances)
+    dd = distances[idx]
+    if dd > 0.5:
+        print('NOT SMOOTHHHH')
     return qa[:, idx]
 
 
-def inverse_kinematics_line(robot, target_position, target_orientation, q0, show_targets=True):
+def filter_path(robot, qs, q0):
     """
-    Find q that allows the robot to achieve the specified target position and orientaiton
-    CAUTION: target_orientation must be specified as a quaternion in the robot.inversekinematics function
-
-    caution: returns the closest solution to the specified q0
+    EJERCICIO:
+    ELIMINAR LAS SOLUCIONES FUERA DEL RANGO DE LAS ARTICULACIONES
+    COMENZANDO POR q0, CONSTRUIR UN CAMINO EN q SUAVE
     """
-    Ti = robot.directkinematics(q0)
-    target_positions, target_orientations = path_planning_line(Ti.pos(), Ti.R(), target_position, target_orientation)
-
-    if show_targets:
-        show_target_points(robot.clientID, target_positions, target_orientations, wait_time=1)
-
-    q = robot.inversekinematics_line(target_position, target_orientation, vmax=0.5, q0=q0)
-
-    # EJERCICIO: ELIMINAR ELEMENTOS FUERA DE RANGO
-    for i in range(len(q)):
-        if len(q[i]) == 0:
-            print('ERROR: NO MATHEMATICAL SOLUTIONS TO THE INVERSE KINEMATICS EXIST')
-        q[i] = robot.filter_joint_limits(q[i])
     q_traj = []
-    for i in range(len(q)):
-        try:
-            qi = get_closest_to(q[i], q0)
-            q0 = qi
-            q_traj.append(qi)
-        except:
-            pass
+    # eliminar articulaciones fuera de rango
+    for i in range(len(qs)):
+        if len(qs[i]) == 0:
+            print('ERROR: NO MATHEMATICAL SOLUTIONS TO THE INVERSE KINEMATICS EXIST')
+            continue
+        qs[i] = robot.filter_joint_limits(qs[i])
+    # Encuentre las soluciones más cercanas
+    for i in range(len(qs)):
+        # print('Movement i: ', i)
+        if len(qs[i]) == 0:
+            print('ERROR: NO MATHEMATICAL SOLUTIONS TO THE INVERSE KINEMATICS EXIST')
+            continue
+        qi = get_closest_to(qs[i], q0)
+        q0 = qi
+        q_traj.append(qi)
     q_traj = np.array(q_traj).T
     return q_traj
+
+
+def compute_joint_trajectory(robot, q0, tps, tos):
+    # encontrar todas las soluciones para cada uno de los target points
+    qs = []
+    for i in range(len(tps)):
+        qi = robot.inversekinematics(tps[i], tos[i], extended=True)
+        qs.append(qi)
+
+    qs = filter_path(robot, qs, q0)
+    return qs
+
+
+def compute_workspace_trajectory(robot, q0, target_positions, target_orientations):
+    Ti = robot.directkinematics(q0)
+    tps = []
+    tos = []
+    for i in range(len(target_positions)):
+        tpi, toi = path_planning_line(Ti.pos(), Ti.R(), target_positions[i], target_orientations[i])
+        tps.extend(tpi)
+        tos.extend(toi)
+        Ti = HomogeneousMatrix(target_positions[i], target_orientations[i])
+    return tps, tos
 
 
 def irb140_ikine_line():
@@ -86,44 +106,67 @@ def irb140_ikine_line():
     # set the TCP of the RG2 gripper
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
 
+
+    # TRAJ 1: Square at constant orientation OK
+    # OJO: se debe especificar la posición inicial q0 adecuada
+    # se debe valorar el resultado suave de la trayectoria.
     # set initial position
-    q0 = np.array([0, 0, 0, 0, 0, 0])
+    q0 = np.array([0, 0, 0, 0, -np.pi / 2, 0])
     robot.set_joint_target_positions(q0, precision=True)
 
-    # 8 Válidas y 8 alcanzables
-    target_positions = [Vector([0.5, 0.0, 0.9]),
-                        Vector([0.5, 0.0, 0.9]),
-                        Vector([0.5, -0.3, 0.9]),
-                        Vector([0.5, 0.3, 0.9]),
-                        Vector([0.5, 0.3, 0.4]),
-                        Vector([0.5, 0.0, 0.9]),
-                        Vector([0.5, 0.0, 0.9]),
-                        Vector([0.5, 0.0, 0.9])]
+    target_positions = [Vector([0.6, -0.5, 0.8]),
+                        Vector([0.6, -0.5, 0.3]),
+                        Vector([0.6, 0.5, 0.3]),
+                        Vector([0.6, 0.5, 0.8]),
+                        Vector([0.6, 0, 0.8])]
     target_orientations = [Euler([0, np.pi / 2, 0]),
-                           Euler([0, 0, 0]),
-                           Euler([0, 0, 0]),
-                           Euler([0, 0, np.pi/2]),
-                           Euler([0, np.pi, 0]),
-                           Euler([0, np.pi/2, 0]),
-                           Euler([0, np.pi/2, np.pi/2]),
-                           Euler([np.pi/2, np.pi/2, np.pi/2])]
-    for i in range(len(target_positions)):
-        Ti = robot.directkinematics(q0)
-        tps, tos = path_planning_line(Ti.pos(), Ti.R(), target_positions[i], target_orientation)
+                           Euler([0, np.pi / 2, 0]),
+                           Euler([0, np.pi / 2, 0]),
+                           Euler([0, np.pi / 2, 0]),
+                           Euler([0, np.pi / 2, 0])]
 
-    show_target_points(clientID, target_positions, target_orientations, wait_time=10)
+    # TRAJ 2 # # OK: Square surrounding the robot
+    # # Square 2, try to get back to the origin
+    # q0 = np.array([-np.pi/2, 0, 0, 0, -np.pi / 2, 0])
+    # robot.set_joint_target_positions(q0, precision=True)
+    # Ti = robot.directkinematics(q0)
+    # target_positions = [Vector([-0.5, -0.5, 0.3]),
+    #                     Vector([0.5, -0.5, 0.3]),
+    #                     Vector([0.5, 0.5, 0.3]),
+    #                     Vector([-0.5, 0.5, 0.3])]
+    # target_orientations = [Euler([0, np.pi, 0]),
+    #                        Euler([0, np.pi, 0]),
+    #                        Euler([0, np.pi, 0]),
+    #                        Euler([0, np.pi, 0])]
 
-    for i in range(len(target_positions)):
-        q = inverse_kinematics_line(robot=robot, target_position=target_positions[i],
-                                    target_orientation=target_orientations[i], q0=q0)
-        q0 = q[:, -1]
+    # # TRAJ 3:  OK
+    # q0 = np.array([np.pi/2, 0, 0, 0, -np.pi / 2, 0])
+    # robot.set_joint_target_positions(q0, precision=True)
+    # Ti = robot.directkinematics(q0)
+    # target_positions = [Vector([0.0, 0.6, 0.4]),
+    #                     Vector([0.0, 0.6, 0.4]),
+    #                     Vector([0.0, 0.6, 0.4]),
+    #                     Vector([0.0, 0.6, 0.4]),
+    #                     Vector([0.0, 0.6, 0.4])]
+    # target_orientations = [Euler([0, np.pi/2, 0]),
+    #                        Euler([np.pi/2, np.pi/2, 0]),
+    #                        Euler([0, np.pi/2, 0]),
+    #                        Euler([-np.pi/2, 0, 0]),
+    #                        Euler([0, np.pi/2, 0])]
 
-        # Se comanda al    robot a estas soluciones
-        robot.set_joint_target_positions(q, precision='last')
+    tps, tos = compute_workspace_trajectory(robot=robot, q0=q0, target_positions=target_positions,
+                                            target_orientations=target_orientations)
+
+    # mostrar en Coppelia los target points calculados
+    show_target_points(clientID, tps, tos, wait_time=1)
+
+    qs = compute_joint_trajectory(robot=robot, q0=q0, tps=tps, tos=tos)
+
+    # comandar al robot
+    robot.set_joint_target_positions(qs, precision='last')
 
     # Stop arm and simulation
     simulation.stop()
-
     robot.plot_trajectories()
 
 

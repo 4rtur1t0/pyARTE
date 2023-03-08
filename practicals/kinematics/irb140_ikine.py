@@ -118,7 +118,7 @@ def irb140_ikine():
 
     # 8 Válidas y 8 alcanzables
     target_position = [0.5, 0.0, 0.9]
-    target_position = [0.7, 0.0, 0]
+    # target_position = [0.7, 0.0, 0]
     target_orientation = [0, np.pi/2, 0]
 
     q = inverse_kinematics(robot=robot, target_position=target_position,

@@ -63,6 +63,9 @@ class HomogeneousMatrix():
     def R(self):
         return rotationmatrix.RotationMatrix(self.array[0:3, 0:3])
 
+    def euler(self):
+        return self.R().euler()[0], self.R().euler()[1],
+
     def pos(self):
         return self.array[0:3, 3]
 

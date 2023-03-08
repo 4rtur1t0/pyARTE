@@ -21,14 +21,12 @@ from robots.simulation import Simulation
 
 
 def show_target_points(clientID, target_positions, target_orientations, wait_time=10):
-        frame = ReferenceFrame(clientID=clientID)
-        frame.start()
-        for i in range(len(target_positions)):
-            T = HomogeneousMatrix(target_positions[i], target_orientations[i])
-            frame.set_position_and_orientation(T)
-            frame.wait(wait_time)
-
-
+    frame = ReferenceFrame(clientID=clientID)
+    frame.start()
+    for i in range(len(target_positions)):
+        T = HomogeneousMatrix(target_positions[i], target_orientations[i])
+        frame.set_position_and_orientation(T)
+        frame.wait(wait_time)
 
 
 def n_movements_pos(pA, pB):
@@ -39,6 +37,7 @@ def n_movements_pos(pA, pB):
     n = np.ceil(n)
     return int(n)
 
+
 def n_movements_orient(eA, eB):
     wmax = 1  # rad/s
     delta_time = 0.05  # 50 ms
@@ -46,6 +45,7 @@ def n_movements_orient(eA, eB):
     n = total_time / delta_time
     n = np.ceil(n)
     return int(n)
+
 
 def path_planning_line(pA, oA, pB, oB):
     pA = pA.array
@@ -60,8 +60,8 @@ def path_planning_line(pA, oA, pB, oB):
     orientations = []
 
     for i in range(n):
-        p = (1-t[i])*pA + t[i]*pB
-        o = (1-t[i])*oA + t[i]*oB
+        p = (1 - t[i]) * pA + t[i] * pB
+        o = (1 - t[i]) * oA + t[i] * oB
         positions.append(p)
         orientations.append(Euler(o))
     return positions, orientations
@@ -76,7 +76,6 @@ def path_in_workspace():
     pB = Vector([0.5, 0.5, 0.4])
     oB = Euler([-np.pi / 2, np.pi / 2, -np.pi / 2])
 
-
     tps, tos = path_planning_line(pA, oA, pB, oB)
 
     show_target_points(clientID=clientID, target_positions=tps, target_orientations=tos, wait_time=2)
@@ -85,8 +84,5 @@ def path_in_workspace():
     simulation.stop()
 
 
-
-
 if __name__ == "__main__":
     path_in_workspace()
-
