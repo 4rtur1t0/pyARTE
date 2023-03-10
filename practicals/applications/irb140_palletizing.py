@@ -86,20 +86,18 @@ def inverse_kinematics(robot, target_position, target_orientation, q0, show_targ
 
 
 def pick(robot, gripper):
-    q0 = np.array([0, 0, 0, 0, 0, 0])
+    q0 = np.array([0, 0, 0, 0, np.pi/2, 0])
     target_positions = [[0.6, 0.267, 0.23],  # approximation
                         [0.6, 0.267, 0.19]] # pick
     target_orientations = [Euler([0, np.pi, 0]),
                            Euler([0, np.pi, 0])]
-    q1 = inverse_kinematics(robot=robot, target_position=target_positions[0],
-                            target_orientation=target_orientations[0], q0=q0)
-    q2 = inverse_kinematics(robot=robot, target_position=target_positions[1],
-                            target_orientation=target_orientations[1], q0=q1)
+    robot.moveAbsJ(q0, precision=True)
     gripper.open(precision=True)
-    robot.set_joint_target_positions(q1, precision=True)
-    robot.set_joint_target_positions(q2, precision=True)
+    robot.moveJ(target_position=target_positions[0], target_orientation=target_orientations[0], precision=True)
+    robot.moveL(target_position=target_positions[1], target_orientation=target_orientations[1], precision='last')
     gripper.close(precision=True)
-    robot.set_joint_target_positions(q1, precision=True)
+    robot.moveL(target_position=target_positions[0], target_orientation=target_orientations[0], precision=False)
+
 
 
 def place(robot, gripper, i):
@@ -119,22 +117,19 @@ def place(robot, gripper, i):
     p = compute_3D_coordinates(index=i, n_x=3, n_y=4, n_z=2, piece_length=piece_length, piece_gap=piece_gap)
     # POSICION INICIAL SOBRE EL PALLET
     p0 = p + np.array([0, 0, 2.5 * piece_length])
+    Tmp = HomogeneousMatrix(p0, Euler([0, np.pi, 0]))
+    # TARGET POINT 0
+    T0 = T0m * Tmp
     # POSICIÓN EXACTA DE LA PIEZA (considerando la mitad de su lado)
     p1 = p + np.array([0, 0, 0.5 * piece_length])
     # Calculamos la transformación relativa en el sistema de referencia del pallet
-    Tmp = HomogeneousMatrix(p0, Euler([0, np.pi, 0]))
-    T = T0m * Tmp
-    q0 = inverse_kinematics(robot=robot, target_position=T.pos(), target_orientation=T.R(), q0=q0)
     Tmp = HomogeneousMatrix(p1, Euler([0, np.pi, 0]))
-    T = T0m*Tmp
-    q1 = inverse_kinematics(robot=robot, target_position=T.pos(), target_orientation=T.R(), q0=q0)
-
-    # EJECUTAMOS LOS MOVIMIENTOS
-    robot.set_joint_target_positions(q0, precision=True)
-    robot.set_joint_target_positions(q1, precision=True)
+    T1 = T0m*Tmp
+    robot.moveAbsJ(q0, precision=True)
+    robot.moveJ(target_position=T0.pos(), target_orientation=T0.R(), precision=True)
+    robot.moveL(target_position=T1.pos(), target_orientation=T1.R(), precision='last')
     gripper.open(precision=True)
-    robot.set_joint_target_positions(q1, precision=True)
-    robot.set_joint_target_positions(q0, precision=True)
+    robot.moveL(target_position=T0.pos(), target_orientation=T0.R(), precision='last')
 
 
 def pick_and_place():
@@ -147,7 +142,6 @@ def pick_and_place():
     # Connect to the proximity sensor
     conveyor_sensor = ProxSensor(clientID=clientID)
     conveyor_sensor.start()
-
 
     # Connect to the gripper
     gripper = GripperRG2(clientID=clientID)
@@ -162,15 +156,14 @@ def pick_and_place():
     # robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.11]), Euler([-np.pi/2, 0, 0])))
 
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
+    robot.moveAbsJ(q0, precision=True)
     n_pieces = 24
     for i in range(n_pieces):
         while True:
             if conveyor_sensor.is_activated():
                 break
             simulation.wait()
-        robot.set_joint_target_positions(q0, precision=True)
         pick(robot, gripper)
-        robot.set_joint_target_positions(q0, precision=True)
         place(robot, gripper, i)
     # Stop arm and simulation
     simulation.stop()

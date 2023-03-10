@@ -9,14 +9,14 @@ RobotABBIRB140 is a derived class of the Robot base class that
 @Time: April 2021
 """
 import numpy as np
-from artelib import homogeneousmatrix
+from artelib.path_planning import path_planning_line, filter_path
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.seriallink import SerialRobot
-from artelib.tools import buildT, normalize_angle
+# from artelib.tools import buildT, normalize_angle
 from robots.robot import Robot
 import sim
-from artelib.path_planning import generate_target_positions, generate_target_orientations_Q, \
-    move_target_positions_obstacles, n_movements, n_movements_slerp, path_planning_line
+# from artelib.path_planning import generate_target_positions, generate_target_orientations_Q, \
+#     move_target_positions_obstacles, n_movements, n_movements_slerp, path_planning_line
 
 
 class RobotABBIRB140(Robot):
@@ -44,7 +44,7 @@ class RobotABBIRB140(Robot):
         # self.ikmethod = 'moore-penrose'
         # whether to apply joint limits in inversekinematics
         self.do_apply_joint_limits = True
-        self.epsilonq = 0.0001
+        self.epsilonq = 0.001
 
         # DH parameters of the robot
         self.serialrobot = SerialRobot(n=6, T0=np.eye(4), name='ABBIRB140')
@@ -246,28 +246,53 @@ class RobotABBIRB140(Robot):
         wrist1 = [q4, q5, q6]
         wrist2 = [q4_, q5_, q6_]
         return np.array(wrist1), np.array(wrist2)
+    #
+    # def inversekinematics_line(self, q0, target_position, target_orientation, vmax=0.5, wmax=0.5):
+    #     """
+    #     The end effector should follow a line in task space to reach target position and target orientation.
+    #     A number of points is interpolated along the line, according to the speed vmax and simulation time
+    #     (delta_time).
+    #     The same number or points are also interpolated in orientation.
+    #     Caution. target_orientationQ is specified as a quaternion
+    #     """
+    #     Ti = self.directkinematics(q0)
+    #     target_positions, target_orientations = path_planning_line(Ti.pos(), Ti.R(), target_position, target_orientation,
+    #                                                                linear_speed=vmax, angular_speed=wmax)
+    #     q_path = []
+    #     # start joint position
+    #     q = q0
+    #     # now try to reach each target position on the line
+    #     for i in range(len(target_positions)):
+    #         q = self.inversekinematics(target_position=target_positions[i],
+    #                                    target_orientation=target_orientations[i], q0=q, extended=True)
+    #         q_path.append(q)
+    #     #  IMPORTANT:  q_path includes, for each time step, all possible solutions of the inverse kinematic problem.
+    #     # for example, q_path will be a list with n movements. Each element in the list, is, again, a list including
+    #     # all possible soutions for the inverse kinematic problem of that particular position and orientaition
+    #     q_path = filter_path(self, q0, q_path)
+    #     return q_path
 
-    def inversekinematics_line(self,  target_position, target_orientation, vmax=0.5, wmax=0.5, q0=None):
-        """
-        The end effector should follow a line in task space to reach target position and target orientation.
-        A number of points is interpolated along the line, according to the speed vmax and simulation time
-        (delta_time).
-        The same number or points are also interpolated in orientation.
-        Caution. target_orientationQ is specified as a quaternion
-        """
-        Ti = self.directkinematics(q0)
-        target_positions, target_orientations = path_planning_line(Ti.pos(), Ti.R(), target_position, target_orientation,
-                                                                   linear_speed=vmax, angular_speed=wmax)
-
-        q_path = []
-        q = q0
-
-        # now try to reach each target position on the line
-        for i in range(len(target_positions)):
-            q = self.inversekinematics(target_position=target_positions[i],
-                                       target_orientation=target_orientations[i], q0=q)
-            q_path.append(q)
-        return q_path
+    # def inversekinematics_line(self,  target_position, target_orientation, vmax=0.5, wmax=0.5, q0=None):
+    #     """
+    #     The end effector should follow a line in task space to reach target position and target orientation.
+    #     A number of points is interpolated along the line, according to the speed vmax and simulation time
+    #     (delta_time).
+    #     The same number or points are also interpolated in orientation.
+    #     Caution. target_orientationQ is specified as a quaternion
+    #     """
+    #     Ti = self.directkinematics(q0)
+    #     target_positions, target_orientations = path_planning_line(Ti.pos(), Ti.R(), target_position, target_orientation,
+    #                                                                linear_speed=vmax, angular_speed=wmax)
+    #
+    #     q_path = []
+    #     q = q0
+    #
+    #     # now try to reach each target position on the line
+    #     for i in range(len(target_positions)):
+    #         q = self.inversekinematics(target_position=target_positions[i],
+    #                                    target_orientation=target_orientations[i], q0=q)
+    #         q_path.append(q)
+    #     return q_path
 
 
 def extend_solutions(qi, qw):

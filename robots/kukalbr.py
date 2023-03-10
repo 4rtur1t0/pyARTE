@@ -85,10 +85,6 @@ class RobotKUKALBR(Robot):
         J, Jv, Jw = eval_symbolic_jacobian_KUKALBR(q)
         return J, Jv, Jw
 
-    # def directkinematics(self, q):
-    #     T = self.serialrobot.directkinematics(q)
-    #     return T
-
     def inversekinematics(self, target_position, target_orientation, q0):
         """
         This a particular inverse kinematics function for this robot.

@@ -11,7 +11,10 @@ RobotUR5 is a derived class of the Robot base class
 import sim
 import numpy as np
 from artelib import homogeneousmatrix
+from artelib.homogeneousmatrix import HomogeneousMatrix
+from artelib.inverse_kinematics import delta_q
 from artelib.seriallink import SerialRobot
+from artelib.tools import compute_kinematic_errors
 from robots.robot import Robot
 from kinematics.kinematics_ur5 import eval_symbolic_jacobian_UR5
 
@@ -75,6 +78,27 @@ class RobotUR5(Robot):
         J, Jv, Jw = eval_symbolic_jacobian_UR5(q)
         return J, Jv, Jw
 
-    # def directkinematics(self, q):
-    #     T = self.serialrobot.directkinematics(q)
-    #     return homogeneousmatrix.HomogeneousMatrix(T)
+    def inversekinematics(self, q0, target_position, target_orientation):
+        """
+        Solve the inverse kinematics using a Jacobian method.
+        target_position: XYX vector in global coordinates.
+        target_orientation: A quaternion specifying orientation.
+        """
+        # build transform using position and Quaternion
+        Ttarget = HomogeneousMatrix(target_position, target_orientation)
+        q = q0
+        for i in range(0, self.max_iterations_inverse_kinematics):
+            print('Iteration number: ', i)
+            Ti = self.directkinematics(q)
+            e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
+            print('errordist, error orient: ', error_dist, error_orient)
+            if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
+                print('Converged!!')
+                break
+            J, Jv, Jw = self.manipulator_jacobian(q)
+            qd = delta_q(J, e, method=self.ikmethod)
+            q = q + qd
+            if self.do_apply_joint_limits:
+                [q, _] = self.apply_joint_limits(q)
+        return q
+

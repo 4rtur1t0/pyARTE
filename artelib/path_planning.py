@@ -25,6 +25,17 @@ def potential(r):
     return p
 
 
+def random_q(robot):
+    """
+    Generate a random q uniformly distributed in the joint ranges
+    """
+    q = []
+    for i in range(robot.DOF):
+         qi = np.random.uniform(robot.joint_ranges[0, i], robot.joint_ranges[1, i], 1)
+         q.append(qi[0])
+    return np.array(q)
+
+
 def n_movements(p_current, p_target, vmax=1.0, delta_time=0.05):
     """
     Compute the number of points on the line, considering a very simple planning:
@@ -33,7 +44,8 @@ def n_movements(p_current, p_target, vmax=1.0, delta_time=0.05):
     """
     total_time = np.linalg.norm(np.array(p_target) - np.array(p_current)) / vmax
     n = total_time / delta_time
-    n = np.ceil(n)
+    # at least, two movements, that correspond to the begining and end target point
+    n = np.ceil(n) + 1
     return int(n)
 
 
@@ -43,7 +55,7 @@ def n_movements_slerp(Q_current, Q_target, wmax=3.0, delta_time=0.05):
         - constant speed wmax.
         - simulation delta_time in Coppelia.
     """
-    cth = Q_current.dot(Q_target)
+    cth = np.abs(Q_current.dot(Q_target))
     th = np.arccos(cth)
     total_time = th / wmax
     n = total_time / delta_time
@@ -51,7 +63,7 @@ def n_movements_slerp(Q_current, Q_target, wmax=3.0, delta_time=0.05):
     return int(n)
 
 
-def generate_target_positions(p_current, p_target, n):
+def interpolate_target_positions(p_current, p_target, n):
     """
     Generate n points between the current and target positions p_current and p_target
     """
@@ -65,7 +77,7 @@ def generate_target_positions(p_current, p_target, n):
     return target_positions
 
 
-def generate_target_orientations(abc_current, abc_target, n):
+def interpolate_target_orientations(abc_current, abc_target, n):
     """
     Generate a set of interpolated orientations. The initial Euler angles are converted to Quaternions
     """
@@ -79,7 +91,7 @@ def generate_target_orientations(abc_current, abc_target, n):
     return target_orientations
 
 
-def generate_target_orientations_Q(Q1, Q2, n):
+def interpolate_target_orientations_Q(Q1, Q2, n):
     """
     Generate a set of n quaternions between Q1 and Q2. Use SLERP to find an interpolation between them.
     """
@@ -93,8 +105,50 @@ def generate_target_orientations_Q(Q1, Q2, n):
     return target_orientations
 
 
+def get_closest_to(q0, qb):
+    """
+    Given a solution q0, find the closest solution in qb
+    """
+    n_solutions = qb.shape[1]
+    distances = []
+    for i in range(n_solutions):
+        d = np.linalg.norm(qb[:, i]-q0)
+        distances.append(d)
+    distances = np.array(distances)
+    distances = np.nan_to_num(distances, nan=np.inf)
+    idx = np.argmin(distances)
+    dd = distances[idx]
+    if dd > 0.5:
+        print('NOT SMOOTHHHH')
+    return qb[:, idx]
+
+
+def filter_path(robot, q0, qs):
+    """
+    Computes a path starting at q0 by finding the closest neighbours at each time step.
+    """
+    q_traj = []
+    # remove joints out of range
+    for i in range(len(qs)):
+        if len(qs[i]) == 0:
+            print('ERROR: NO MATHEMATICAL SOLUTIONS TO THE INVERSE KINEMATICS EXIST')
+            continue
+        qs[i] = robot.filter_joint_limits(qs[i])
+    # fint the closest solution in a continuous path
+    for i in range(len(qs)):
+        # print('Movement i: ', i)
+        if len(qs[i]) == 0:
+            print('ERROR: NO MATHEMATICAL SOLUTIONS TO THE INVERSE KINEMATICS EXIST')
+            continue
+        qi = get_closest_to(q0, qs[i])
+        q0 = qi
+        q_traj.append(qi)
+    q_traj = np.array(q_traj).T
+    return q_traj
+
+
 def path_planning_line(current_position, current_orientation, target_position, target_orientation,
-                       linear_speed=0.5, angular_speed=0.2):
+                       linear_speed=1.0, angular_speed=0.5):
     """
     Plan a path along a line with linear interpolation between positions and orientations.
     """
@@ -107,15 +161,15 @@ def path_planning_line(current_position, current_orientation, target_position, t
 
     # Two options:
     # a) if p_current==p_target --> compute number of movements based on slerp distance
-    # b) if p_current != p_target--> compunte number of movements based on euclidean distance
+    # b) if p_current != p_target--> compute number of movements based on euclidean distance
     n1 = n_movements(p_current, p_target, linear_speed)
     n2 = n_movements_slerp(Qcurrent, Qtarget, angular_speed)
 
     n = max(n1, n2)
     # generate n target positions
-    target_positions = generate_target_positions(p_current, p_target, n)
+    target_positions = interpolate_target_positions(p_current, p_target, n)
     # generating quaternions on the line. Use SLERP to interpolate between quaternions
-    target_orientations = generate_target_orientations_Q(Qcurrent, Qtarget, n)
+    target_orientations = interpolate_target_orientations_Q(Qcurrent, Qtarget, n)
     return target_positions, target_orientations
 
 

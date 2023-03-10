@@ -109,11 +109,22 @@ def rot2quaternion(R):
     rot2quaternion(R)
     Computes a quaternion Q from a rotation matrix R.
 
+
+
     This implementation has been translated from The Robotics Toolbox for Matlab (Peter  Corke),
     https://github.com/petercorke/spatial-math
+
+    CAUTION: R is a matrix with some noise due to floating point errors. For example, the determinant of R may no be
+    exactly = 1.0 always. As a result, given R and R_ (a close noisy matrix), the resulting quaternions Q and Q_ may
+    have a difference in their signs. This poses no problem, since the slerp formula considers the case in which
+    the distance cos(Q1*Q_) is negative.
+
     """
     R = R[0:3, 0:3]
-    s = np.sqrt(np.trace(R) + 1) / 2.0
+    tr = np.trace(R) + 1
+    # caution: tr should not be negative
+    tr = max(0.0, tr)
+    s = np.sqrt(tr) / 2.0
     kx = R[2, 1] - R[1, 2] # Oz - Ay
     ky = R[0, 2] - R[2, 0] # Ax - Nz
     kz = R[1, 0] - R[0, 1] # Ny - Ox
@@ -267,7 +278,6 @@ def q2euler(Q):
     return abg
 
 
-
 def slerp(Q1, Q2, t):
     """
     Interpolates between quaternions Q1 and Q2, given a fraction t in [0, 1].
@@ -277,7 +287,7 @@ def slerp(Q1, Q2, t):
     cth = Q1.dot(Q2)
     if cth < 0:
         cth = -cth
-        Q2 = Q2*(-1)
+        Q1 = Q1*(-1)
 
     th = np.arccos(cth)
     if np.abs(th) == 0:

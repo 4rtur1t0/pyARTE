@@ -10,14 +10,12 @@ import sim
 import numpy as np
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.inverse_kinematics import delta_q
-from artelib.path_planning import generate_target_positions, generate_target_orientations_Q, \
-    move_target_positions_obstacles, n_movements
+from artelib.path_planning import path_planning_line, filter_path
 from artelib.plottools import plot_vars, plot, plot3d
 from artelib.tools import compute_w_between_orientations, euler2rot, rot2quaternion, buildT, compute_w_between_R, \
     null_space, diff_w_central, w_central, null_space_projector, compute_kinematic_errors, rot2euler, quaternion2rot, \
     q2euler, buildT
 import matplotlib.pyplot as plt
-
 
 
 class Robot():
@@ -34,6 +32,8 @@ class Robot():
         self.max_iterations_joint_target = None
         # admit this error in |q|2
         self.epsilonq = None
+        # current robot joint positions
+        self.q_current = None
         self.q_path = []
 
         # max errors during computation of inverse kinematics
@@ -89,6 +89,8 @@ class Robot():
         else:
             self.wait()
         self.q_path.append(q_target)
+        # IMPORTANT: FINALLY, set the current robot position
+        self.q_current = q_target
 
     # def set_joint_positions(self, q_target):
     #     """
@@ -220,7 +222,7 @@ class Robot():
     def get_symbolic_jacobian(self, q):
         # calling derived class get_jacobian
         # should be implemented at the UR5, UR10 classes etc.
-        return self.get_symbolic_jacobian()
+        return self.get_symbolic_jacobian(q)
 
     def compute_manipulability(self, q):
         [J, _, _] = self.manipulator_jacobian(q)
@@ -344,31 +346,31 @@ class Robot():
             qd_corrected = qd
         return qd_corrected, valid, valid_indexes
 
-    def inversekinematics(self, target_position, target_orientation, q0):
-        """
-        Solve the inverse kinematics using a Jacobian method.
-        target_position: XYX vector in global coordinates.
-        target_orientation: A quaternion specifying orientation.
-        """
-        # build transform using position and Quaternion
-        Ttarget = HomogeneousMatrix(target_position, target_orientation)
-        q = q0
-        for i in range(0, self.max_iterations_inverse_kinematics):
-            print('Iteration number: ', i)
-            Ti = self.directkinematics(q)
-            e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
-            print('errordist, error orient: ', error_dist, error_orient)
-            if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
-                print('Converged!!')
-                break
-            J, Jv, Jw = self.manipulator_jacobian(q)
-            qd = delta_q(J, e, method=self.ikmethod)
-            q = q + qd
-            if self.do_apply_joint_limits:
-                [q, _] = self.apply_joint_limits(q)
-        return q
+    # def inversekinematics(self, q0, target_position, target_orientation):
+    #     """
+    #     Solve the inverse kinematics using a Jacobian method.
+    #     target_position: XYX vector in global coordinates.
+    #     target_orientation: A quaternion specifying orientation.
+    #     """
+    #     # build transform using position and Quaternion
+    #     Ttarget = HomogeneousMatrix(target_position, target_orientation)
+    #     q = q0
+    #     for i in range(0, self.max_iterations_inverse_kinematics):
+    #         print('Iteration number: ', i)
+    #         Ti = self.directkinematics(q)
+    #         e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
+    #         print('errordist, error orient: ', error_dist, error_orient)
+    #         if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
+    #             print('Converged!!')
+    #             break
+    #         J, Jv, Jw = self.manipulator_jacobian(q)
+    #         qd = delta_q(J, e, method=self.ikmethod)
+    #         q = q + qd
+    #         if self.do_apply_joint_limits:
+    #             [q, _] = self.apply_joint_limits(q)
+    #     return q
 
-    def inversekinematics_line(self, target_position, target_orientation, q0, vmax=1.0, sphere_position=None):
+    def inversekinematics_line(self, q0, target_position, target_orientation, vmax=0.3, wmax=0.2, extended=True):
         """
         The end effector should follow a line in task space to reach target position and target orientation.
         A number of points is interpolated along the line, according to the speed vmax and simulation time
@@ -376,42 +378,24 @@ class Robot():
         The same number or points are also interpolated in orientation.
         Caution. target_orientationQ is specified as a quaternion
         """
-        Ttarget = HomogeneousMatrix(target_position, target_orientation)
         Ti = self.directkinematics(q0)
-        Qcurrent = Ti.Q()
-        Qtarget = target_orientation.Q()
-        p_current = Ti.pos()
-        p_target = Ttarget.pos()
-        n = n_movements(p_current, p_target, vmax)
-        # generate n target positions
-        target_positions = generate_target_positions(p_current, p_target, n)
-        # generating quaternions on the line. Use SLERP to interpolate between quaternions
-        target_orientations = generate_target_orientations_Q(Qcurrent, Qtarget, len(target_positions))
-        if sphere_position is not None:
-            target_positions = move_target_positions_obstacles(target_positions, sphere_position)
-            # p_positions = np.array(target_positions)
-            # plot3d(p_positions[:, 0], p_positions[:, 1], p_positions[:, 2])
+        target_positions, target_orientations = path_planning_line(Ti.pos(), Ti.R(), target_position, target_orientation,
+                                                                   linear_speed=vmax, angular_speed=wmax)
         q_path = []
+        # start joint position
         q = q0
         # now try to reach each target position on the line
         for i in range(len(target_positions)):
             q = self.inversekinematics(target_position=target_positions[i],
-                                       target_orientation=target_orientations[i], q0=q)
+                                       target_orientation=target_orientations[i],
+                                       q0=q, extended=extended)
             q_path.append(q)
+        #  IMPORTANT:  q_path includes, for each time step, all possible solutions of the inverse kinematic problem.
+        # for example, q_path will be a list with n movements. Each element in the list, is, again, a list including
+        # all possible soutions for the inverse kinematic problem of that particular position and orientaition
+        q_path = filter_path(self, q0, q_path)
         return q_path
 
-    def inversekinematics_path(self, target_positions, target_orientations, q0):
-        """
-        Solve iteratively q for each of the target positions and orientation specified
-        """
-        q_path = []
-        q = q0
-        # now try to reach each target position on the line
-        for i in range(len(target_positions)):
-            q = self.inversekinematics(target_position=target_positions[i],
-                                       target_orientation=target_orientations[i], q0=q)
-            q_path.append(q)
-        return q_path
 
     def plot_trajectories(self):
         plt.figure()
@@ -483,15 +467,42 @@ class Robot():
                 J[:, i] = np.concatenate((z[:, i], np.zeros((3, 1))))
         return J, J[0:3, :], J[3:6, :]
 
-    def random_q(self):
+    def moveAbsJ(self, q_target, precision):
         """
-        Generate a random q uniformly distributed in the joint ranges
+        Commands the robot to the specified joint target positions.
+        The targets are filtered and the robot is not commanded whenever a single joint is out of range.
         """
-        q = []
-        for i in range(self.DOF):
-            qi = np.random.uniform(self.joint_ranges[0, i], self.joint_ranges[1, i], 1)
-            q.append(qi[0])
-        return np.array(q)
+        # remove joints out of range and get the closest joint
+        total, partial = self.check_joints(q_target)
+        if total:
+            self.set_joint_target_positions(q_target, precision=precision)
+        else:
+            print('moveABSJ ERROR: joints out of range')
+
+    def moveJ(self, target_position, target_orientation, precision, extended=False):
+        """
+        Commands the robot to a target position and orientation.
+        All solutions to the inverse kinematic problem are computed. The closest solution to the
+        current position of the robot q0 is used
+        """
+        q0 = self.q_current
+        # resultado filtrado. Debe ser una matriz 6xn_movements
+        # CAUTION. This calls the inverse kinematic method of the derived class
+        qs = self.inversekinematics(q0=q0, target_position=target_position,
+                                    target_orientation=target_orientation, extended=extended)
+        # remove joints out of range and get the closest joint
+        qs = filter_path(self, q0, [qs])
+
+        # comandar al robot hasta
+        self.set_joint_target_positions(qs, precision=precision)
+
+    def moveL(self, target_position, target_orientation, precision, extended=True):
+        q0 = self.q_current
+        # resultado filtrado. Debe ser una matriz 6xn_movements
+        qs = self.inversekinematics_line(q0=q0, target_position=target_position,
+                                         target_orientation=target_orientation, extended=extended)
+        # command the robot
+        self.set_joint_target_positions(qs, precision=precision)
 
 
     # def compute_target_error(self, targetposition, targetorientation):

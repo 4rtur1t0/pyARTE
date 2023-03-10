@@ -23,13 +23,12 @@ if __name__ == "__main__":
     q2 = np.array([0, 0, 0, 0, 0, 0])
     q3 = np.array([np.pi/8, 0, -np.pi/4, 0, 3*np.pi/2, 0])
 
-    robot.set_joint_target_positions(q1, precision=True)
+    robot.moveAbsJ(q1, precision=True)
     simulation.wait(100)
-    robot.set_joint_target_positions(q2, precision=True)
+    robot.moveAbsJ(q2, precision=True)
     simulation.wait(100)
-    robot.set_joint_target_positions(q3, precision=True)
+    robot.moveAbsJ(q3, precision=True)
     simulation.wait(100)
-
     # Stop arm and simulation
     simulation.stop()
 

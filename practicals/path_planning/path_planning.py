@@ -12,10 +12,7 @@ the results.
 import numpy as np
 from artelib.euler import Euler
 from artelib.homogeneousmatrix import HomogeneousMatrix
-# from artelib.path_planning import path_planning_line
-from artelib.rotationmatrix import RotationMatrix
 from artelib.vector import Vector
-from robots.abbirb140 import RobotABBIRB140
 from robots.objects import ReferenceFrame
 from robots.simulation import Simulation
 
