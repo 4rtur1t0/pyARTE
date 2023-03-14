@@ -12,10 +12,7 @@ the results.
 import numpy as np
 from artelib.euler import Euler
 from artelib.homogeneousmatrix import HomogeneousMatrix
-# from artelib.path_planning import path_planning_line
-from artelib.rotationmatrix import RotationMatrix
 from artelib.vector import Vector
-from robots.abbirb140 import RobotABBIRB140
 from robots.objects import ReferenceFrame
 from robots.simulation import Simulation
 
@@ -30,6 +27,9 @@ def show_target_points(clientID, target_positions, target_orientations, wait_tim
 
 
 def n_movements_pos(pA, pB):
+    """
+    Computes the number of waypoints along a line when moving the end effector at a constant linear speed.
+    """
     vmax = 1  # m/s
     delta_time = 0.05  # 50 ms
     total_time = np.linalg.norm(np.array(pB) - np.array(pA)) / vmax
@@ -39,6 +39,10 @@ def n_movements_pos(pA, pB):
 
 
 def n_movements_orient(eA, eB):
+    """
+    Computes the number of orientations needed to change the orientations from Euler angles eA to eB at constant angular
+    speed. This is a rough approximation and the library uses quaternions for this purpose.
+    """
     wmax = 1  # rad/s
     delta_time = 0.05  # 50 ms
     total_time = np.linalg.norm(np.array(eB) - np.array(eA)) / wmax

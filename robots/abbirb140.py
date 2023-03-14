@@ -9,14 +9,11 @@ RobotABBIRB140 is a derived class of the Robot base class that
 @Time: April 2021
 """
 import numpy as np
-from artelib.path_planning import path_planning_line, filter_path
+import sim
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.seriallink import SerialRobot
-# from artelib.tools import buildT, normalize_angle
 from robots.robot import Robot
-import sim
-# from artelib.path_planning import generate_target_positions, generate_target_orientations_Q, \
-#     move_target_positions_obstacles, n_movements, n_movements_slerp, path_planning_line
+
 
 
 class RobotABBIRB140(Robot):
@@ -44,7 +41,7 @@ class RobotABBIRB140(Robot):
         # self.ikmethod = 'moore-penrose'
         # whether to apply joint limits in inversekinematics
         self.do_apply_joint_limits = True
-        self.epsilonq = 0.001
+        self.epsilonq = 0.0003
 
         # DH parameters of the robot
         self.serialrobot = SerialRobot(n=6, T0=np.eye(4), name='ABBIRB140')

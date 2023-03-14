@@ -15,17 +15,7 @@ from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.rotationmatrix import RotationMatrix
 from artelib.vector import Vector
 from robots.abbirb140 import RobotABBIRB140
-from robots.objects import ReferenceFrame
 from robots.simulation import Simulation
-
-
-def show_target_points(clientID, target_positions, target_orientations, wait_time=10):
-        frame = ReferenceFrame(clientID=clientID)
-        frame.start()
-        for i in range(len(target_positions)):
-            T = HomogeneousMatrix(target_positions[i], target_orientations[i])
-            frame.set_position_and_orientation(T)
-            frame.wait(wait_time)
 
 
 if __name__ == "__main__":
@@ -51,7 +41,7 @@ if __name__ == "__main__":
                            Euler([0, np.pi / 2, 0])]
 
     # mostrar en Coppelia los target points anteriores
-    show_target_points(clientID, target_positions, target_orientations, wait_time=1)
+    robot.show_target_points(target_positions, target_orientations, wait_time=1)
 
     robot.moveAbsJ(q0, precision=True)
     for i in range(len(target_positions)):

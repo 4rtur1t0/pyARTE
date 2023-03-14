@@ -109,15 +109,22 @@ def rot2quaternion(R):
     rot2quaternion(R)
     Computes a quaternion Q from a rotation matrix R.
 
-
-
     This implementation has been translated from The Robotics Toolbox for Matlab (Peter  Corke),
     https://github.com/petercorke/spatial-math
 
     CAUTION: R is a matrix with some noise due to floating point errors. For example, the determinant of R may no be
     exactly = 1.0 always. As a result, given R and R_ (a close noisy matrix), the resulting quaternions Q and Q_ may
     have a difference in their signs. This poses no problem, since the slerp formula considers the case in which
-    the distance cos(Q1*Q_) is negative.
+    the distance cos(Q1*Q_) is negative and changes it sign (please, see slerp).
+
+    There are a number of techniques to retrieve the closest rotation matrix R given a noisy matrix R1.
+    In the method below, this consideration is not taken into account, however, the trace tr is considered always
+    positive. The resulting quaternion, as stated before, may have a difference in sign.
+
+    On Closed-Form Formulas for the 3D Nearest Rotation Matrix Problem. Soheil Sarabandi, Arya Shabani, Josep M. Porta and
+    Federico Thomas.
+
+    http://www.iri.upc.edu/files/scidoc/2288-On-Closed-Form-Formulas-for-the-3D-Nearest-Rotation-Matrix-Problem.pdf
 
     """
     R = R[0:3, 0:3]
@@ -285,6 +292,8 @@ def slerp(Q1, Q2, t):
     """
     # caution using built-in class Quaternion  dot product
     cth = Q1.dot(Q2)
+    # caution, saturate cos(th)
+    cth = np.clip(cth, -1.0, 1.0)
     if cth < 0:
         cth = -cth
         Q1 = Q1*(-1)

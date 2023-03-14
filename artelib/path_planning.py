@@ -8,7 +8,6 @@ Simple path planning functions.
 
 """
 import numpy as np
-
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.tools import euler2rot, rot2quaternion, slerp, rot2euler, quaternion2rot, slerp
 
@@ -56,6 +55,8 @@ def n_movements_slerp(Q_current, Q_target, wmax=3.0, delta_time=0.05):
         - simulation delta_time in Coppelia.
     """
     cth = np.abs(Q_current.dot(Q_target))
+    # caution: saturate to +-1
+    cth = np.clip(cth, -1.0, 1.0)
     th = np.arccos(cth)
     total_time = th / wmax
     n = total_time / delta_time
@@ -117,9 +118,9 @@ def get_closest_to(q0, qb):
     distances = np.array(distances)
     distances = np.nan_to_num(distances, nan=np.inf)
     idx = np.argmin(distances)
-    dd = distances[idx]
-    if dd > 0.5:
-        print('NOT SMOOTHHHH')
+    # dd = distances[idx]
+    # if dd > 0.5:
+    #     print('NOT SMOOTHHHH')
     return qb[:, idx]
 
 

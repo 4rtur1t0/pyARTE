@@ -27,6 +27,9 @@ def show_target_points(clientID, target_positions, target_orientations, wait_tim
 
 
 def n_movements_pos(pA, pB):
+    """
+    Computes the number of waypoints along a line when moving the end effector at a constant linear speed.
+    """
     vmax = 1  # m/s
     delta_time = 0.05  # 50 ms
     total_time = np.linalg.norm(np.array(pB) - np.array(pA)) / vmax
@@ -36,6 +39,10 @@ def n_movements_pos(pA, pB):
 
 
 def n_movements_orient(eA, eB):
+    """
+    Computes the number of orientations needed to change the orientations from Euler angles eA to eB at constant angular
+    speed. This is a rough approximation and the library uses quaternions for this purpose.
+    """
     wmax = 1  # rad/s
     delta_time = 0.05  # 50 ms
     total_time = np.linalg.norm(np.array(eB) - np.array(eA)) / wmax
@@ -56,11 +63,8 @@ def path_planning_line(pA, oA, pB, oB):
     positions = []
     orientations = []
 
-    for i in range(n):
-        p = (1 - t[i]) * pA + t[i] * pB
-        o = (1 - t[i]) * oA + t[i] * oB
-        positions.append(p)
-        orientations.append(Euler(o))
+    # EJERCICIO: INTERPOLE POSICIONES Y ORIENTAICONES PARA IR DE A A B
+
     return positions, orientations
 
 

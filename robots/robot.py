@@ -17,6 +17,8 @@ from artelib.tools import compute_w_between_orientations, euler2rot, rot2quatern
     q2euler, buildT
 import matplotlib.pyplot as plt
 
+from robots.objects import ReferenceFrame
+
 
 class Robot():
     def __init__(self):
@@ -467,7 +469,7 @@ class Robot():
                 J[:, i] = np.concatenate((z[:, i], np.zeros((3, 1))))
         return J, J[0:3, :], J[3:6, :]
 
-    def moveAbsJ(self, q_target, precision):
+    def moveAbsJ(self, q_target, precision=True):
         """
         Commands the robot to the specified joint target positions.
         The targets are filtered and the robot is not commanded whenever a single joint is out of range.
@@ -479,7 +481,7 @@ class Robot():
         else:
             print('moveABSJ ERROR: joints out of range')
 
-    def moveJ(self, target_position, target_orientation, precision, extended=False):
+    def moveJ(self, target_position, target_orientation, precision=True, extended=True):
         """
         Commands the robot to a target position and orientation.
         All solutions to the inverse kinematic problem are computed. The closest solution to the
@@ -496,28 +498,19 @@ class Robot():
         # comandar al robot hasta
         self.set_joint_target_positions(qs, precision=precision)
 
-    def moveL(self, target_position, target_orientation, precision, extended=True):
+    def moveL(self, target_position, target_orientation, precision=False, extended=True, vmax=0.3, wmax=0.2):
         q0 = self.q_current
         # resultado filtrado. Debe ser una matriz 6xn_movements
         qs = self.inversekinematics_line(q0=q0, target_position=target_position,
-                                         target_orientation=target_orientation, extended=extended)
+                                         target_orientation=target_orientation,
+                                         extended=extended, vmax=vmax, wmax=wmax)
         # command the robot
         self.set_joint_target_positions(qs, precision=precision)
 
-
-    # def compute_target_error(self, targetposition, targetorientation):
-    #     """
-    #     computes a euclidean distance in px, py, pz between target position and the robot's end effector
-    #     computes a orientation error based on the quaternion orientation vectors
-    #     """
-    #     position, orientation = self.get_end_effector_position_orientation()
-    #     error_dist = np.array(targetposition)-np.array(position)
-    #     # transform to rotation matrix and then to quaternion.
-    #     # please, beware that the orientation is not unique using alpha, beta, gamma
-    #     Rorientation = euler2rot(orientation)
-    #     Rtargetorientation = euler2rot(targetorientation)
-    #     Qorientation = rot2quaternion(Rorientation)
-    #     Qtargetorientation = rot2quaternion(Rtargetorientation)
-    #     error_orient = Qorientation[1:4]-Qtargetorientation[1:4]
-    #     return np.linalg.norm(error_dist), np.linalg.norm(error_orient)
-
+    def show_target_points(self, target_positions, target_orientations, wait_time=10):
+        frame = ReferenceFrame(clientID=self.clientID)
+        frame.start()
+        for i in range(len(target_positions)):
+            T = HomogeneousMatrix(target_positions[i], target_orientations[i])
+            frame.set_position_and_orientation(T)
+            frame.wait(wait_time)

@@ -6,6 +6,7 @@ The HomogeneousMatrix class
 @Time: April 2023
 """
 import numpy as np
+# from artelib.euler import Euler
 from artelib.tools import rot2quaternion, buildT
 from artelib import quaternion, rotationmatrix, euler, vector
 import matplotlib.pyplot as plt
@@ -33,6 +34,8 @@ class HomogeneousMatrix():
                 position = np.array(position.array)
             if isinstance(orientation, euler.Euler):
                 array = buildT(position, orientation)
+            elif isinstance(orientation, list):
+                array = buildT(position, euler.Euler(orientation))
             elif isinstance(orientation, quaternion.Quaternion):
                 array = buildT(position, orientation)
             elif isinstance(orientation, rotationmatrix.RotationMatrix):
