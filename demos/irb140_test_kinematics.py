@@ -5,6 +5,8 @@ This script does not need a Coppelia Scene.
 
 The script tests the inverse kinematics method of the ABB IRB140 robot.
 
+M different tests on random joint positions are carried out.
+
 A set of q is generated randomly and uniformly distributed on the joint ranges. For each qi, the position/orientation
 of th end effector T is computed. Next, the inverse kinematics is invoked. Given T, the inverse kinematic method returns:
 - 8 different solutions (normal case). extended = False
@@ -13,10 +15,16 @@ of th end effector T is computed. Next, the inverse kinematics is invoked. Given
 The script checks that every solution found by the inverse kinematics yields the same matrix T.
  Also, the script checks that the original q is included in the solutions found.
 
+CAUTION: This script uses directly the inverse kinematic method of the
+ABBIRB140 robot instead of the typical movement functions moveJ, moveL... etc.
+
+No connection is made with Coppelia in order to move any robot.
+
 @Authors: Arturo Gil
 @Time: April 2023
 """
 import numpy as np
+from artelib.path_planning import random_q
 from robots.abbirb140 import RobotABBIRB140
 
 
@@ -52,7 +60,7 @@ if __name__ == "__main__":
     robot = RobotABBIRB140(clientID=None)
 
     for i in range(M):
-        q = robot.random_q()
+        q = random_q(robot)
         T = robot.directkinematics(q)
         p = T.pos()
         # exclude singularities

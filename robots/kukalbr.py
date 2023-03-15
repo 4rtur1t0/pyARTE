@@ -12,6 +12,7 @@ RobotKUKALBR is a derived class of the Robot base class that particularizes some
 import numpy as np
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.inverse_kinematics import delta_q
+from artelib.path_planning import filter_path
 from artelib.seriallink import SerialRobot
 from artelib.tools import compute_kinematic_errors, minimize_w_lateral
 from robots.robot import Robot
@@ -85,7 +86,7 @@ class RobotKUKALBR(Robot):
         J, Jv, Jw = eval_symbolic_jacobian_KUKALBR(q)
         return J, Jv, Jw
 
-    def inversekinematics(self, target_position, target_orientation, q0):
+    def inversekinematics(self, target_position, target_orientation, q0, extended=None):
         """
         This a particular inverse kinematics function for this robot.
         If self.secondary is set, then the null space is used to find
@@ -118,3 +119,41 @@ class RobotKUKALBR(Robot):
                 [q, _] = self.apply_joint_limits(q)
         return q
 
+    def moveAbsJ(self, q_target, precision=True):
+        """
+        Commands the robot to the specified joint target positions.
+        The targets are filtered and the robot is not commanded whenever a single joint is out of range.
+        """
+        # remove joints out of range and get the closest joint
+        total, partial = self.check_joints(q_target)
+        if total:
+            self.set_joint_target_positions(q_target, precision=precision)
+        else:
+            print('moveABSJ ERROR: joints out of range')
+
+    def moveJ(self, target_position, target_orientation, precision=True, extended=True):
+        """
+        Commands the robot to a target position and orientation.
+        All solutions to the inverse kinematic problem are computed. The closest solution to the
+        current position of the robot q0 is used
+        """
+        q0 = self.q_current
+        # resultado filtrado. Debe ser una matriz 6xn_movements
+        # CAUTION. This calls the inverse kinematic method of the derived class
+        qs = self.inversekinematics(q0=q0, target_position=target_position,
+                                    target_orientation=target_orientation, extended=extended)
+        # remove joints out of range and get the closest joint
+        # 7 rows, 1 column of solutions
+        qs = self.filter_joint_limits(np.array([qs]).T)
+
+        # comandar al robot hasta
+        self.set_joint_target_positions(qs, precision=precision)
+
+    def moveL(self, target_position, target_orientation, precision=False, extended=True, vmax=0.8, wmax=0.2):
+        q0 = self.q_current
+        # resultado filtrado. Debe ser una matriz 6xn_movements
+        qs = self.inversekinematics_line(q0=q0, target_position=target_position,
+                                         target_orientation=target_orientation,
+                                         extended=extended, vmax=vmax, wmax=wmax)
+        # command the robot
+        self.set_joint_target_positions(qs, precision=precision)
