@@ -69,9 +69,13 @@ class Quaternion():
             q = np.hstack(([e0], e1))
             return Quaternion(q)
         # this assumes that the rightmost element is a float
-        else:
-            q = self.array*Q
+        elif isinstance(Q, int) or isinstance(Q, float):
+            s = Q # scalar
+            # q = self.array
+            q = np.dot(s, self.array)
             return Quaternion(q)
+        else:
+            raise Exception('Quaternion product does not support the leftmost operand')
 
     def __truediv__(self, Q):
         """

@@ -9,27 +9,28 @@ RobotABBIRB140 is a derived class of the Robot base class that
 @Time: April 2021
 """
 import numpy as np
-from artelib import homogeneousmatrix
+import sim
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.seriallink import SerialRobot
-from artelib.tools import buildT, normalize_angle
 from robots.robot import Robot
-import sim
 
 
 class RobotABBIRB140(Robot):
-
     def __init__(self, clientID):
         # init base class attributes
         Robot.__init__(self)
         self.clientID = clientID
+        self.DOF = 6
 
         # maximum joint speeds (rad/s)
         max_joint_speeds = np.array([180, 180, 180, 180, 180, 180, 180])
         self.max_joint_speeds = max_joint_speeds * np.pi / 180.0
-        # max and min joint ranges (an
-        joint_ranges = np.array([[-180, -90, -230, -200, -115, -400],
-                                 [180,   110,  50,  200,  115, 400]])
+        # max and min joint ranges. joints 4 and 6 can be configured as unlimited
+        # default joint limits:
+        # q1 (+-180), q2 (-90,110), q3 (-230, 50), q4 (+-200), q5 (+-115), q6 (+-400)
+        # here, the joint range for q4 has been extended
+        joint_ranges = np.array([[-180, -90, -230, -400, -115, -400],
+                                 [180,   110,  50,  400,  115, 400]])
         self.joint_ranges = joint_ranges * np.pi / 180.0
 
         self.max_iterations_inverse_kinematics = 15000
@@ -39,7 +40,8 @@ class RobotABBIRB140(Robot):
         # self.ikmethod = 'moore-penrose'
         # whether to apply joint limits in inversekinematics
         self.do_apply_joint_limits = True
-        self.epsilonq = 0.0001
+        # Sum of squared errors in joints to finish precision=True instructions
+        self.epsilonq = 0.0002
 
         # DH parameters of the robot
         self.serialrobot = SerialRobot(n=6, T0=np.eye(4), name='ABBIRB140')
@@ -71,18 +73,24 @@ class RobotABBIRB140(Robot):
         # must store the joints
         self.joints = armjoints
 
-    def inversekinematics(self, target_position, target_orientation, q0=None):
+    def inversekinematics(self, target_position, target_orientation, q0=None, extended=False):
         """
         Inverse kinematic method for the ABB IRB140 robot.
+
         Please, beware that the ABB robot corresponds to a modified version of the original robot that is included in
         Coppelia. In particular, the movement direction of joint2 and joint3 have been reversed and now match the
-        positive direction specified by the manufacturer.
+        positive direction specified by the manufacturer (ABB).
+
+        Generally, given an end effector position and orientation, 8 different solutions are provided for the inverse
+        kinematic problem. If the extended option is enabled, some extra solutions are provided. These solutions exist,
+        given that the joint ranges for q4 and q6 are [-400, 400] degrees.
         """
-        Ttarget = buildT(target_position, target_orientation)
-        Ttarget = HomogeneousMatrix(Ttarget)
+        q = []
+        Ttarget = HomogeneousMatrix(target_position, target_orientation)
 
         # Remove Ttcp, so that T_end_effector is specified
-        Ttarget = Ttarget*self.Ttcp.inv()
+        Tcp_inv = self.Ttcp.inv()
+        Ttarget = Ttarget*Tcp_inv
 
         # get the value from the robot class (last link length)
         L6 = self.serialrobot.transformations[5].d
@@ -91,47 +99,59 @@ class RobotABBIRB140(Robot):
         P = Ttarget.pos()
         # z6=z5
         z6 = np.array(Ttarget.array[0:3, 2])
-        # Pm = np.array([Px, Py, Pz]).T - L6*W
+        # Compute wrist center point
         Pm = P.T - L6 * z6.T
 
-        # if q(1) is a solution, then q(1) + pi is also a solution
+        # if q(1) is a solution, then q(1) +- pi is also a solution
         q1 = np.arctan2(Pm[1], Pm[0])
-
-        # solve for q2, q3
-        q2_1, q3_1 = self.solve_for_theta23(q1, Pm)
-        q2_2, q3_2 = self.solve_for_theta23(q1 + np.pi, Pm)
-
-        q = np.array([[q1,   q1,         q1,        q1,       q1 + np.pi,   q1 + np.pi,   q1 + np.pi,   q1 + np.pi],
-             [q2_1[0],   q2_1[0],    q2_1[1],   q2_1[1],   q2_2[0],       q2_2[0],       q2_2[1],      q2_2[1]],
-             [q3_1[0],   q3_1[0],    q3_1[1],   q3_1[1],   q3_2[0],       q3_2[0],       q3_2[1],      q3_2[1]],
-             [0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0]])
-        # make them real numbers!
-        q = np.real(q)
-
-        # normalize q1 (first row)
-        q[0, :] = normalize_angle(q[0, :])
-
-        final_q_solution = []
-        # solve the last three joints
-        # skip nan values
-        for i in range(0, 8, 2):
-            qi = q[0:6, i]
-            qip = q[0:6, i+1]
-            # if q1 or q2 or q3 are invalid (nan), then continue
-            if np.isnan(np.sum(qi)):
+        q1_a = q1 + np.pi
+        q1_b = q1 - np.pi
+        q1_a = np.arctan2(np.sin(q1_a), np.cos(q1_a))
+        q1_b = np.arctan2(np.sin(q1_b), np.cos(q1_b))
+        q1s = np.array([q1, q1_a, q1_b])
+        # Find unique values within 7 decimals
+        q1s, idx = np.unique(q1s.round(decimals=7), axis=0, return_index=True)
+        q1s = q1s[idx]
+        # for each possible solution in q1, compute q2 and q3
+        for i in range(len(q1s)):
+            # for each q1 solve for q2, q3. Caution do not normalize q2 or q3
+            q2, q3 = self.solve_for_theta23(q1s[i], Pm)
+            if np.isnan(np.sum(q2+q3)):
                 continue
-            w1, w2 = self.solve_spherical_wrist(qi, Ttarget)
-            # append the two solutions to the last three joints
-            qi[3:6] = normalize_angle(w1)
-            final_q_solution.append(qi)
-            qip[3:6] = normalize_angle(w2)
-            final_q_solution.append(qip)
-        final_q_solution = np.array(final_q_solution)
+            v1 = np.array([q1s[i], q2[0], q3[0]])
+            v2 = np.array([q1s[i], q2[1], q3[1]])
+            q.append(v1)
+            q.append(v2)
+        # make them real numbers! and transpose
+        q = np.array(q)
+        q = q.T
+        if len(q) == 0:
+            return []
+        n_solutions = q.shape[1]
+        q_total = []
+        # solve the last three joints, for each value for q1, q2 and q3
+        for i in range(n_solutions):
+            qi = q[:, i]
+            # two different orientations with q4 in [-pi, pi] and q6 in [-pi, pi]
+            # in the non extended version, two different solutions are provided
+            if not extended:
+                # append the two solutions to the last three joints
+                qwa, qwb = self.solve_spherical_wrist(qi, Ttarget)
+                q1 = np.concatenate((qi, qwa), axis=0)
+                q2 = np.concatenate((qi, qwb), axis=0)
+                q_total.append(q1)
+                q_total.append(q2)
+            # in the extended version, we consider the extended range in q4 and q6 (adding +-2pi combinations)
+            else:
+                qwa, qwb = self.solve_spherical_wrist(qi, Ttarget)
+                q1 = extend_solutions(qi, qwa)
+                q2 = extend_solutions(qi, qwb)
+                q_total.extend(q1)
+                q_total.extend(q2)
+        q_total = np.array(q_total)
         # transpose, solutions are arranged by columns
-        final_q_solution = final_q_solution.T
-        return final_q_solution
+        q_total = q_total.T
+        return q_total
 
     def solve_for_theta23(self, q1, Pm):
         # See arm geometry
@@ -160,10 +180,21 @@ class RobotABBIRB140(Robot):
             eta = np.nan
         # elbow  up
         q2_1 = np.pi / 2 - beta - gamma
-        q3_1 = np.pi / 2 - eta
         # elbow  down
         q2_2 = np.pi / 2 - beta + gamma
+        # elbow up
+        q3_1 = np.pi / 2 - eta
+        # elbow down
         q3_2 = eta - 3 * np.pi / 2
+        # joint ranges are considered and we try to restrict the solution in that case.
+        if q2_1 < self.joint_ranges[0, 1] or q2_1 > self.joint_ranges[1, 1]:
+            q2_1 = np.arctan2(np.sin(q2_1), np.cos(q2_1))
+        if q2_2 < self.joint_ranges[0, 1] or q2_2 > self.joint_ranges[1, 1]:
+            q2_2 = np.arctan2(np.sin(q2_2), np.cos(q2_2))
+        if q3_1 < self.joint_ranges[0, 2] or q3_1 > self.joint_ranges[1, 2]:
+            q3_1 = np.arctan2(np.sin(q3_1), np.cos(q3_1))
+        if q3_2 < self.joint_ranges[0, 2] or q3_2 > self.joint_ranges[1, 2]:
+            q3_2 = np.arctan2(np.sin(q3_2), np.cos(q3_2))
         return np.array([q2_1, q2_2]), np.array([q3_1, q3_2])
 
     def solve_spherical_wrist(self, q, T):
@@ -186,12 +217,9 @@ class RobotABBIRB140(Robot):
         A23 = self.serialrobot.transformations[2].dh(q[2])
         # this allows to compute the value of A34*A45*A56
         Q = A23.inv()*A12.inv()*A01.inv()*T
-
         # detect the degenerate case when q(5) = 0, this leads to zeros   % in Q13, Q23, Q31 and Q32 and Q33 = 1
         thresh = 1e-6
-
-        # thresh = 0.00001
-        # estandar solution
+        # standard solution
         if 1 - abs(Q[2, 2]) > thresh:
             q5 = np.arccos(Q[2, 2])
             # alternate solution -q5
@@ -203,6 +231,8 @@ class RobotABBIRB140(Robot):
             q6 = np.arctan2(s5 * Q[2, 1], -s5 * Q[2, 0])
             q6_ = np.arctan2(s5_ * Q[2, 1], -s5_ * Q[2, 0])
         else:
+            print(50*'!')
+            print('Degenerate')
             # degenerate solution
             q5 = np.real(np.arccos(Q[2, 2]))
             q5_ = q5
@@ -210,14 +240,74 @@ class RobotABBIRB140(Robot):
             q4_ = np.pi
             q6 = np.arctan2(Q[0, 1], -Q[1, 1])
             q6_ = q6 - np.pi
-        # two alternate solutions are found
         wrist1 = [q4, q5, q6]
         wrist2 = [q4_, q5_, q6_]
         return np.array(wrist1), np.array(wrist2)
+    #
+    # def inversekinematics_line(self, q0, target_position, target_orientation, vmax=0.5, wmax=0.5):
+    #     """
+    #     The end effector should follow a line in task space to reach target position and target orientation.
+    #     A number of points is interpolated along the line, according to the speed vmax and simulation time
+    #     (delta_time).
+    #     The same number or points are also interpolated in orientation.
+    #     Caution. target_orientationQ is specified as a quaternion
+    #     """
+    #     Ti = self.directkinematics(q0)
+    #     target_positions, target_orientations = path_planning_line(Ti.pos(), Ti.R(), target_position, target_orientation,
+    #                                                                linear_speed=vmax, angular_speed=wmax)
+    #     q_path = []
+    #     # start joint position
+    #     q = q0
+    #     # now try to reach each target position on the line
+    #     for i in range(len(target_positions)):
+    #         q = self.inversekinematics(target_position=target_positions[i],
+    #                                    target_orientation=target_orientations[i], q0=q, extended=True)
+    #         q_path.append(q)
+    #     #  IMPORTANT:  q_path includes, for each time step, all possible solutions of the inverse kinematic problem.
+    #     # for example, q_path will be a list with n movements. Each element in the list, is, again, a list including
+    #     # all possible soutions for the inverse kinematic problem of that particular position and orientaition
+    #     q_path = filter_path(self, q0, q_path)
+    #     return q_path
 
-    # def directkinematics(self, q):
-    #     T = self.serialrobot.directkinematics(q)
-    #     return homogeneousmatrix.HomogeneousMatrix(T)
+    # def inversekinematics_line(self,  target_position, target_orientation, vmax=0.5, wmax=0.5, q0=None):
+    #     """
+    #     The end effector should follow a line in task space to reach target position and target orientation.
+    #     A number of points is interpolated along the line, according to the speed vmax and simulation time
+    #     (delta_time).
+    #     The same number or points are also interpolated in orientation.
+    #     Caution. target_orientationQ is specified as a quaternion
+    #     """
+    #     Ti = self.directkinematics(q0)
+    #     target_positions, target_orientations = path_planning_line(Ti.pos(), Ti.R(), target_position, target_orientation,
+    #                                                                linear_speed=vmax, angular_speed=wmax)
+    #
+    #     q_path = []
+    #     q = q0
+    #
+    #     # now try to reach each target position on the line
+    #     for i in range(len(target_positions)):
+    #         q = self.inversekinematics(target_position=target_positions[i],
+    #                                    target_orientation=target_orientations[i], q0=q)
+    #         q_path.append(q)
+    #     return q_path
 
 
-
+def extend_solutions(qi, qw):
+    """
+    Adds combinations of +-2pi to the solutions in wrist and concatenates
+    """
+    q_total = []
+    combinations = np.array([[0, 0, 0],
+                             [2*np.pi, 0, 0],
+                             [-2*np.pi, 0, 0],
+                             [0, 0, 2 * np.pi],
+                             [0, 0, -2 * np.pi],
+                             [2 * np.pi, 0, 2 * np.pi],
+                             [-2 * np.pi, 0, -2 * np.pi],
+                             [2 * np.pi, 0, -2 * np.pi],
+                             [-2 * np.pi, 0, 2 * np.pi]])
+    for i in range(len(combinations)):
+        qwi = qw + np.array(combinations[i])
+        qt = np.concatenate((qi, qwi))
+        q_total.append(qt)
+    return q_total

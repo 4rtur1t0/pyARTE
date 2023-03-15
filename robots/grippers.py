@@ -86,28 +86,28 @@ class SuctionPad():
         The SuctionPad should have a Lua script that reads the integer signal "enable_suction_pad"
         """
         returnCode = sim.simxSetIntegerSignal(self.clientID, 'enable_suction_pad', 0, sim.simx_opmode_oneshot)
-        sim.simxSynchronousTrigger(clientID=self.clientID)
+        # sim.simxSynchronousTrigger(clientID=self.clientID)
 
     def close(self, precision=False):
         """
         activates suction
         """
         returnCode = sim.simxSetIntegerSignal(self.clientID, 'enable_suction_pad', 1, sim.simx_opmode_oneshot)
-        sim.simxSynchronousTrigger(clientID=self.clientID)
+        # sim.simxSynchronousTrigger(clientID=self.clientID)
 
     def suction_on(self):
         """
         Activates suction with an easier to understand name
         """
         returnCode = sim.simxSetIntegerSignal(self.clientID, 'enable_suction_pad', 1, sim.simx_opmode_oneshot)
-        sim.simxSynchronousTrigger(clientID=self.clientID)
+        # sim.simxSynchronousTrigger(clientID=self.clientID)
 
     def suction_off(self):
         """
         DeActivates suction with an easier to understand name
         """
         returnCode = sim.simxSetIntegerSignal(self.clientID, 'enable_suction_pad', 0, sim.simx_opmode_oneshot)
-        sim.simxSynchronousTrigger(clientID=self.clientID)
+        # sim.simxSynchronousTrigger(clientID=self.clientID)
 
 
 class YouBotGripper():

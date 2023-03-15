@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 class RotationMatrix():
     def __init__(self, *args):
         orientation = args[0]
+        self.array = None
         # constructor from a np array
         if isinstance(orientation, np.ndarray):
             self.array = orientation

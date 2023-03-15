@@ -10,20 +10,17 @@ import sim
 import numpy as np
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.inverse_kinematics import delta_q
-from artelib.path_planning import generate_target_positions, generate_target_orientations_Q, \
-    move_target_positions_obstacles, n_movements
+from artelib.path_planning import path_planning_line, filter_path
 from artelib.plottools import plot_vars, plot, plot3d
 from artelib.tools import compute_w_between_orientations, euler2rot, rot2quaternion, buildT, compute_w_between_R, \
     null_space, diff_w_central, w_central, null_space_projector, compute_kinematic_errors, rot2euler, quaternion2rot, \
     q2euler, buildT
 import matplotlib.pyplot as plt
 
-# standard Coppelia simulation time. PLEASE CHANGE THIS ACCORDINGLY
-# DELTA_TIME = 50.0/1000.0
+from robots.objects import ReferenceFrame
 
 
 class Robot():
-
     def __init__(self):
         self.clientID = None
         self.serialrobot = None
@@ -37,6 +34,8 @@ class Robot():
         self.max_iterations_joint_target = None
         # admit this error in |q|2
         self.epsilonq = None
+        # current robot joint positions
+        self.q_current = None
         self.q_path = []
 
         # max errors during computation of inverse kinematics
@@ -75,7 +74,7 @@ class Robot():
                                                        targetVelocity=qd[i],
                                                        operationMode=sim.simx_opmode_oneshot)
 
-    def set_joint_target_positions(self, q_target, precision=True):
+    def command_joint_target_positions(self, q_target, precision=True):
         """
         CAUTION: this function may only work if the "position control loop" is enabled at every arm joint.
         :param precision: whether to wait for Coppelia until que joint values are attained with precision
@@ -92,23 +91,25 @@ class Robot():
         else:
             self.wait()
         self.q_path.append(q_target)
+        # IMPORTANT: FINALLY, set the current robot position
+        self.q_current = q_target
 
-    def set_joint_positions(self, q_target):
-        """
-        CAUTION: this function may only work if the "position control loop" is enabled at every arm joint.
-        :param precision: whether to wait for Coppelia until que joint values are attained with precision
-                    precision=True: --> the method self.wait_till_joint_position_is_met is called. This method
-                    checks, at each simulation time, whether the specified joint values q_target have been achieved.
-        :return: None
-        """
-        for i in range(len(q_target)):
-            errorCode = sim.simxSetJointPosition(clientID=self.clientID,
-                                                 jointHandle=self.joints[i],
-                                                 position=q_target[i],
-                                                 operationMode=sim.simx_opmode_oneshot_wait)
-        # self.q_path.append(q_target)
+    # def set_joint_positions(self, q_target):
+    #     """
+    #     CAUTION: this function may only work if the "position control loop" is enabled at every arm joint.
+    #     :param precision: whether to wait for Coppelia until que joint values are attained with precision
+    #                 precision=True: --> the method self.wait_till_joint_position_is_met is called. This method
+    #                 checks, at each simulation time, whether the specified joint values q_target have been achieved.
+    #     :return: None
+    #     """
+    #     for i in range(len(q_target)):
+    #         errorCode = sim.simxSetJointPosition(clientID=self.clientID,
+    #                                              jointHandle=self.joints[i],
+    #                                              position=q_target[i],
+    #                                              operationMode=sim.simx_opmode_oneshot_wait)
+    #     # self.q_path.append(q_target)
 
-    def set_joint_target_trajectory(self, q_path, sampling=1, precision='last'):
+    def set_joint_target_positions(self, q_path, sampling=1, precision='last'):
         """
         A repeated call to set_joint_target_positions.
         param q: a list of qs (joint positions).
@@ -126,28 +127,34 @@ class Robot():
                     With this option, the movement of the robot may be non-smooth.
                     if wait=False: the movement is typically smoother, but the trajectory is not followed exaclty.
         """
+        if len(q_path) == 0:
+            print('set_joint_target_positions ERROR: THE PATH IS EMPTY')
+            return
+        # both commanding a single q or a path
+        if len(q_path.shape) == 1:
+            self.command_joint_target_positions(q_path, precision=True)
+            return
+        n_cols = q_path.shape[1]
         # precision must be attained on all movements
         if precision == 'all' or precision is True:
-            samples = range(0, len(q_path), sampling)
+            samples = range(0, n_cols, sampling)
             for i in samples:
-                self.set_joint_target_positions(q_path[i], precision=True)
+                self.command_joint_target_positions(q_path[:, i], precision=True)
         # precision is low on any
         elif precision == 'low':
             self.epsilonq = 1000.0 * self.epsilonq
-            for i in range(0, len(q_path), sampling):
-                self.set_joint_target_positions(q_path[i], precision=True)
+            for i in range(0, n_cols, sampling):
+                self.command_joint_target_positions(q_path[:, i], precision=True)
             self.epsilonq = self.epsilonq / 1000.0
         # precision must be attained only on the last i in the path
         elif precision == 'last':
-            samples = range(0, len(q_path), sampling)
-            for i in samples[0:-1]:
-                self.set_joint_target_positions(q_path[i], precision=False)
-            self.set_joint_target_positions(q_path[-1], precision=True)
+            for i in range(0, n_cols, sampling):
+                self.command_joint_target_positions(q_path[:, i], precision=False)
+            self.command_joint_target_positions(q_path[:, -1], precision=True)
         # precision must not be attained on any i in the path
         elif precision == 'none' or precision is False:
-            samples = range(0, len(q_path), sampling)
-            for i in samples:
-                self.set_joint_target_positions(q_path[i], precision=False)
+            for i in range(0, n_cols, sampling):
+                self.command_joint_target_positions(q_path[:, i], precision=False)
 
     def get_joint_positions(self):
         q_actual = np.zeros(len(self.joints))
@@ -196,28 +203,24 @@ class Robot():
             sim.simxSynchronousTrigger(clientID=self.clientID)
 
     def wait_till_joint_position_is_met(self, q_target):
-        n_iterations = 0
-        while True:
-            # make the simulation go forward 1 step
-            sim.simxSynchronousTrigger(clientID=self.clientID)
+        for i in range(self.max_iterations_joint_target):
             q_actual = self.get_joint_positions()
             error = np.linalg.norm(q_target-q_actual)
             # print('Current error is:', error)
-            # print('n_iterations: ', n_iterations)
+            # print('n_iterations: ', i)
             if error < self.epsilonq:
-                break
-            if n_iterations > self.max_iterations_joint_target:
-                print('ERROR, joint position could not be achieved, try increasing max_iterations')
-                print('Errors (q)')
-                print(q_target-q_actual)
-                print('Total error is:', np.linalg.norm(q_target-q_actual))
-                break
-            n_iterations += 1
+                return
+            sim.simxSynchronousTrigger(clientID=self.clientID)
+
+        print('ERROR, joint position could not be achieved, try increasing max_iterations')
+        print('Errors (q)')
+        print(q_target-q_actual)
+        print('Total error is:', np.linalg.norm(q_target-q_actual))
 
     def get_symbolic_jacobian(self, q):
         # calling derived class get_jacobian
         # should be implemented at the UR5, UR10 classes etc.
-        return self.get_symbolic_jacobian()
+        return self.get_symbolic_jacobian(q)
 
     def compute_manipulability(self, q):
         [J, _, _] = self.manipulator_jacobian(q)
@@ -263,6 +266,23 @@ class Robot():
                 valid = False
                 valid_indexes.append(False)
         return valid, valid_indexes
+
+    def filter_joint_limits(self, q):
+        """
+        Returns the solutions in q (by columns) that are within the joint ranges.
+        """
+        if len(q) > 0:
+            n_valid_solutions = q.shape[1]
+        else:
+            n_valid_solutions = 0
+        q_in_range = []
+        for i in range(n_valid_solutions):
+            qi = q[:, i]
+            total, partial = self.check_joints(qi)
+            if total:
+                q_in_range.append(qi)
+        q_in_range = np.array(q_in_range).T
+        return q_in_range
 
     def apply_joint_limits(self, q):
         """
@@ -324,31 +344,31 @@ class Robot():
             qd_corrected = qd
         return qd_corrected, valid, valid_indexes
 
-    def inversekinematics(self, target_position, target_orientation, q0):
-        """
-        Solve the inverse kinematics using a Jacobian method.
-        target_position: XYX vector in global coordinates.
-        target_orientation: A quaternion specifying orientation.
-        """
-        # build transform using position and Quaternion
-        Ttarget = HomogeneousMatrix(target_position, target_orientation)
-        q = q0
-        for i in range(0, self.max_iterations_inverse_kinematics):
-            print('Iteration number: ', i)
-            Ti = self.directkinematics(q)
-            e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
-            print('errordist, error orient: ', error_dist, error_orient)
-            if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
-                print('Converged!!')
-                break
-            J, Jv, Jw = self.manipulator_jacobian(q)
-            qd = delta_q(J, e, method=self.ikmethod)
-            q = q + qd
-            if self.do_apply_joint_limits:
-                [q, _] = self.apply_joint_limits(q)
-        return q
+    # def inversekinematics(self, q0, target_position, target_orientation):
+    #     """
+    #     Solve the inverse kinematics using a Jacobian method.
+    #     target_position: XYX vector in global coordinates.
+    #     target_orientation: A quaternion specifying orientation.
+    #     """
+    #     # build transform using position and Quaternion
+    #     Ttarget = HomogeneousMatrix(target_position, target_orientation)
+    #     q = q0
+    #     for i in range(0, self.max_iterations_inverse_kinematics):
+    #         print('Iteration number: ', i)
+    #         Ti = self.directkinematics(q)
+    #         e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
+    #         print('errordist, error orient: ', error_dist, error_orient)
+    #         if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
+    #             print('Converged!!')
+    #             break
+    #         J, Jv, Jw = self.manipulator_jacobian(q)
+    #         qd = delta_q(J, e, method=self.ikmethod)
+    #         q = q + qd
+    #         if self.do_apply_joint_limits:
+    #             [q, _] = self.apply_joint_limits(q)
+    #     return q
 
-    def inversekinematics_line(self, target_position, target_orientation, q0, vmax=1.0, sphere_position=None):
+    def inversekinematics_line(self, q0, target_position, target_orientation, vmax=0.7, wmax=0.2, extended=True):
         """
         The end effector should follow a line in task space to reach target position and target orientation.
         A number of points is interpolated along the line, according to the speed vmax and simulation time
@@ -356,42 +376,24 @@ class Robot():
         The same number or points are also interpolated in orientation.
         Caution. target_orientationQ is specified as a quaternion
         """
-        Ttarget = HomogeneousMatrix(target_position, target_orientation)
         Ti = self.directkinematics(q0)
-        Qcurrent = Ti.Q()
-        Qtarget = target_orientation.Q()
-        p_current = Ti.pos()
-        p_target = Ttarget.pos()
-        n = n_movements(p_current, p_target, vmax)
-        # generate n target positions
-        target_positions = generate_target_positions(p_current, p_target, n)
-        # generating quaternions on the line. Use SLERP to interpolate between quaternions
-        target_orientations = generate_target_orientations_Q(Qcurrent, Qtarget, len(target_positions))
-        if sphere_position is not None:
-            target_positions = move_target_positions_obstacles(target_positions, sphere_position)
-            # p_positions = np.array(target_positions)
-            # plot3d(p_positions[:, 0], p_positions[:, 1], p_positions[:, 2])
+        target_positions, target_orientations = path_planning_line(Ti.pos(), Ti.R(), target_position, target_orientation,
+                                                                   linear_speed=vmax, angular_speed=wmax)
         q_path = []
+        # start joint position
         q = q0
         # now try to reach each target position on the line
         for i in range(len(target_positions)):
             q = self.inversekinematics(target_position=target_positions[i],
-                                       target_orientation=target_orientations[i], q0=q)
+                                       target_orientation=target_orientations[i],
+                                       q0=q, extended=extended)
             q_path.append(q)
+        #  IMPORTANT:  q_path includes, for each time step, all possible solutions of the inverse kinematic problem.
+        # for example, q_path will be a list with n movements. Each element in the list, is, again, a list including
+        # all possible soutions for the inverse kinematic problem of that particular position and orientaition
+        q_path = filter_path(self, q0, q_path)
         return q_path
 
-    def inversekinematics_path(self, target_positions, target_orientations, q0):
-        """
-        Solve iteratively q for each of the target positions and orientation specified
-        """
-        q_path = []
-        q = q0
-        # now try to reach each target position on the line
-        for i in range(len(target_positions)):
-            q = self.inversekinematics(target_position=target_positions[i],
-                                       target_orientation=target_orientations[i], q0=q)
-            q_path.append(q)
-        return q_path
 
     def plot_trajectories(self):
         plt.figure()
@@ -463,19 +465,48 @@ class Robot():
                 J[:, i] = np.concatenate((z[:, i], np.zeros((3, 1))))
         return J, J[0:3, :], J[3:6, :]
 
-    # def compute_target_error(self, targetposition, targetorientation):
-    #     """
-    #     computes a euclidean distance in px, py, pz between target position and the robot's end effector
-    #     computes a orientation error based on the quaternion orientation vectors
-    #     """
-    #     position, orientation = self.get_end_effector_position_orientation()
-    #     error_dist = np.array(targetposition)-np.array(position)
-    #     # transform to rotation matrix and then to quaternion.
-    #     # please, beware that the orientation is not unique using alpha, beta, gamma
-    #     Rorientation = euler2rot(orientation)
-    #     Rtargetorientation = euler2rot(targetorientation)
-    #     Qorientation = rot2quaternion(Rorientation)
-    #     Qtargetorientation = rot2quaternion(Rtargetorientation)
-    #     error_orient = Qorientation[1:4]-Qtargetorientation[1:4]
-    #     return np.linalg.norm(error_dist), np.linalg.norm(error_orient)
+    def moveAbsJ(self, q_target, precision=True):
+        """
+        Commands the robot to the specified joint target positions.
+        The targets are filtered and the robot is not commanded whenever a single joint is out of range.
+        """
+        # remove joints out of range and get the closest joint
+        total, partial = self.check_joints(q_target)
+        if total:
+            self.set_joint_target_positions(q_target, precision=precision)
+        else:
+            print('moveABSJ ERROR: joints out of range')
 
+    def moveJ(self, target_position, target_orientation, precision=True, extended=True):
+        """
+        Commands the robot to a target position and orientation.
+        All solutions to the inverse kinematic problem are computed. The closest solution to the
+        current position of the robot q0 is used
+        """
+        q0 = self.q_current
+        # resultado filtrado. Debe ser una matriz 6xn_movements
+        # CAUTION. This calls the inverse kinematic method of the derived class
+        qs = self.inversekinematics(q0=q0, target_position=target_position,
+                                    target_orientation=target_orientation, extended=extended)
+        # remove joints out of range and get the closest joint
+        qs = filter_path(self, q0, [qs])
+
+        # comandar al robot hasta
+        self.set_joint_target_positions(qs, precision=precision)
+
+    def moveL(self, target_position, target_orientation, precision=False, extended=True, vmax=0.8, wmax=0.2):
+        q0 = self.q_current
+        # resultado filtrado. Debe ser una matriz 6xn_movements
+        qs = self.inversekinematics_line(q0=q0, target_position=target_position,
+                                         target_orientation=target_orientation,
+                                         extended=extended, vmax=vmax, wmax=wmax)
+        # command the robot
+        self.set_joint_target_positions(qs, precision=precision)
+
+    def show_target_points(self, target_positions, target_orientations, wait_time=10):
+        frame = ReferenceFrame(clientID=self.clientID)
+        frame.start()
+        for i in range(len(target_positions)):
+            T = HomogeneousMatrix(target_positions[i], target_orientations[i])
+            frame.set_position_and_orientation(T)
+            frame.wait(wait_time)

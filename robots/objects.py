@@ -14,39 +14,19 @@ from artelib import rotationmatrix
 from artelib import homogeneousmatrix
 from artelib import vector
 from artelib import euler
+from artelib.euler import Euler
+from artelib.homogeneousmatrix import HomogeneousMatrix
+from artelib.vector import Vector
 
 
-class Sphere():
-    def __init__(self, clientID):
-        self.clientID = clientID
-        self.camera = None
-
-    def start(self, name='/Sphere'):
-        errorCode, handle = sim.simxGetObjectHandle(self.clientID, name, sim.simx_opmode_oneshot_wait)
-        self.handle = handle
-
-    def set_position(self, position):
-        position = np.array(position)
-        errorCode = sim.simxSetObjectPosition(self.clientID, self.handle, -1, position, sim.simx_opmode_oneshot_wait)
-        sim.simxSynchronousTrigger(clientID=self.clientID)
-
-    def set_orientation(self, alpha_beta_gamma):
-        errorCode = sim.simxSetObjectOrientation(self.clientID, self.handle, sim.sim_handle_parent, alpha_beta_gamma, sim.simx_opmode_oneshot_wait)
-        sim.simxSynchronousTrigger(clientID=self.clientID)
-
-    def get_position(self):
-        errorCode, position = sim.simxGetObjectPosition(self.clientID, self.handle, -1, sim.simx_opmode_oneshot_wait)
-        return position
-
-
-class ReferenceFrame():
+class CoppeliaObject():
     def __init__(self, clientID):
         self.clientID = clientID
         self.handle = None
 
-    def start(self):
+    def start(self, name='/CoppeliaObject'):
         # Get the handles of the relevant objects
-        errorCode, handle = sim.simxGetObjectHandle(self.clientID, 'ReferenceFrame', sim.simx_opmode_oneshot_wait)
+        errorCode, handle = sim.simxGetObjectHandle(self.clientID, name, sim.simx_opmode_oneshot_wait)
         self.handle = handle
 
     def set_position(self, position):
@@ -106,3 +86,59 @@ class ReferenceFrame():
         errorCode, orientation = sim.simxGetObjectOrientation(self.clientID, self.handle, sim.sim_handle_parent, sim.simx_opmode_oneshot_wait)
         return orientation
 
+    def get_transform(self):
+        """
+        Returns a homogeneous transformation matrix
+        """
+        p = self.get_position()
+        o = self.get_orientation()
+        T = HomogeneousMatrix(Vector(p), Euler(o))
+        return T
+
+    def wait(self, steps=1):
+        for i in range(0, steps):
+            sim.simxSynchronousTrigger(clientID=self.clientID)
+
+
+class Sphere(CoppeliaObject):
+    def __init__(self, clientID):
+        CoppeliaObject.__init__(self, clientID=clientID)
+
+    def start(self, name='/Sphere'):
+        errorCode, handle = sim.simxGetObjectHandle(self.clientID, name, sim.simx_opmode_oneshot_wait)
+        self.handle = handle
+
+
+class ReferenceFrame(CoppeliaObject):
+    def __init__(self, clientID):
+        CoppeliaObject.__init__(self, clientID=clientID)
+
+    def start(self, name='/ReferenceFrame'):
+        # Get the handles of the relevant objects
+        errorCode, handle = sim.simxGetObjectHandle(self.clientID, name, sim.simx_opmode_oneshot_wait)
+        self.handle = handle
+
+
+class Cuboid(CoppeliaObject):
+    def __init__(self, clientID):
+        CoppeliaObject.__init__(self, clientID=clientID)
+
+    def start(self, name='/Cuboid'):
+        # Get the handles of the relevant objects
+        errorCode, handle = sim.simxGetObjectHandle(self.clientID, name, sim.simx_opmode_oneshot_wait)
+        self.handle = handle
+
+
+def get_object_transform(clientID, base_name, piece_index):
+    """
+    Returns the position and orientation of th ith Cuboid in Coppelia
+    (in the global reference frame)
+    Used to get the transformation matrix of collection of objects with consecutive indices
+    """
+    obj = CoppeliaObject(clientID)
+    if piece_index == 0:
+        name = base_name
+    else:
+        name = base_name + str(piece_index - 1)
+    obj.start(name)
+    return obj.get_transform()
