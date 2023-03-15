@@ -14,6 +14,9 @@ from artelib import rotationmatrix
 from artelib import homogeneousmatrix
 from artelib import vector
 from artelib import euler
+from artelib.euler import Euler
+from artelib.homogeneousmatrix import HomogeneousMatrix
+from artelib.vector import Vector
 
 
 class CoppeliaObject():
@@ -83,6 +86,15 @@ class CoppeliaObject():
         errorCode, orientation = sim.simxGetObjectOrientation(self.clientID, self.handle, sim.sim_handle_parent, sim.simx_opmode_oneshot_wait)
         return orientation
 
+    def get_transform(self):
+        """
+        Returns a homogeneous transformation matrix
+        """
+        p = self.get_position()
+        o = self.get_orientation()
+        T = HomogeneousMatrix(Vector(p), Euler(o))
+        return T
+
     def wait(self, steps=1):
         for i in range(0, steps):
             sim.simxSynchronousTrigger(clientID=self.clientID)
@@ -115,3 +127,18 @@ class Cuboid(CoppeliaObject):
         # Get the handles of the relevant objects
         errorCode, handle = sim.simxGetObjectHandle(self.clientID, name, sim.simx_opmode_oneshot_wait)
         self.handle = handle
+
+
+def get_object_transform(clientID, base_name, piece_index):
+    """
+    Returns the position and orientation of th ith Cuboid in Coppelia
+    (in the global reference frame)
+    Used to get the transformation matrix of collection of objects with consecutive indices
+    """
+    obj = CoppeliaObject(clientID)
+    if piece_index == 0:
+        name = base_name
+    else:
+        name = base_name + str(piece_index - 1)
+    obj.start(name)
+    return obj.get_transform()

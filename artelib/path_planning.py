@@ -194,3 +194,27 @@ def move_target_positions_obstacles(target_positions, sphere_position):
         if total_potential < 0.01:
             break
     return final_positions
+
+
+def compute_3D_coordinates(index, n_x, n_y, n_z, piece_length, piece_gap):
+    """
+    Compute 3D coordinates for cubic pieces in a 3D array.
+    Used to get 3D positions for palletizing.
+    """
+    dxy = piece_length + piece_gap
+    dz = piece_length
+    # get the indices of a n_i xn_j x n_k array
+    i, j, k = np.indices((n_z, n_x, n_y))
+    i = i.flatten()
+    j = j.flatten()
+    k = k.flatten()
+    pxyz = []
+    for n in range(n_z * n_x * n_y):
+        pxyz.append([j[n]*dxy, k[n]*dxy, i[n]*dz])
+    pxyz = np.array(pxyz)
+    if index < n_z * n_x * n_y:
+        return pxyz[index, :]
+    else:
+        print('WARNING: N PIECES IS LARGER THAN NX*NY*NZ')
+        index = index - n_z * n_x * n_y
+        return pxyz[index, :]

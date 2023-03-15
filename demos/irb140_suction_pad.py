@@ -9,34 +9,12 @@ Please open the scenes/irb140_suction_pad.ttt scene before running this script.
 import numpy as np
 from artelib.euler import Euler
 from artelib.homogeneousmatrix import HomogeneousMatrix
+from artelib.path_planning import compute_3D_coordinates
 from artelib.vector import Vector
 from robots.abbirb140 import RobotABBIRB140
 from robots.grippers import SuctionPad
 from robots.proxsensor import ProxSensor
 from robots.simulation import Simulation
-
-
-def compute_3D_coordinates(index, n_x, n_y, n_z, piece_length, piece_gap):
-    """
-    Compute 3D coordinates for cubic pieces in a 3D array.
-    """
-    dxy = piece_length + piece_gap
-    dz = piece_length
-    # get the indices of a n_i xn_j x n_k array
-    i, j, k = np.indices((n_z, n_x, n_y))
-    i = i.flatten()
-    j = j.flatten()
-    k = k.flatten()
-    pxyz = []
-    for n in range(n_z * n_x * n_y):
-        pxyz.append([j[n]*dxy, k[n]*dxy, i[n]*dz])
-    pxyz = np.array(pxyz)
-    if index < n_z * n_x * n_y:
-        return pxyz[index, :]
-    else:
-        print('WARNING: N PIECES IS LARGER THAN NX*NY*NZ')
-        index = index - n_z * n_x * n_y
-        return pxyz[index, :]
 
 
 def pick(robot, gripper):

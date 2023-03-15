@@ -203,23 +203,19 @@ class Robot():
             sim.simxSynchronousTrigger(clientID=self.clientID)
 
     def wait_till_joint_position_is_met(self, q_target):
-        n_iterations = 0
-        while True:
-            # make the simulation go forward 1 step
-            sim.simxSynchronousTrigger(clientID=self.clientID)
+        for i in range(self.max_iterations_joint_target):
             q_actual = self.get_joint_positions()
             error = np.linalg.norm(q_target-q_actual)
             # print('Current error is:', error)
-            # print('n_iterations: ', n_iterations)
+            # print('n_iterations: ', i)
             if error < self.epsilonq:
-                break
-            if n_iterations > self.max_iterations_joint_target:
-                print('ERROR, joint position could not be achieved, try increasing max_iterations')
-                print('Errors (q)')
-                print(q_target-q_actual)
-                print('Total error is:', np.linalg.norm(q_target-q_actual))
-                break
-            n_iterations += 1
+                return
+            sim.simxSynchronousTrigger(clientID=self.clientID)
+
+        print('ERROR, joint position could not be achieved, try increasing max_iterations')
+        print('Errors (q)')
+        print(q_target-q_actual)
+        print('Total error is:', np.linalg.norm(q_target-q_actual))
 
     def get_symbolic_jacobian(self, q):
         # calling derived class get_jacobian
@@ -372,7 +368,7 @@ class Robot():
     #             [q, _] = self.apply_joint_limits(q)
     #     return q
 
-    def inversekinematics_line(self, q0, target_position, target_orientation, vmax=0.3, wmax=0.2, extended=True):
+    def inversekinematics_line(self, q0, target_position, target_orientation, vmax=0.7, wmax=0.2, extended=True):
         """
         The end effector should follow a line in task space to reach target position and target orientation.
         A number of points is interpolated along the line, according to the speed vmax and simulation time
@@ -498,7 +494,7 @@ class Robot():
         # comandar al robot hasta
         self.set_joint_target_positions(qs, precision=precision)
 
-    def moveL(self, target_position, target_orientation, precision=False, extended=True, vmax=0.3, wmax=0.2):
+    def moveL(self, target_position, target_orientation, precision=False, extended=True, vmax=0.8, wmax=0.2):
         q0 = self.q_current
         # resultado filtrado. Debe ser una matriz 6xn_movements
         qs = self.inversekinematics_line(q0=q0, target_position=target_position,

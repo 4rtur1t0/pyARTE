@@ -15,7 +15,6 @@ from artelib.seriallink import SerialRobot
 from robots.robot import Robot
 
 
-
 class RobotABBIRB140(Robot):
     def __init__(self, clientID):
         # init base class attributes
@@ -41,7 +40,8 @@ class RobotABBIRB140(Robot):
         # self.ikmethod = 'moore-penrose'
         # whether to apply joint limits in inversekinematics
         self.do_apply_joint_limits = True
-        self.epsilonq = 0.0003
+        # Sum of squared errors in joints to finish precision=True instructions
+        self.epsilonq = 0.0002
 
         # DH parameters of the robot
         self.serialrobot = SerialRobot(n=6, T0=np.eye(4), name='ABBIRB140')
