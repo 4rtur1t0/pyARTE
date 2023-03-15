@@ -11,6 +11,7 @@ RobotABBIRB140 is a derived class of the Robot base class that
 import numpy as np
 import sim
 from artelib.homogeneousmatrix import HomogeneousMatrix
+from artelib.path_planning import filter_path
 from artelib.seriallink import SerialRobot
 from robots.robot import Robot
 
@@ -243,53 +244,45 @@ class RobotABBIRB140(Robot):
         wrist1 = [q4, q5, q6]
         wrist2 = [q4_, q5_, q6_]
         return np.array(wrist1), np.array(wrist2)
-    #
-    # def inversekinematics_line(self, q0, target_position, target_orientation, vmax=0.5, wmax=0.5):
-    #     """
-    #     The end effector should follow a line in task space to reach target position and target orientation.
-    #     A number of points is interpolated along the line, according to the speed vmax and simulation time
-    #     (delta_time).
-    #     The same number or points are also interpolated in orientation.
-    #     Caution. target_orientationQ is specified as a quaternion
-    #     """
-    #     Ti = self.directkinematics(q0)
-    #     target_positions, target_orientations = path_planning_line(Ti.pos(), Ti.R(), target_position, target_orientation,
-    #                                                                linear_speed=vmax, angular_speed=wmax)
-    #     q_path = []
-    #     # start joint position
-    #     q = q0
-    #     # now try to reach each target position on the line
-    #     for i in range(len(target_positions)):
-    #         q = self.inversekinematics(target_position=target_positions[i],
-    #                                    target_orientation=target_orientations[i], q0=q, extended=True)
-    #         q_path.append(q)
-    #     #  IMPORTANT:  q_path includes, for each time step, all possible solutions of the inverse kinematic problem.
-    #     # for example, q_path will be a list with n movements. Each element in the list, is, again, a list including
-    #     # all possible soutions for the inverse kinematic problem of that particular position and orientaition
-    #     q_path = filter_path(self, q0, q_path)
-    #     return q_path
 
-    # def inversekinematics_line(self,  target_position, target_orientation, vmax=0.5, wmax=0.5, q0=None):
-    #     """
-    #     The end effector should follow a line in task space to reach target position and target orientation.
-    #     A number of points is interpolated along the line, according to the speed vmax and simulation time
-    #     (delta_time).
-    #     The same number or points are also interpolated in orientation.
-    #     Caution. target_orientationQ is specified as a quaternion
-    #     """
-    #     Ti = self.directkinematics(q0)
-    #     target_positions, target_orientations = path_planning_line(Ti.pos(), Ti.R(), target_position, target_orientation,
-    #                                                                linear_speed=vmax, angular_speed=wmax)
-    #
-    #     q_path = []
-    #     q = q0
-    #
-    #     # now try to reach each target position on the line
-    #     for i in range(len(target_positions)):
-    #         q = self.inversekinematics(target_position=target_positions[i],
-    #                                    target_orientation=target_orientations[i], q0=q)
-    #         q_path.append(q)
-    #     return q_path
+    def moveAbsJ(self, q_target, precision=True):
+        """
+        Commands the robot to the specified joint target positions.
+        The targets are filtered and the robot is not commanded whenever a single joint is out of range.
+        """
+        # remove joints out of range and get the closest joint
+        total, partial = self.check_joints(q_target)
+        if total:
+            self.set_joint_target_positions(q_target, precision=precision)
+        else:
+            print('moveABSJ ERROR: joints out of range')
+
+    def moveJ(self, target_position, target_orientation, precision=True, extended=True):
+        """
+        Commands the robot to a target position and orientation.
+        All solutions to the inverse kinematic problem are computed. The closest solution to the
+        current position of the robot q0 is used
+        """
+        q0 = self.q_current
+        # resultado filtrado. Debe ser una matriz 6xn_movements
+        # CAUTION. This calls the inverse kinematic method of the derived class
+        qs = self.inversekinematics(q0=q0, target_position=target_position,
+                                    target_orientation=target_orientation, extended=extended)
+        # remove joints out of range and get the closest joint
+        qs = filter_path(self, q0, [qs])
+
+        # comandar al robot hasta
+        self.set_joint_target_positions(qs, precision=precision)
+
+    def moveL(self, target_position, target_orientation, precision=False, extended=True, vmax=0.8, wmax=0.2):
+        q0 = self.q_current
+        # resultado filtrado. Debe ser una matriz 6xn_movements
+        qs = self.inversekinematics_line(q0=q0, target_position=target_position,
+                                         target_orientation=target_orientation,
+                                         extended=extended, vmax=vmax, wmax=wmax)
+        # command the robot
+        self.set_joint_target_positions(qs, precision=precision)
+
 
 
 def extend_solutions(qi, qw):

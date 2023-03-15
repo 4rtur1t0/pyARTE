@@ -344,30 +344,6 @@ class Robot():
             qd_corrected = qd
         return qd_corrected, valid, valid_indexes
 
-    # def inversekinematics(self, q0, target_position, target_orientation):
-    #     """
-    #     Solve the inverse kinematics using a Jacobian method.
-    #     target_position: XYX vector in global coordinates.
-    #     target_orientation: A quaternion specifying orientation.
-    #     """
-    #     # build transform using position and Quaternion
-    #     Ttarget = HomogeneousMatrix(target_position, target_orientation)
-    #     q = q0
-    #     for i in range(0, self.max_iterations_inverse_kinematics):
-    #         print('Iteration number: ', i)
-    #         Ti = self.directkinematics(q)
-    #         e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
-    #         print('errordist, error orient: ', error_dist, error_orient)
-    #         if error_dist < self.max_error_dist_inversekinematics and error_orient < self.max_error_orient_inversekinematics:
-    #             print('Converged!!')
-    #             break
-    #         J, Jv, Jw = self.manipulator_jacobian(q)
-    #         qd = delta_q(J, e, method=self.ikmethod)
-    #         q = q + qd
-    #         if self.do_apply_joint_limits:
-    #             [q, _] = self.apply_joint_limits(q)
-    #     return q
-
     def inversekinematics_line(self, q0, target_position, target_orientation, vmax=0.7, wmax=0.2, extended=True):
         """
         The end effector should follow a line in task space to reach target position and target orientation.
@@ -465,43 +441,6 @@ class Robot():
                 J[:, i] = np.concatenate((z[:, i], np.zeros((3, 1))))
         return J, J[0:3, :], J[3:6, :]
 
-    def moveAbsJ(self, q_target, precision=True):
-        """
-        Commands the robot to the specified joint target positions.
-        The targets are filtered and the robot is not commanded whenever a single joint is out of range.
-        """
-        # remove joints out of range and get the closest joint
-        total, partial = self.check_joints(q_target)
-        if total:
-            self.set_joint_target_positions(q_target, precision=precision)
-        else:
-            print('moveABSJ ERROR: joints out of range')
-
-    def moveJ(self, target_position, target_orientation, precision=True, extended=True):
-        """
-        Commands the robot to a target position and orientation.
-        All solutions to the inverse kinematic problem are computed. The closest solution to the
-        current position of the robot q0 is used
-        """
-        q0 = self.q_current
-        # resultado filtrado. Debe ser una matriz 6xn_movements
-        # CAUTION. This calls the inverse kinematic method of the derived class
-        qs = self.inversekinematics(q0=q0, target_position=target_position,
-                                    target_orientation=target_orientation, extended=extended)
-        # remove joints out of range and get the closest joint
-        qs = filter_path(self, q0, [qs])
-
-        # comandar al robot hasta
-        self.set_joint_target_positions(qs, precision=precision)
-
-    def moveL(self, target_position, target_orientation, precision=False, extended=True, vmax=0.8, wmax=0.2):
-        q0 = self.q_current
-        # resultado filtrado. Debe ser una matriz 6xn_movements
-        qs = self.inversekinematics_line(q0=q0, target_position=target_position,
-                                         target_orientation=target_orientation,
-                                         extended=extended, vmax=vmax, wmax=wmax)
-        # command the robot
-        self.set_joint_target_positions(qs, precision=precision)
 
     def show_target_points(self, target_positions, target_orientations, wait_time=10):
         frame = ReferenceFrame(clientID=self.clientID)

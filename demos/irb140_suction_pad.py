@@ -21,7 +21,6 @@ def pick(robot, gripper):
     tp1 = Vector([0.6, 0.265, 0.45]) # approximation
     tp2 = Vector([0.6, 0.265, 0.193+0.04]) # pick
     to = Euler([0, np.pi, -np.pi/2])
-    # q0 = np.array([0, 0, 0, 0, 0, 0])
     robot.show_target_points([tp2], [to])
     gripper.open(precision=True)
     robot.moveJ(target_position=tp1, target_orientation=to)

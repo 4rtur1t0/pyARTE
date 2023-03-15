@@ -1,57 +1,18 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/irb140_paint_gun.ttt scene before running this script.
+Please open the scenes/irb140_paint_application.ttt scene before running this script.
 
 @Authors: Arturo Gil
 @Time: November 2022
 """
 import numpy as np
-from artelib.euler import Euler
+
+from artelib.homogeneousmatrix import HomogeneousMatrix
+from artelib.rotationmatrix import RotationMatrix
+from artelib.vector import Vector
 from robots.abbirb140 import RobotABBIRB140
 from robots.simulation import Simulation
-
-
-def filter_joint_limits(robot, q):
-    n_valid_solutions = q.shape[1]
-    q_in_range = []
-    for i in range(n_valid_solutions):
-        qi = q[:, i]
-        total, partial = robot.check_joints(qi)
-        if total:
-            q_in_range.append(qi)
-    q_in_range = np.array(q_in_range).T
-    return q_in_range
-
-
-def get_closest_to(qa, qb):
-    """
-    From a column wise list of solutions in qa, find the closest to qb.
-    """
-    n_solutions = qa.shape[1]
-    distances = []
-    for i in range(n_solutions):
-        d = np.linalg.norm(qa[:, i]-qb)
-        distances.append(d)
-    distances = np.array(distances)
-    distances = np.nan_to_num(distances, nan=np.inf)
-    idx = np.argmin(distances)
-    return qa[:, idx]
-
-
-def inverse_kinematics(robot, target_position, target_orientation, q0):
-    """
-    Find q that allows the robot to achieve the specified target position and orientaiton
-    CAUTION: target_orientation must be specified as a quaternion in the robot.inversekinematics function
-
-    caution: closest tooooo
-    """
-    q = robot.inversekinematics(target_position, target_orientation)
-    # filter in joint ranges
-    q = filter_joint_limits(robot, q)
-    # get closest solution to q0
-    q = get_closest_to(q, q0)
-    return q
 
 
 def paint():
@@ -59,9 +20,10 @@ def paint():
     clientID = simulation.start()
     robot = RobotABBIRB140(clientID=clientID)
     robot.start()
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.2]), RotationMatrix(np.eye(3))))
 
     q0 = np.array([0, 0, 0, 0, 0, 0])
-    robot.set_joint_target_positions(q0, precision=True)
+    robot.moveAbsJ(q_target=q0, precision=True)
 
     target_positions = [[0.5, -0.5, 0.6],
                         [0.5, 0.5, 0.6],
@@ -71,12 +33,10 @@ def paint():
                            [0, np.pi/2, 0],
                            [0, np.pi/2, 0],
                            [0, np.pi/2, 0]]
-    q0 = np.array([0, 0, 0, 0, 0, 0])
 
     for i in range(len(target_positions)):
-        qi = inverse_kinematics(robot=robot, target_position=target_positions[i],
-                                target_orientation=Euler(target_orientations[i]), q0=q0)
-        robot.set_joint_target_positions(qi, precision=True)
+        robot.moveJ(target_position=target_positions[i],
+                    target_orientation=target_orientations[i])
 
     simulation.stop()
 

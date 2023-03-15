@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/more/irb140_abb_conveyor_barret_hand.ttt scene before running this script.
+Please open the scenes/more/irb140.ttt scene before running this script.
 
 @Authors: Arturo Gil arturo.gil@umh.es
 @Time: April 2021
@@ -18,22 +18,20 @@ def pick_and_place_rep():
     """
     simulation = Simulation()
     clientID = simulation.start()
-    # Connect to the robot
     robot = RobotABBIRB140(clientID=clientID)
     robot.start()
-    # Connect to the gripper
     gripper = GripperRG2(clientID=clientID)
     gripper.start()
 
     q0 = np.array([0.0, 0.2, np.pi / 4, 0.1, 0.1, np.pi/2])
-    robot.set_joint_target_positions(q0, precision=True)
+    robot.moveAbsJ(q_target=q0)
     gripper.open(precision=True)
 
     q0 = np.array([0.0, 0.5, 0.25, 0.1, 0.8, np.pi / 2])
-    robot.set_joint_target_positions(q0, precision=True)
+    robot.moveAbsJ(q_target=q0, precision=True)
     gripper.close(precision=True)
     q0 = np.array([0.0, 0.2, 0, 0, 0, np.pi / 2])
-    robot.set_joint_target_positions(q0, precision=True)
+    robot.moveAbsJ(q_target=q0, precision=True)
     gripper.open(precision=True)
 
     simulation.stop()
