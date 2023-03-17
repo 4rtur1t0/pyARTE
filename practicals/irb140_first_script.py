@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     q1 = np.array([-np.pi/4, np.pi/8, np.pi/8, np.pi/4, -np.pi/4, np.pi/4])
     q2 = np.array([0, 0, 0, 0, 0, 0])
-    q3 = np.array([np.pi/8, 0, -np.pi/4, 0, 3*np.pi/2, 0])
+    q3 = np.array([np.pi/8, 0, -np.pi/4, 0, 3*np.pi/4, 0])
 
     robot.moveAbsJ(q1, precision=True)
     simulation.wait(100)

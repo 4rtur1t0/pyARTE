@@ -90,6 +90,7 @@ def place(robot, gripper, color, color_indices):
     p0 = pi + np.array([0, 0, 2.5 * piece_length])
     # Defina una matriz Tmp relativa usando p0 y una orintación
 
+    # CALCULE LA TRANSFORMACION TOTAL
     T0 = T0m*Tmp
 
     # Para mostrar los target points
