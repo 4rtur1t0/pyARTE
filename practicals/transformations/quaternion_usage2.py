@@ -7,22 +7,23 @@ Example usage of the Quaternion class
 """
 import numpy as np
 from artelib.euler import Euler
-from artelib.quaternion import Quaternion
-from artelib.rotationmatrix import Rx, Ry, Rz, RotationMatrix
+
 
 if __name__ == '__main__':
     eul = Euler([np.pi/2, np.pi/4, np.pi/2])
     R = eul.R()
     sols_euler = R.euler()
 
-    print('R: ', R)
-
-    print('Otra vez Euler', sols_euler[0])
-    print('Otra vez R.euler()', sols_euler[1])
+    print('Original Euler XYZ:', eul)
+    print('Corresponding Rotation matrix: \n', R)
+    print('Equivalent Euler angles (solution 0):', sols_euler[0])
+    print('Equivalent Euler angles (solution 1):', sols_euler[1])
 
     quat1 = eul.Q()
     quat2 = R.Q()
-    print('De Euler a un quaternion: ', quat1)
-    print('De R a un quaternion: ', quat2)
+    print('From Euler to a Quaternion: ', quat1)
+    print('From a rotation matrix to a Quaternion: ', quat2)
 
-    print(quat1.R())
+    print('And back to a Rotation matrix: \n', quat1.R())
+
+
