@@ -3,12 +3,11 @@
 """
 Please open the scenes/ur5.ttt scene before running this script.
 
-The demo presents a series of target points and uses robot.inversekinematics_line to follow the targets along a
-line in task space.
+The script calls directly the internal function inversekinematics to retrieve solutions to different positions
+and orientations
 
 @Authors: Arturo Gil
 @Time: April 2021
-
 """
 import numpy as np
 from artelib.euler import Euler
@@ -17,29 +16,30 @@ from robots.simulation import Simulation
 from robots.ur5 import RobotUR5
 
 
-def ikineline():
+def ikine():
     simulation = Simulation()
     clientID = simulation.start()
     robot = RobotUR5(clientID=clientID)
     robot.start()
     gripper = GripperRG2(clientID=clientID)
     gripper.start()
+
     target_positions = [[0.2, -0.45, 0.4],
                         [0.6, -0.2, 0.25]]
     target_orientations = [[-np.pi, 0, 0],
                            [-np.pi/2, 0, -np.pi/2]]
-    q = np.array([-np.pi/4, -np.pi/8, np.pi/2, 0.1, 0.1, 0.1])
-    robot.set_joint_target_positions(q, precision=True)
+
+    q = np.array([0, 0, 0, 0, 0, 0])
+    robot.moveAbsJ(q_target=q)
     for i in range(len(target_positions)):
-        # robot.set_target_position_orientation(target_positions[i], target_orientations[i])
-        q_path = robot.inversekinematics_line(target_position=target_positions[i],
-                                              target_orientation=Euler(target_orientations[i]), q0=q)
-        robot.set_joint_target_trajectory(q_path=q_path, precision='last')
-        q = q_path[-1]
+        q = robot.inversekinematics(target_position=target_positions[i],
+                                    target_orientation=Euler(target_orientations[i]), q0=q)
+        robot.set_joint_target_positions(q, precision=True)
 
     simulation.stop()
     robot.plot_trajectories()
 
 
 if __name__ == "__main__":
-    ikineline()
+    ikine()
+

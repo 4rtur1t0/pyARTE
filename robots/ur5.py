@@ -24,7 +24,8 @@ class RobotUR5(Robot):
         # init base class attributes
         Robot.__init__(self)
         self.clientID = clientID
-
+        self.DOF = 6
+        self.q_current = np.zeros((1, self.DOF))
         # maximum joint speeds (rad/s)
         max_joint_speeds = np.array([180, 180, 180, 180, 180, 180, 180])
         self.max_joint_speeds = max_joint_speeds * np.pi / 180.0
@@ -78,7 +79,7 @@ class RobotUR5(Robot):
         J, Jv, Jw = eval_symbolic_jacobian_UR5(q)
         return J, Jv, Jw
 
-    def inversekinematics(self, q0, target_position, target_orientation):
+    def inversekinematics(self, q0, target_position, target_orientation, extended=None):
         """
         Solve the inverse kinematics using a Jacobian method.
         target_position: XYX vector in global coordinates.
@@ -102,3 +103,41 @@ class RobotUR5(Robot):
                 [q, _] = self.apply_joint_limits(q)
         return q
 
+    def moveAbsJ(self, q_target, precision=True):
+        """
+        Commands the robot to the specified joint target positions.
+        The targets are filtered and the robot is not commanded whenever a single joint is out of range.
+        """
+        # remove joints out of range and get the closest joint
+        total, partial = self.check_joints(q_target)
+        if total:
+            self.set_joint_target_positions(q_target, precision=precision)
+        else:
+            print('moveABSJ ERROR: joints out of range')
+
+    def moveJ(self, target_position, target_orientation, precision=True):
+        """
+        Commands the robot to a target position and orientation.
+        All solutions to the inverse kinematic problem are computed. The closest solution to the
+        current position of the robot q0 is used
+        """
+        q0 = self.q_current
+        # resultado filtrado. Debe ser una matriz 6xn_movements
+        # CAUTION. This calls the inverse kinematic method of the derived class
+        qs = self.inversekinematics(q0=q0, target_position=target_position,
+                                    target_orientation=target_orientation)
+        # remove joints out of range and get the closest joint
+        # 7 rows, 1 column of solutions
+        qs = self.filter_joint_limits(np.array([qs]).T)
+
+        # comandar al robot hasta
+        self.set_joint_target_positions(qs, precision=precision)
+
+    def moveL(self, target_position, target_orientation, precision=False, vmax=0.8, wmax=0.2):
+        q0 = self.q_current
+        # resultado filtrado. Debe ser una matriz 6xn_movements
+        qs = self.inversekinematics_line(q0=q0, target_position=target_position,
+                                         target_orientation=target_orientation,
+                                         vmax=vmax, wmax=wmax)
+        # command the robot
+        self.set_joint_target_positions(qs, precision=precision)

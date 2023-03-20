@@ -128,10 +128,13 @@ if __name__ == "__main__":
     print("3 KUKA LBR")
     value = input("Please select a robot:\n")
     if value == str(1):
+        print("IRB140 SELECTED")
         robot = RobotABBIRB140(clientID=clientID)
     elif value == str(2):
+        print("UR5 SELECTED")
         robot = RobotUR5(clientID=clientID)
     else:
+        print("KUKA LBR SELECTED")
         robot = RobotKUKALBR(clientID=clientID)
 
     robot.start()

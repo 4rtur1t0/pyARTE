@@ -135,7 +135,7 @@ def filter_path(robot, q0, qs):
             print('ERROR: NO MATHEMATICAL SOLUTIONS TO THE INVERSE KINEMATICS EXIST')
             continue
         qs[i] = robot.filter_joint_limits(qs[i])
-    # fint the closest solution in a continuous path
+    # find the closest solution in a continuous path
     for i in range(len(qs)):
         # print('Movement i: ', i)
         if len(qs[i]) == 0:

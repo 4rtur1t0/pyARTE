@@ -25,6 +25,8 @@ class RobotKUKALBR(Robot):
         # init base class attributes
         Robot.__init__(self)
         self.clientID = clientID
+        self.DOF = 7
+        self.q_current = np.zeros((1, self.DOF))
         # maximum joint speeds (rad/s)
         max_joint_speeds = np.array([180, 180, 180, 180, 180, 180, 180, 180])
         self.max_joint_speeds = max_joint_speeds * np.pi / 180.0

@@ -34,7 +34,7 @@ class Robot():
         self.max_iterations_joint_target = None
         # admit this error in |q|2
         self.epsilonq = None
-        # current robot joint positions
+        # current robot joint positions. Initt to zeros
         self.q_current = None
         self.q_path = []
 
@@ -270,18 +270,28 @@ class Robot():
     def filter_joint_limits(self, q):
         """
         Returns the solutions in q (by columns) that are within the joint ranges.
+        Two behaviours are expected:
+            a) In typical industrial robots (e. g. the IRB140) a 6x8 matrix stores all solutions,
+            being each column a different solution.
+            b) In other robots, such as the UR5 a
         """
-        if len(q) > 0:
-            n_valid_solutions = q.shape[1]
-        else:
-            n_valid_solutions = 0
+        sh = q.shape
         q_in_range = []
-        for i in range(n_valid_solutions):
-            qi = q[:, i]
-            total, partial = self.check_joints(qi)
+        # filter unidimensional array
+        if len(sh) == 1:
+            total, partial = self.check_joints(q)
             if total:
-                q_in_range.append(qi)
-        q_in_range = np.array(q_in_range).T
+                q_in_range.append(q)
+            q_in_range = np.array(q_in_range).T
+        # filter bidimensional array
+        elif len(sh) == 2:
+            n_valid_solutions = q.shape[1]
+            for i in range(n_valid_solutions):
+                qi = q[:, i]
+                total, partial = self.check_joints(qi)
+                if total:
+                    q_in_range.append(qi)
+            q_in_range = np.array(q_in_range).T
         return q_in_range
 
     def apply_joint_limits(self, q):

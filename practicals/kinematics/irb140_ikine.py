@@ -6,6 +6,9 @@ Please open the scenes/irb140.ttt scene before running this script.
 The script computes the inverse kinematic of the IRB140 robot and sends joint values to Coppelia to view
 the results.
 
+In this script the instructions moveL, moveJ or moveAbsJ are not used, since the objective i to observe
+the different solutions to the inversekinematics problem.
+
 @Authors: Arturo Gil
 @Time: April 2022
 """
