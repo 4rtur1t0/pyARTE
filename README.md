@@ -14,6 +14,8 @@ Created by [Arturo Gil](http://arvc.umh.es/personal/arturo/index.php?lang=en&vis
 
 pyARTE is distributed under LGPL license.
 
+![Screenshot](screenshot.png)
+
 
 # INSTALL
 
