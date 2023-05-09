@@ -81,14 +81,7 @@ Execute ur5_move_robot.py. Use 1, 2, 3, 4, 5, 6 and the keys below to increment/
 open/close the gripper.
 
 
-##PRACTICALS
-Practical exercises are provided under the practicals directory.
-You can directly execute the practicals/solutions scripts that are provided on the develop branch.
+##SCENES
+The directory pyARTE/scenes includes a set of scenes that should be opened in Coppelia Sim in order to execute the demos or tutorials in this library.
 
-##PRACTICAL EXERCISES WITH THE LIBRARY
-http://arvc.umh.es/arte/index_en.html#practicals
-
-
-##YOUTUBE CHANNEL
-http://www.youtube.com/playlist?list=PLClKgnzRFYe72qDYmj5CRpR9ICNnQehup
 
