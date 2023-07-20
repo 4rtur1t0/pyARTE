@@ -91,13 +91,14 @@ def place(robot, gripper, i):
 
 def pick_and_place():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotABBIRB140(clientID=clientID)
+    simulation.start()
+    robot = RobotABBIRB140(simulation=simulation)
     robot.start()
-    conveyor_sensor = ProxSensor(clientID=clientID)
-    conveyor_sensor.start()
-
-    gripper = SuctionPad(clientID=clientID)
+    conveyor_sensor = ProxSensor(simulation=simulation)
+    conveyor_sensor.start(name='/conveyor/prox_sensor')
+    frame = ReferenceFrame(simulation=simulation)
+    frame.start()
+    gripper = SuctionPad(simulation=simulation)
     gripper.start()
     # set the TCP of the suction pad
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.105]), Euler([-np.pi/2, 0, 0])))

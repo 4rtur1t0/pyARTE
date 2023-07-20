@@ -129,16 +129,16 @@ if __name__ == "__main__":
     value = input("Please select a robot:\n")
     if value == str(1):
         print("IRB140 SELECTED")
-        robot = RobotABBIRB140(clientID=clientID)
+        robot = RobotABBIRB140(simulation=simulation)
     elif value == str(2):
         print("UR5 SELECTED")
-        robot = RobotUR5(clientID=clientID)
+        robot = RobotUR5(simulation=simulation)
     else:
         print("KUKA LBR SELECTED")
-        robot = RobotKUKALBR(clientID=clientID)
+        robot = RobotKUKALBR(simulation=simulation)
 
     robot.start()
-    gripper = GripperRG2(clientID=clientID)
+    gripper = GripperRG2(simulation=simulation)
     gripper.start()
     robot.set_joint_target_positions(q, precision=True)
 

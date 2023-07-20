@@ -6,29 +6,29 @@ Base Robot Class
 @Authors: Arturo Gil
 @Time: April 2021
 """
-import sim
+# import sim
 import numpy as np
 from artelib.homogeneousmatrix import HomogeneousMatrix
-from artelib.inverse_kinematics import delta_q
-from artelib.path_planning import path_planning_line, filter_path
-from artelib.plottools import plot_vars, plot, plot3d
-from artelib.tools import compute_w_between_orientations, euler2rot, rot2quaternion, buildT, compute_w_between_R, \
-    null_space, diff_w_central, w_central, null_space_projector, compute_kinematic_errors, rot2euler, quaternion2rot, \
-    q2euler, buildT
+# from artelib.inverse_kinematics import delta_q
+from artelib.path_planning import path_planning_line_factors, filter_path, time_trapezoidal_path_i, path_trapezoidal_i
+# from artelib.plottools import plot_vars, plot, plot3d
+# from artelib.tools import compute_w_between_orientations, euler2rot, rot2quaternion, buildT, compute_w_between_R, \
+#     null_space, diff_w_central, w_central, null_space_projector, compute_kinematic_errors, rot2euler, quaternion2rot, \
+#     q2euler, buildT
 import matplotlib.pyplot as plt
-
-from robots.objects import ReferenceFrame
+# from robots.objects import ReferenceFrame
+from artelib.tools import angular_w_between_quaternions
 
 
 class Robot():
-    def __init__(self):
-        self.clientID = None
+    def __init__(self, simulation):
+        self.simulation = simulation
         self.serialrobot = None
         # a list of joint handles to move the robot
         self.joints = None
         self.max_joint_speeds = None
         self.joint_ranges = None
-        # parameters of the inverse kinematics algorith
+        # parameters of the inverse kinematics algorithm
         self.max_iterations_inverse_kinematics = None
         # max iterations to achieve a joint target in coppelia
         self.max_iterations_joint_target = None
@@ -37,6 +37,7 @@ class Robot():
         # current robot joint positions. Initt to zeros
         self.q_current = None
         self.q_path = []
+        self.qd_path = []
 
         # max errors during computation of inverse kinematics
         self.max_error_dist_inversekinematics = None
@@ -70,9 +71,7 @@ class Robot():
         :return:
         """
         for i in range(len(qd)):
-            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[i],
-                                                       targetVelocity=qd[i],
-                                                       operationMode=sim.simx_opmode_oneshot)
+            self.simulation.sim.setJointTargetVelocity(self.joints[i], qd[i])
 
     def command_joint_target_positions(self, q_target, precision=True):
         """
@@ -83,9 +82,7 @@ class Robot():
         :return: None
         """
         for i in range(len(q_target)):
-            errorCode = sim.simxSetJointTargetPosition(clientID=self.clientID, jointHandle=self.joints[i],
-                                                       targetPosition=q_target[i],
-                                                       operationMode=sim.simx_opmode_oneshot)
+            self.simulation.sim.setJointTargetPosition(self.joints[i], q_target[i])
         if precision:
             self.wait_till_joint_position_is_met(q_target)
         else:
@@ -93,21 +90,6 @@ class Robot():
         self.q_path.append(q_target)
         # IMPORTANT: FINALLY, set the current robot position
         self.q_current = q_target
-
-    # def set_joint_positions(self, q_target):
-    #     """
-    #     CAUTION: this function may only work if the "position control loop" is enabled at every arm joint.
-    #     :param precision: whether to wait for Coppelia until que joint values are attained with precision
-    #                 precision=True: --> the method self.wait_till_joint_position_is_met is called. This method
-    #                 checks, at each simulation time, whether the specified joint values q_target have been achieved.
-    #     :return: None
-    #     """
-    #     for i in range(len(q_target)):
-    #         errorCode = sim.simxSetJointPosition(clientID=self.clientID,
-    #                                              jointHandle=self.joints[i],
-    #                                              position=q_target[i],
-    #                                              operationMode=sim.simx_opmode_oneshot_wait)
-    #     # self.q_path.append(q_target)
 
     def set_joint_target_positions(self, q_path, sampling=1, precision='last'):
         """
@@ -132,7 +114,7 @@ class Robot():
             return
         # both commanding a single q or a path
         if len(q_path.shape) == 1:
-            self.command_joint_target_positions(q_path, precision=True)
+            self.command_joint_target_positions(q_path, precision=precision)
             return
         n_cols = q_path.shape[1]
         # precision must be attained on all movements
@@ -160,13 +142,15 @@ class Robot():
         q_actual = np.zeros(len(self.joints))
         n = len(self.joints)
         for i in range(0, n):
-            while True:
-                error, value = sim.simxGetJointPosition(clientID=self.clientID, jointHandle=self.joints[i],
-                                                        operationMode=sim.simx_opmode_oneshot_wait)
-                if error == 0:
-                    q_actual[i] = value
-                    break
+            q_actual[i] = self.simulation.sim.getJointPosition(self.joints[i])
         return q_actual
+
+    def get_joint_speeds(self):
+        qd_actual = np.zeros(len(self.joints))
+        n = len(self.joints)
+        for i in range(0, n):
+            qd_actual[i] = self.simulation.sim.getJointVelocity(self.joints[i])
+        return qd_actual
 
     # def get_end_effector_position_orientation(self):
     #     errorCode, position = sim.simxGetObjectPosition(self.clientID, self.end_effector, -1,
@@ -191,16 +175,144 @@ class Robot():
     #                                              operationMode=sim.simx_opmode_oneshot_wait)
     #     return position, orientation
 
+    def command_zero_target_velocities(self):
+        for i in range(len(self.joints)):
+            self.simulation.sim.setJointTargetVelocity(self.joints[i], 0)
+
+    def apply_speed_joint_control(self, qs, qds):
+        """
+        Apply a set of computed speeds profiles to the joints
+        try to follow qs by applying a corrected version of qds
+        caution: additive control considering the error on each of the joints
+        """
+        n_samples = qs.shape[1]
+        # closed loop
+        k = 5.5
+        q_current = self.get_joint_positions()
+        qd_current = self.get_joint_speeds()
+        for i in range(n_samples):
+            # correct by a small amount based on the error
+            qi = qs[:, i]
+            qdi = qds[:, i]
+            eqi = qi-q_current
+            # add a small quantity based on the error on each joint
+            # (feedforward control with compensation)
+            u = qdi + k*eqi
+            self.set_joint_target_velocities(u)
+            self.simulation.client.step()
+            q_current = self.get_joint_positions()
+            qd_current = self.get_joint_speeds()
+            # append data
+            self.q_path.append(q_current)
+            self.qd_path.append(qd_current)
+
+        # # open loop
+        # for i in range(n_samples):
+        #     # correct by a small amount based on the error
+        #     qdi = qds[:, i]
+        #     self.set_joint_target_velocities(qdi)
+        #     self.simulation.client.step()
+        #
+        #     q_current = self.get_joint_positions()
+        #     qd_current = self.get_joint_speeds()
+        #     self.q_path.append(q_current)
+        #     self.qd_path.append(qd_current)
+
+
+
+        # ################################
+        # errors = []
+        # control_actions = []
+        # velocities = []
+        # n_samples = qs.shape[1]
+        # kp = self.pid_controllers[:, 0]
+        # ki = self.pid_controllers[:, 2]
+        # sei = 0
+        # # Iterate through every qi and qdi.
+        # # at each time step, perform a
+        # for i in range(n_samples):
+        #     # kp is a vector of gain controllers,
+        #     q_current = self.get_joint_positions()
+        #     qd_current = self.get_joint_speeds()
+        #     velocities.append(qd_current)
+        #     qi = qs[:, i]
+        #     # error = np.linalg.norm(qi-q_current)
+        #     # print('Error l', error)
+        #     ei = qi - q_current
+        #     sei = sei + ei
+        #     errors.append(ei)
+        #     u = np.multiply(kp, ei) + np.multiply(ki, sei)
+        #     control_actions.append(u)
+        #     # correct by a small amount based on the error
+        #     qdi = qds[:, i] + u
+        #     self.set_joint_target_velocities(qdi)
+        #     self.simulation.client.step()
+        #     self.q_path.append(q_current)
+        #     self.qd_path.append(qd_current)
+        #
+        #
+        # # errors = np.array(errors).T
+        # # plt.plot(errors.T)
+        # # plt.show()
+        # #
+        # # control_actions = np.array(control_actions).T
+        # # plt.plot(control_actions.T)
+        # # plt.show()
+        # # print('Finished')
+        # velocities = np.array(velocities).T
+        # plt.plot(velocities.T)
+        # plt.show()
+        # print('Finished')
+
+    # def start_joint_control(self, q_target):
+    #     while True:
+    #         errors = []
+    #         # for i in range(len(self.joints)):
+    #         for i in range(len(self.joints)):
+    #             error = self.control_joint(i, q_target[i])
+    #             errors.append(error)
+    #         total_error = np.linalg.norm(errors)
+    #         if total_error < 0.05:
+    #             break
+    #         self.simulation.client.step()
+    #
+    #     print('ENDED joint control')
+    #
+    # def control_joint(self, i, targetAngle):
+    #     jointAngle = self.simulation.sim.getJointPosition(self.joints[i])
+    #     error = targetAngle - jointAngle
+    #     sinAngle = np.sin(error)
+    #     cosAngle = np.cos(error)
+    #     error = np.arctan2(sinAngle, cosAngle)
+    #     vel = self.compute_target_velocity(i, error)
+    #     self.simulation.sim.setJointTargetVelocity(self.joints[i], vel)
+    #     return error
+    #
+    # def compute_target_velocity(self, i, error):
+    #     dynStepSize = 0.05
+    #     velUpperLimit = 2 * np.pi
+    #     PID_P = self.pid_controllers[i][0]
+    #     ctrl = error * PID_P
+    #     print('Error: ', error)
+    #     # Calculate the velocity needed to reach the position
+    #     # in one dynamic time step:
+    #     velocity = ctrl / dynStepSize
+    #     velocity = np.clip(velocity, -velUpperLimit, velUpperLimit)
+    #     # if velocity > velUpperLimit:
+    #     #     velocity = velUpperLimit
+    #     # if velocity < -velUpperLimit:
+    #     #     velocity = -velUpperLimit
+    #     return velocity
+
     def get_min_distance_to_objects(self):
         """
         Caution: a signal must have been added to the Coppelia Simulation (called distance_to_sphere)
         """
-        error, distance = sim.simxGetFloatSignal(self.clientID, 'min_distance_to_objects', sim.simx_opmode_oneshot_wait)
+        error, distance = self.simulation.sim.getFloatSignal('min_distance_to_objects')
         return distance
 
     def wait(self, steps=1):
-        for i in range(0, steps):
-            sim.simxSynchronousTrigger(clientID=self.clientID)
+        self.simulation.wait(steps=steps)
 
     def wait_till_joint_position_is_met(self, q_target):
         for i in range(self.max_iterations_joint_target):
@@ -210,7 +322,8 @@ class Robot():
             # print('n_iterations: ', i)
             if error < self.epsilonq:
                 return
-            sim.simxSynchronousTrigger(clientID=self.clientID)
+            self.simulation.wait()
+            # sim.simxSynchronousTrigger(clientID=self.clientID)
 
         print('ERROR, joint position could not be achieved, try increasing max_iterations')
         print('Errors (q)')
@@ -354,7 +467,7 @@ class Robot():
             qd_corrected = qd
         return qd_corrected, valid, valid_indexes
 
-    def inversekinematics_line(self, q0, target_position, target_orientation, vmax=0.7, wmax=0.2, extended=True):
+    def inversekinematics_line_simple(self, q0, target_position, target_orientation, vmax=0.7, wmax=0.2, extended=True):
         """
         The end effector should follow a line in task space to reach target position and target orientation.
         A number of points is interpolated along the line, according to the speed vmax and simulation time
@@ -380,10 +493,73 @@ class Robot():
         q_path = filter_path(self, q0, q_path)
         return q_path
 
+    def inversekinematics_line(self, q0, target_position, target_orientation, vmax=0.7, wmax=0.2, extended=True):
+        """
+        Computing a trapezoidal speed profile over the line.
+
+        path_planning_line is computed based on a set of displacements in [0, 1]
+
+        """
+        delta_time = 0.05
+        Ti = self.directkinematics(q0)
+        d = np.linalg.norm((Ti.pos()-target_position.pos()))
+        # compute time using a trapezoidal profile (as in a single joint i)
+        t_total_planning = time_trapezoidal_path_i(0, d, 0, vmax, endpoint=True)
+        t, dt, vt = path_trapezoidal_i(0, d, 0, t_total_planning, endpoint=True)
+        # plt.plot(t, dt)
+        # plt.show()
+        # plt.plot(t, vt)
+        # plt.show()
+        # a 0 to 1 factor of  interpolation
+        factors = dt/d
+        target_positions, target_orientations = path_planning_line_factors(Ti.pos(), Ti.R(),
+                                                                     target_position, target_orientation, factors=factors)
+        q_path = []
+        # start joint position
+        q = q0
+        # now try to reach each target position on the line
+        for i in range(len(factors)):
+            q = self.inversekinematics(target_position=target_positions[i],
+                                       target_orientation=target_orientations[i],
+                                       q0=q, extended=extended)
+            q_path.append(q)
+        #  IMPORTANT:  q_path includes, for each time step, all possible solutions of the inverse kinematic problem.
+        # for example, q_path will be a list with n movements. Each element in the list, is, again, a list including
+        # all possible soutions for the inverse kinematic problem of that particular position and orientaition
+        q_path = filter_path(self, q0, q_path)
+        # compute differential speed
+        qd_path = [np.zeros_like(q0)]
+        for i in range(len(factors)-1):
+            qi = q_path[:, i]
+            qj = q_path[:, i+1]
+            qd = (qj - qi)/delta_time
+            qd_path.append(qd)
+        q_path = np.array(q_path)
+        qd_path = np.array(qd_path).T
+
+        # # now, given, q_path, compute the joints speed based on the Jacobian
+        # v= target_position.pos() - Ti.pos()
+        # unit_v = v / np.linalg.norm(v)
+        # Qcurrent = Ti.Q()
+        # Qtarget = target_orientation.Q()
+        # w = angular_w_between_quaternions(Qcurrent, Qtarget, t_total_planning)
+        #
+        # for i in range(len(q_path)):
+        #     qi = q_path[i]
+        #     vi = vt[i]*unit_v
+        #     wi = w
+        #     J = self.manipulator_jacobian(qi)
+        # plt.plot(t, q_path.T)
+        # plt.show()
+        # plt.plot(t, qd_path.T)
+        # plt.show()
+        return q_path, qd_path
+
 
     def plot_trajectories(self):
         plt.figure()
         q_path = np.array(self.q_path)
+        qd_path = np.array(self.qd_path)
         if len(q_path) == 0:
             return
         sh = q_path.shape
@@ -391,6 +567,12 @@ class Robot():
             plt.plot(q_path[:, i], label='q' + str(i + 1))
         plt.legend()
         plt.title('JOINT TRAJECTORIES')
+        plt.show(block=True)
+        # Now plot speeds
+        for i in range(0, sh[1]):
+            plt.plot(qd_path[:, i], label='qd' + str(i + 1))
+        plt.legend()
+        plt.title('JOINT VELOCITIES')
         plt.show(block=True)
 
     def get_trajectories(self):
@@ -451,11 +633,64 @@ class Robot():
                 J[:, i] = np.concatenate((z[:, i], np.zeros((3, 1))))
         return J, J[0:3, :], J[3:6, :]
 
+    def path_plan_isochronous(self, q_current, q_target, qdmax):
+        """
+        Plan an isochronous path in joint coordinates considering only a continuous speed.
+        The slowest time is computed based on the total joint movement (rad) and the joint speeds.
+        """
+        # time at full speed
+        t_times = np.array(q_target)-np.array(q_current)
+        for i in range(len(self.joints)):
+            t_times[i] = np.abs(t_times[i])/(qdmax*self.max_joint_speeds[i])
+        # find the slowest
+        t_planning = np.amax(t_times)
+        # compute the max number of samples
+        n_samples = int(np.round(t_planning/0.05))
+        # plan speeds (constant speed), beware of the simplification
+        qds = []
+        # plan at a factor of the max
+        qdi = (1/t_planning)*(np.array(q_target)-np.array(q_current))
+        for i in range(n_samples):
+            qds.append(qdi)
+        # plan joints considering constant speed at each joint
+        qs = []
+        for i in range(len(self.joints)):
+            qit = np.linspace(q_current[i], q_target[i], n_samples)
+            qs.append(qit)
+        qs = np.array(qs)
+        qds = np.array(qds).T
+        return qs, qds
 
-    def show_target_points(self, target_positions, target_orientations, wait_time=10):
-        frame = ReferenceFrame(clientID=self.clientID)
-        frame.start()
-        for i in range(len(target_positions)):
-            T = HomogeneousMatrix(target_positions[i], target_orientations[i])
-            frame.set_position_and_orientation(T)
-            frame.wait(wait_time)
+    def path_plan_isochronous_trapezoidal(self, q_target, qdfactor, endpoint):
+        """
+        Plan an isochronous path in joint coordinates considering only a continuous speed.
+        The slowest time is computed based on the total joint movement (rad) and the joint speeds.
+        endpoint = True --> stopping (zero speed) at q_target
+        endpoint = False --> will keep speed
+        """
+        # get current positions and speeds
+        q_current = self.get_joint_positions()
+        qd_current = self.get_joint_speeds()
+        # find the time to complete the movement considering that
+        # each joint works at a factor of its max speed
+        t_times = []
+        for i in range(len(self.joints)):
+            ttotali = time_trapezoidal_path_i(q_current[i], q_target[i], qd_current[i], qdfactor*self.max_joint_speeds[i], endpoint=endpoint)
+            t_times.append(ttotali)
+        t_times = np.array(t_times)
+        # find max speed an set as global time for planning
+        t_total_planning = np.amax(t_times)
+        qs = []
+        qds = []
+        for i in range(len(self.joints)):
+            t, qti, qdti = path_trapezoidal_i(q_current[i], q_target[i], qd_current[i],
+                                              t_total_planning, endpoint=endpoint)
+            qs.append(qti)
+            qds.append(qdti)
+            # plt.plot(t, qti)
+            # plt.show()
+            # plt.plot(t, qdti)
+            # plt.show()
+        qs = np.array(qs)
+        qds = np.array(qds)
+        return qs, qds

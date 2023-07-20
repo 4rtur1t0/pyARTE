@@ -68,7 +68,10 @@ def interpolate_target_positions(p_current, p_target, n):
     """
     Generate n points between the current and target positions p_current and p_target
     """
-    tt = np.linspace(0, 1, int(n))
+    if isinstance(n, int):
+        tt = np.linspace(0, 1, int(n))
+    else:
+        tt = n
     target_positions = []
     p_current = np.array(p_current)
     p_target = np.array(p_target)
@@ -82,9 +85,12 @@ def interpolate_target_orientations(abc_current, abc_target, n):
     """
     Generate a set of interpolated orientations. The initial Euler angles are converted to Quaternions
     """
+    if isinstance(n, int):
+        tt = np.linspace(0, 1, int(n))
+    else:
+        tt = n
     Q1 = abc_current.Q()
     Q2 = abc_target.Q()
-    tt = np.linspace(0, 1, int(n))
     target_orientations = []
     for t in tt:
         Q = slerp(Q1, Q2, t)
@@ -95,10 +101,15 @@ def interpolate_target_orientations(abc_current, abc_target, n):
 def interpolate_target_orientations_Q(Q1, Q2, n):
     """
     Generate a set of n quaternions between Q1 and Q2. Use SLERP to find an interpolation between them.
+    Caution: if n is an int, then, n equally spaced orientations are placed between Q1 and Q2.
+    if n is a list, it is assumed that it is a list of factors for slerp in [0, 1]
     """
+    if isinstance(n, int):
+        tt = np.linspace(0, 1, int(n))
+    else:
+        tt = n
     Q1 = Q1.Q()
     Q2 = Q2.Q()
-    tt = np.linspace(0, 1, int(n))
     target_orientations = []
     for t in tt:
         Q = slerp(Q1, Q2, t)
@@ -148,7 +159,7 @@ def filter_path(robot, q0, qs):
     return q_traj
 
 
-def path_planning_line(current_position, current_orientation, target_position, target_orientation,
+def path_planning_line_constant_speed(current_position, current_orientation, target_position, target_orientation,
                        linear_speed=1.0, angular_speed=0.5):
     """
     Plan a path along a line with linear interpolation between positions and orientations.
@@ -172,6 +183,25 @@ def path_planning_line(current_position, current_orientation, target_position, t
     # generating quaternions on the line. Use SLERP to interpolate between quaternions
     target_orientations = interpolate_target_orientations_Q(Qcurrent, Qtarget, n)
     return target_positions, target_orientations
+
+
+def path_planning_line_factors(current_position, current_orientation, target_position, target_orientation, factors):
+    """
+    Plan a path along a line with linear interpolation between positions and orientations.
+    """
+    Ti = HomogeneousMatrix(current_position, current_orientation)
+    Ttarget = HomogeneousMatrix(target_position, target_orientation)
+    p_current = Ti.pos()
+    Qcurrent = Ti.Q()
+    p_target = Ttarget.pos()
+    Qtarget = target_orientation.Q()
+
+    # generate n target positions
+    target_positions = interpolate_target_positions(p_current, p_target, factors)
+    # generating quaternions on the line. Use SLERP to interpolate between quaternions
+    target_orientations = interpolate_target_orientations_Q(Qcurrent, Qtarget, factors)
+    return target_positions, target_orientations
+
 
 
 def move_target_positions_obstacles(target_positions, sphere_position):
@@ -218,3 +248,91 @@ def compute_3D_coordinates(index, n_x, n_y, n_z, piece_length, piece_gap):
         print('WARNING: N PIECES IS LARGER THAN NX*NY*NZ')
         index = index - n_z * n_x * n_y
         return pxyz[index, :]
+
+
+def path_trapezoidal_i(qA, qB, qdA, ttotal, endpoint=False):
+    delta_time = 0.05
+    if endpoint:
+        Ta = 0.2
+        Td = 0.2
+        qdB = 0
+        # Waypoint CaseA
+        Tcte = ttotal - Ta - Td
+        if Tcte <= 0:
+            Tcte = 0
+        qdcte = (qB - qA - 0.5 * (qdA * Ta + qdB * Td)) / (Tcte + 0.5 * (Ta + Td))
+    else:
+        Ta = 0.2
+        Td = 0.2
+        # Waypoint CaseA
+        Tcte = ttotal - Ta - Td
+        if Tcte <= 0:
+            Tcte = 0
+        qdcte = (qB - qA - 0.5*qdA*Ta)/(Tcte + Td + 0.5*Ta)
+        qdB = qdcte
+
+    # the two waypoints in the trapezoidal profile
+    q1 = qA + qdA * Ta + 0.5 * (qdcte - qdA) * Ta
+    q2 = q1 + qdcte * Tcte
+    # matrix of restrictions to match qa, qdA, qb, qdB and qdcte
+    A = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0],
+                  [0, 1, 0, 0, 0, 0, 0, 0, 0],
+                  [1, Ta, Ta**2, 0, 0, 0, 0, 0, 0],
+                  [0, 0, 0, 1, Ta, Ta**2, 0, 0, 0],
+                  [0, 0, 0, 0, 1, 2*Ta, 0, 0, 0],
+                  [0, 0, 0, 1, (Ta+Tcte), (Ta+Tcte)**2, 0, 0, 0],
+                  [0, 0, 0, 0, 0, 0, 1, (Ta+Tcte), (Ta+Tcte)**2],
+                  [0, 0, 0, 0, 0, 0, 0, 1, 2*(Ta+Tcte)],
+                  [0, 0, 0, 0, 0, 0, 1, ttotal, ttotal**2]])
+    # print(A)
+    Q = np.array([qA, qdA, q1,
+                  q1, qdcte, q2,
+                  q2, qdcte, qB])
+    k = np.dot(np.linalg.inv(A), Q)
+    # in the previous function time_path, ttotal is a factor of delta_time
+    n_samples = int(np.round(ttotal/delta_time))
+    t = np.linspace(0, ttotal, n_samples)
+    qt = []
+    qdt = []
+    for ti in t:
+        if ti <= Ta:
+            qt.append(k[0] + k[1]*ti + k[2]*ti**2)
+            qdt.append(k[1] + 2*k[2]*ti)
+        elif Ta < ti <= Ta+Tcte:
+            qt.append(k[3] + k[4] * ti + k[5] * ti ** 2)
+            qdt.append(k[4] + 2 * k[5] * ti)
+        else:
+            qt.append(k[6] + k[7] * ti + k[8] * ti ** 2)
+            qdt.append(k[7] + 2 * k[8] * ti)
+    return t, np.array(qt), np.array(qdt)
+
+
+def time_trapezoidal_path_i(qA, qB, qdA, qdmax, endpoint=False):
+    """
+    Computes the time needed for a trapezoidal speed profile for joint i.
+    The joint must move form joint position qA to joint position qB
+    The starting speed at position qA is qdA.
+    The joint is assumed to move at a max speed of qdmax.
+    In case of an endpoint
+    """
+    delta_time = 0.05
+    # and end point with three segments
+    if endpoint:
+        Ta = 0.2
+        Td = 0.2
+        qdB = 0
+    # Waypoint Case
+    else:
+        Ta = 0.2
+        Td = 0.2
+        qdB = qdmax
+    Tcte = (np.abs(qB - qA) - 0.5 * (qdA + qdmax)*Ta - 0.5 * (qdB + qdmax)*Td) / qdmax
+    # if the time at constant speed is negative, then clip to zero
+    if Tcte <= 0:
+        Tcte = 0
+    # compute total time
+    ttotal = Tcte + Ta + Td
+    # round to next sample time
+    n = np.floor(ttotal/delta_time)+1
+    ttotal = delta_time*n
+    return ttotal

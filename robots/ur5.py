@@ -8,7 +8,7 @@ RobotUR5 is a derived class of the Robot base class
 @Authors: Arturo Gil
 @Time: April 2021
 """
-import sim
+# import sim
 import numpy as np
 from artelib import homogeneousmatrix
 from artelib.homogeneousmatrix import HomogeneousMatrix
@@ -20,10 +20,10 @@ from kinematics.kinematics_ur5 import eval_symbolic_jacobian_UR5
 
 
 class RobotUR5(Robot):
-    def __init__(self, clientID):
+    def __init__(self, simulation):
         # init base class attributes
-        Robot.__init__(self)
-        self.clientID = clientID
+        Robot.__init__(self, simulation=simulation)
+        # self.clientID = clientID
         self.DOF = 6
         self.q_current = np.zeros((1, self.DOF))
         # maximum joint speeds (rad/s)

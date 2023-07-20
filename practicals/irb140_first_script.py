@@ -14,21 +14,18 @@ from robots.simulation import Simulation
 if __name__ == "__main__":
     # Start simulation
     simulation = Simulation()
-    clientID = simulation.start()
+    simulation.start()
     # Connect to the robot
-    robot = RobotABBIRB140(clientID=clientID)
+    robot = RobotABBIRB140(simulation=simulation)
     robot.start()
 
     q1 = np.array([-np.pi/4, np.pi/8, np.pi/8, np.pi/4, -np.pi/4, np.pi/4])
-    q2 = np.array([0, 0, 0, 0, 0, 0])
-    q3 = np.array([np.pi/8, 0, -np.pi/4, 0, 3*np.pi/4, 0])
+    q2 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    q3 = np.array([np.pi/8, 0, -np.pi/4, 0, -np.pi/4, 0])
 
-    robot.moveAbsJ(q1, precision=True)
-    simulation.wait(100)
-    robot.moveAbsJ(q2, precision=True)
-    simulation.wait(100)
-    robot.moveAbsJ(q3, precision=True)
-    simulation.wait(100)
+    robot.moveAbsJ(q1, endpoint=True)
+    robot.moveAbsJ(q2, endpoint=True)
+    robot.moveAbsJ(q3, endpoint=True)
     # Stop arm and simulation
     simulation.stop()
 

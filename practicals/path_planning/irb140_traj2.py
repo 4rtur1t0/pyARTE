@@ -15,20 +15,21 @@ from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.rotationmatrix import RotationMatrix
 from artelib.vector import Vector
 from robots.abbirb140 import RobotABBIRB140
+from robots.objects import ReferenceFrame
 from robots.simulation import Simulation
 
 
 if __name__ == "__main__":
-    # Start simulation
     simulation = Simulation()
     clientID = simulation.start()
-    # Connect to the robot
-    robot = RobotABBIRB140(clientID=clientID)
+    robot = RobotABBIRB140(simulation=simulation)
     robot.start()
     # set the TCP of the RG2 gripper
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
+    frame = ReferenceFrame(simulation=simulation)
+    frame.start()
 
-    q0 = np.array([0, 0, 0, 0, -np.pi / 2, 0])
+    q0 = np.array([-np.pi/4, -np.pi/4, np.pi/8, -np.pi/4, np.pi / 4, -np.pi/4])
     target_positions = [Vector([0.6, -0.5, 0.8]),
                         Vector([0.6, -0.5, 0.3]),
                         Vector([0.6, 0.5, 0.3]),
@@ -41,11 +42,14 @@ if __name__ == "__main__":
                            Euler([0, np.pi / 2, 0])]
 
     # mostrar en Coppelia los target points anteriores
-    robot.show_target_points(target_positions, target_orientations, wait_time=1)
-
+    frame.show_target_points(target_positions, target_orientations, wait_time=1)
+    robot.set_joint_target_velocities([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     robot.moveAbsJ(q0, precision=True)
     for i in range(len(target_positions)):
-        robot.moveL(target_position=target_positions[i], target_orientation=target_orientations[i], precision=False)
+        frame.show_target_point(target_positions[i], target_orientations[i], wait_time=1)
+        robot.moveL(target_position=target_positions[i], target_orientation=target_orientations[i],
+                    precision=False,
+                    vmax=1.0)
 
     # Stop arm and simulation
     simulation.stop()

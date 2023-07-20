@@ -17,7 +17,7 @@ from robots.simulation import Simulation
 if __name__ == "__main__":
     simulation = Simulation()
     clientID = simulation.start()
-    frame = ReferenceFrame(clientID=clientID)
+    frame = ReferenceFrame(simulation=simulation)
     frame.start()
 
     # Change position and orientation of the frame

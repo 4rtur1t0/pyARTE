@@ -8,28 +8,35 @@ Classes to manage a camera in Coppelia simulations (a vision sensor)
 @Time: April 2021
 
 """
-import sim
-import time
+# import sim
+# import time
 import numpy as np
 from PIL import Image, ImageOps
+import cv2
 
 
 class Camera():
-    def __init__(self, clientID):
-        self.clientID = clientID
+    def __init__(self, simulation):
+        self.simulation = simulation
         self.camera = None
 
     def start(self, name='camera'):
-        errorCode, camera = sim.simxGetObjectHandle(self.clientID, name, sim.simx_opmode_oneshot_wait)
+        camera = self.simulation.sim.getObject(name)
         self.camera = camera
 
     def get_image(self):
         print('Capturing image of vision sensor ')
-        errorCode, resolution, image = sim.simxGetVisionSensorImage(self.clientID, self.camera, 0,
-                                                                    sim.simx_opmode_oneshot_wait)
+        # resolution, image = self.simulation.sim.getVisionSensorImg(self.camera, 0)
+        image, resX, resY = self.simulation.sim.getVisionSensorCharImage(self.camera)
+        image = np.frombuffer(image, dtype=np.uint8).reshape(resY, resX, 3)
         # return image in openCV format.
-        image = np.array(image, dtype=np.uint8)
-        image.resize([resolution[1], resolution[0], 3])
+        # image = np.array(image, dtype=np.uint8)
+        # image.resize([resolution[1], resolution[0], 3])
+        # image = cv2.flip(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), 0)
+        image = cv2.flip(image, 0)
+        # image.resize([resY, resX, 3])
+        # cv2.imshow('', image)
+        # cv2.waitKey(1)
         print('Image captured!')
         return image
 

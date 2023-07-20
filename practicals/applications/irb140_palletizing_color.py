@@ -37,12 +37,12 @@ def find_color(robot, camera):
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
     robot.moveAbsJ(q0)
     robot.moveJ(target_position=tp1, target_orientation=to)
-    robot.moveL(target_position=tp2, target_orientation=to)
+    robot.moveL(target_position=tp2, target_orientation=to, precision=True)
     # capture an image and returns the closest color
     print('get_image')
     color = camera.get_color_name()
     print('Piece is: ', color)
-    robot.moveL(target_position=tp1, target_orientation=to)
+    robot.moveL(target_position=tp1, target_orientation=to, precision=True)
     return color
 
 
@@ -71,7 +71,7 @@ def place(robot, gripper, color):
         tp = Vector([0.5, -0.5, 0.5])  # pallet R base position
 
     to = Euler([0, np.pi, 0])
-    q0 = np.array([0, 0, 0, 0, 0, 0])
+    q0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     robot.moveAbsJ(q0)
     robot.moveJ(target_position=tp, target_orientation=to)
     tp = tp + Vector(np.array([0, 0, -0.05]))
@@ -82,21 +82,21 @@ def place(robot, gripper, color):
 def pick_and_place():
     # Start simulation
     simulation = Simulation()
-    clientID = simulation.start()
+    simulation.start()
     # Connect to the robot
-    robot = RobotABBIRB140(clientID=clientID)
-    robot.start()
+    robot = RobotABBIRB140(simulation=simulation)
+    robot.start(base_name='/IRB140')
     # Connect to the proximity sensor
-    conveyor_sensor = ProxSensor(clientID=clientID)
-    conveyor_sensor.start()
+    conveyor_sensor = ProxSensor(simulation=simulation)
+    conveyor_sensor.start(name='/conveyor/prox_sensor')
     # Connect to the gripper
-    gripper = GripperRG2(clientID=clientID)
-    gripper.start()
+    gripper = GripperRG2(simulation=simulation)
+    gripper.start(name='/IRB140/RG2/RG2_openCloseJoint')
     # set the TCP of the RG2 gripper
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
     # Connect a camera to obtain images
-    camera = Camera(clientID=clientID)
-    camera.start()
+    camera = Camera(simulation=simulation)
+    camera.start(name='/IRB140/RG2/camera')
 
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
     robot.moveAbsJ(q0, precision=True)

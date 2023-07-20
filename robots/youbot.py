@@ -23,15 +23,19 @@ class YouBotRobot(Robot):
         self.wheeljoints = None
         self.joints = None
         self.base = None
+        self.dummy = None
         self.gripper = None
         self.joint_directions = None
         # complete all data from base class
         self.epsilonq = 0.005
+        self.r = 0.045 # mecanum wheel radius/swedish
+        # self.b =
 
     def start(self, base_name='/youBot', joint_name='youBotArmJoint'):
         armjoints = []
         # Get the handles of the relevant objects
         errorCode, robotbase = sim.simxGetObjectHandle(self.clientID, base_name, sim.simx_opmode_oneshot_wait)
+        errorCode, youbotref = sim.simxGetObjectHandle(self.clientID, '/youBot/youBot_ref', sim.simx_opmode_oneshot_wait)
         # handles to the wheels
         errorCode, fl = sim.simxGetObjectHandle(self.clientID, base_name + '/rollingJoint_fl',
                                                 sim.simx_opmode_oneshot_wait)
@@ -64,31 +68,43 @@ class YouBotRobot(Robot):
         self.wheeljoints = wheeljoints
         self.joints = armjoints
         self.base = robotbase
-        # self.gripper = gripper
+        self.dummy = youbotref
         self.joint_directions = [1, -1, -1, -1, 1]
 
-
-    def set_base_speed(self, forwardspeed, lefrigthspeed, rotspeed):
+    def set_base_speed(self, forwardspeed, leftrigthspeed, rotspeed):
         """
         Given a speed in forward/backward direction
         - left/right directino
         and - rotation speed
         Computes the speeds of each wheel so a to apply the commanded speed to the robot base.
         """
-
+        # B = np.array([b+d/r])
+        # V = np.array([forwardspeed, leftrigthspeed, rotspeed])
+        # w = np.dot(B, V)
         error = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[0],
-                                               targetVelocity=-forwardspeed - lefrigthspeed - rotspeed,
+                                               targetVelocity=-forwardspeed - leftrigthspeed - rotspeed,
                                                operationMode=sim.simx_opmode_oneshot)
         error = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[1],
-                                               targetVelocity=-forwardspeed + lefrigthspeed - rotspeed,
+                                               targetVelocity=-forwardspeed + leftrigthspeed - rotspeed,
                                                operationMode=sim.simx_opmode_oneshot)
         error = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[2],
-                                               targetVelocity=-forwardspeed - lefrigthspeed + rotspeed,
+                                               targetVelocity=-forwardspeed - leftrigthspeed + rotspeed,
                                                operationMode=sim.simx_opmode_oneshot)
         error = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[3],
-                                               targetVelocity=-forwardspeed + lefrigthspeed + rotspeed,
+                                               targetVelocity=-forwardspeed + leftrigthspeed + rotspeed,
                                                operationMode=sim.simx_opmode_oneshot)
 
 
 
 
+    def get_true_position_and_orientation(self):
+        error, position = sim.simxGetObjectPosition(clientID=self.clientID,
+                                             objectHandle=self.dummy,
+                                             relativeToObjectHandle=-1,
+                                             operationMode=sim.simx_opmode_oneshot_wait)
+
+        error, orientation = sim.simxGetObjectOrientation(clientID=self.clientID,
+                                             objectHandle=self.dummy,
+                                             relativeToObjectHandle=-1,
+                                             operationMode=sim.simx_opmode_oneshot_wait)
+        return position, orientation
