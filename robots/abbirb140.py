@@ -250,7 +250,7 @@ class RobotABBIRB140(Robot):
         wrist2 = [q4_, q5_, q6_]
         return np.array(wrist1), np.array(wrist2)
 
-    def moveAbsJ(self, q_target, qdfactor=1.0, endpoint=True):
+    def moveAbsJ(self, q_target, qdfactor=1.0, precision=True, endpoint=True):
         """
         Commands the robot to the specified joint target positions.
         The targets are filtered and the robot is not commanded whenever a single joint is out of range.
@@ -262,10 +262,13 @@ class RobotABBIRB140(Robot):
             qs, qds = self.path_plan_isochronous_trapezoidal(q_target, qdfactor=qdfactor, endpoint=endpoint)
             # apply the computed profile in joint and speeds
             self.apply_speed_joint_control(qs, qds)
+            if precision:
+                self.apply_speed_joint_control_refine(qs[:, -1])
+                self.command_zero_target_velocities()
         else:
             print('moveABSJ ERROR: target joints out of range')
 
-    def moveJ(self, target_position, target_orientation, qdfactor = 1.0, endpoint=True, extended=True):
+    def moveJ(self, target_position, target_orientation, qdfactor = 1.0, endpoint=True, extended=True, precision=True):
         """
         Commands the robot to a target position and orientation.
         All solutions to the inverse kinematic problem are computed. The closest solution to the
@@ -287,15 +290,23 @@ class RobotABBIRB140(Robot):
         qs, qds = self.path_plan_isochronous_trapezoidal(q_target, qdfactor=qdfactor, endpoint=endpoint)
         # apply the computed profile in joint and speeds
         self.apply_speed_joint_control(qs, qds)
+        if precision:
+            self.apply_speed_joint_control_refine(qs[:, -1])
+            self.command_zero_target_velocities()
+        # if endpoint:
+        #     self.command_zero_target_velocities()
 
 
-    def moveL(self, target_position, target_orientation, endpoint=False, extended=True, vmax=0.8, wmax=0.2):
+    def moveL(self, target_position, target_orientation, endpoint=False, extended=True, vmax=0.8, wmax=0.2, precision=True):
         q0 = self.get_joint_positions()
         # resultado filtrado. Debe ser una matriz 6xn_movements
         qs, qds = self.inversekinematics_line(q0=q0, target_position=target_position,
-                                         target_orientation=target_orientation,
-                                         extended=extended, vmax=vmax, wmax=wmax)
+                                              target_orientation=target_orientation,
+                                              extended=extended, vmax=vmax, wmax=wmax)
         self.apply_speed_joint_control(qs, qds)
+        if precision:
+            self.apply_speed_joint_control_refine(qs[:, -1])
+            self.command_zero_target_velocities()
 
 
 

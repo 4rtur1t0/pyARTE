@@ -22,10 +22,14 @@ if __name__ == "__main__":
     q1 = np.array([-np.pi/4, np.pi/8, np.pi/8, np.pi/4, -np.pi/4, np.pi/4])
     q2 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     q3 = np.array([np.pi/8, 0, -np.pi/4, 0, -np.pi/4, 0])
+    q4 = np.array([0, 0, 0, 0, np.pi / 2, 0])
 
-    robot.moveAbsJ(q1, endpoint=True)
-    robot.moveAbsJ(q2, endpoint=True)
-    robot.moveAbsJ(q3, endpoint=True)
+    # robot.moveAbsJ(q1, endpoint=True)
+    # robot.moveAbsJ(q2, endpoint=True)
+    # robot.moveAbsJ(q3, endpoint=True)
+    robot.moveAbsJ(q4, endpoint=True, precision=True)
+    q = robot.get_joint_positions()
+    e = q-q3
     # Stop arm and simulation
     simulation.stop()
 

@@ -44,12 +44,12 @@ if __name__ == "__main__":
     # mostrar en Coppelia los target points anteriores
     frame.show_target_points(target_positions, target_orientations, wait_time=1)
     robot.set_joint_target_velocities([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    robot.moveAbsJ(q0, precision=True)
+    robot.moveAbsJ(q0, endpoint=True)
     for i in range(len(target_positions)):
         frame.show_target_point(target_positions[i], target_orientations[i], wait_time=1)
         robot.moveL(target_position=target_positions[i], target_orientation=target_orientations[i],
-                    precision=False,
-                    vmax=1.0)
+                    endpoint=True,
+                    vmax=0.4)
 
     # Stop arm and simulation
     simulation.stop()

@@ -58,9 +58,9 @@ def inverse_kinematics_path(robot, path_p, path_o, q):
 def pick_and_place():
     simulation = Simulation()
     clientID = simulation.start()
-    robot = RobotUR5(clientID=clientID)
+    robot = RobotUR5(simulation=simulation)
     robot.start()
-    gripper = GripperRG2(clientID=clientID)
+    gripper = GripperRG2(simulation=simulation)
     gripper.start()
     target_positions = [[0.6, -0.3, 0.4],
                         [0.6, -0.2, 0.25],  # initial in front of conveyor

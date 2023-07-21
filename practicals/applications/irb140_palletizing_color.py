@@ -37,12 +37,12 @@ def find_color(robot, camera):
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
     robot.moveAbsJ(q0)
     robot.moveJ(target_position=tp1, target_orientation=to)
-    robot.moveL(target_position=tp2, target_orientation=to, precision=True)
+    robot.moveL(target_position=tp2, target_orientation=to, endpoint=True)
     # capture an image and returns the closest color
     print('get_image')
     color = camera.get_color_name()
     print('Piece is: ', color)
-    robot.moveL(target_position=tp1, target_orientation=to, precision=True)
+    robot.moveL(target_position=tp1, target_orientation=to, endpoint=True)
     return color
 
 
@@ -53,10 +53,10 @@ def pick(robot, gripper):
     tp1 = Vector([0.6, 0.267, 0.23])  # approximation
     tp2 = Vector([0.6, 0.267, 0.19])  # pick
     to = Euler([0, np.pi, 0])
-    gripper.open(precision=True)
-    robot.moveJ(target_position=tp1, target_orientation=to, precision=True)
-    robot.moveL(target_position=tp2, target_orientation=to, precision='last')
-    gripper.close(precision=True)
+    gripper.open(endpoint=True)
+    robot.moveJ(target_position=tp1, target_orientation=to, endpoint=True)
+    robot.moveL(target_position=tp2, target_orientation=to, endpoint=True)
+    gripper.close(endpoint=True)
 
 
 def place(robot, gripper, color):
@@ -64,11 +64,11 @@ def place(robot, gripper, color):
     Places, at three different heaps the pieces
     """
     if color == 'R':
-        tp = Vector([-0.5, -0.5, 0.5])  # pallet R base position
+        tp = Vector([-0.4, -0.4, 0.4])  # pallet R base position
     elif color == 'G':
-        tp = Vector([0.0, -0.5, 0.5])  # pallet R base position
+        tp = Vector([0.0, -0.4, 0.4])  # pallet R base position
     else:
-        tp = Vector([0.5, -0.5, 0.5])  # pallet R base position
+        tp = Vector([0.4, -0.4, 0.4])  # pallet R base position
 
     to = Euler([0, np.pi, 0])
     q0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
@@ -76,7 +76,7 @@ def place(robot, gripper, color):
     robot.moveJ(target_position=tp, target_orientation=to)
     tp = tp + Vector(np.array([0, 0, -0.05]))
     robot.moveJ(target_position=tp, target_orientation=to)
-    gripper.open(precision=True)
+    gripper.open(endpoint=True)
 
 
 def pick_and_place():
@@ -99,7 +99,7 @@ def pick_and_place():
     camera.start(name='/IRB140/RG2/camera')
 
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
-    robot.moveAbsJ(q0, precision=True)
+    robot.moveAbsJ(q0, endpoint=True)
     n_pieces = 48
     for i in range(n_pieces):
         while True:

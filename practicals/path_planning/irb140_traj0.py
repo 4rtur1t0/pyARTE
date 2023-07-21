@@ -33,6 +33,7 @@ if __name__ == "__main__":
 
     q0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     q1 = np.array([np.pi/8, np.pi/8, np.pi/8, np.pi/8, np.pi/8, np.pi/8])
+    q1 = np.array([0.0, 0.0, 0.0, 0.0, np.pi / 2, 0.0])
     q2 = np.array([-np.pi / 2, -np.pi/4, np.pi/8, np.pi/8, np.pi/8, np.pi/8])
     q3 = np.array([-np.pi / 2, 0, 0, -np.pi/8, -np.pi/8, np.pi/8])
 
@@ -42,11 +43,15 @@ if __name__ == "__main__":
     to2 = Euler([0, np.pi / 2, 0])
 
     # COMMAND TO ABSOLUTE joint coordinates
-    robot.moveAbsJ(q0, qdfactor=0.8, endpoint=True)
-    robot.moveAbsJ(q1, qdfactor=0.8, endpoint=True)
-    robot.moveAbsJ(q2, qdfactor=0.8, endpoint=True)
-    robot.moveAbsJ(q3, qdfactor=0.8, endpoint=True)
-    robot.moveAbsJ(q0, qdfactor=0.8, endpoint=True)
+    robot.moveAbsJ(q0, qdfactor=0.8, precision=True)
+    robot.moveAbsJ(q1, qdfactor=0.8, precision=True, endpoint=True)
+    error = q1 - robot.get_joint_positions()
+
+    robot.moveAbsJ(q2, qdfactor=0.8, precision=True)
+    robot.moveAbsJ(q3, qdfactor=0.8, precision=True)
+    robot.moveAbsJ(q0, qdfactor=0.8, precision=True)
+
+    error = q0 - robot.get_joint_positions()
 
     # COMMAND TO specified target points
     robot.moveJ(target_position=tp1, target_orientation=to1, qdfactor=0.5, endpoint=True)

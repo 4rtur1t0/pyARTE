@@ -20,12 +20,14 @@ class ProxSensor():
     def is_activated(self):
         # code, state, point, handle, snv = self.simulation.sim.readProximitySensor(self.proxsensor)
         result = self.simulation.sim.readProximitySensor(self.proxsensor)
-        try:
-            if result == 0:
-                return 0
-        except:
-            pass
-        return 1
+        return result[0]
+        # print('result: ', result)
+        # try:
+        #     if result[] == 0:
+        #         return 1
+        # except:
+        #     pass
+        # return 0
 
 
     def readstate(self):

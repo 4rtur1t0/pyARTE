@@ -10,7 +10,8 @@ Base Robot Class
 import numpy as np
 from artelib.homogeneousmatrix import HomogeneousMatrix
 # from artelib.inverse_kinematics import delta_q
-from artelib.path_planning import path_planning_line_factors, filter_path, time_trapezoidal_path_i, path_trapezoidal_i
+from artelib.path_planning import path_planning_line_factors, filter_path, time_trapezoidal_path_i, path_trapezoidal_i, \
+    path_planning_line_constant_speed
 # from artelib.plottools import plot_vars, plot, plot3d
 # from artelib.tools import compute_w_between_orientations, euler2rot, rot2quaternion, buildT, compute_w_between_R, \
 #     null_space, diff_w_central, w_central, null_space_projector, compute_kinematic_errors, rot2euler, quaternion2rot, \
@@ -18,6 +19,7 @@ from artelib.path_planning import path_planning_line_factors, filter_path, time_
 import matplotlib.pyplot as plt
 # from robots.objects import ReferenceFrame
 from artelib.tools import angular_w_between_quaternions
+from artelib.vector import Vector
 
 
 class Robot():
@@ -187,17 +189,24 @@ class Robot():
         """
         n_samples = qs.shape[1]
         # closed loop
-        k = 5.5
+        kp = 5.5
+        # kd = 0.8
         q_current = self.get_joint_positions()
         qd_current = self.get_joint_speeds()
+        # append data
+        self.q_path.append(q_current)
+        self.qd_path.append(qd_current)
+        errorsqi = []
         for i in range(n_samples):
             # correct by a small amount based on the error
             qi = qs[:, i]
             qdi = qds[:, i]
             eqi = qi-q_current
+            eqdi = qdi-qd_current
+            errorsqi.append(eqi)
             # add a small quantity based on the error on each joint
             # (feedforward control with compensation)
-            u = qdi + k*eqi
+            u = qdi + kp*eqi #+ kd*eqdi
             self.set_joint_target_velocities(u)
             self.simulation.client.step()
             q_current = self.get_joint_positions()
@@ -205,104 +214,42 @@ class Robot():
             # append data
             self.q_path.append(q_current)
             self.qd_path.append(qd_current)
-
-        # # open loop
-        # for i in range(n_samples):
-        #     # correct by a small amount based on the error
-        #     qdi = qds[:, i]
-        #     self.set_joint_target_velocities(qdi)
-        #     self.simulation.client.step()
-        #
-        #     q_current = self.get_joint_positions()
-        #     qd_current = self.get_joint_speeds()
-        #     self.q_path.append(q_current)
-        #     self.qd_path.append(qd_current)
-
-
-
-        # ################################
-        # errors = []
-        # control_actions = []
-        # velocities = []
-        # n_samples = qs.shape[1]
-        # kp = self.pid_controllers[:, 0]
-        # ki = self.pid_controllers[:, 2]
-        # sei = 0
-        # # Iterate through every qi and qdi.
-        # # at each time step, perform a
-        # for i in range(n_samples):
-        #     # kp is a vector of gain controllers,
-        #     q_current = self.get_joint_positions()
-        #     qd_current = self.get_joint_speeds()
-        #     velocities.append(qd_current)
-        #     qi = qs[:, i]
-        #     # error = np.linalg.norm(qi-q_current)
-        #     # print('Error l', error)
-        #     ei = qi - q_current
-        #     sei = sei + ei
-        #     errors.append(ei)
-        #     u = np.multiply(kp, ei) + np.multiply(ki, sei)
-        #     control_actions.append(u)
-        #     # correct by a small amount based on the error
-        #     qdi = qds[:, i] + u
-        #     self.set_joint_target_velocities(qdi)
-        #     self.simulation.client.step()
-        #     self.q_path.append(q_current)
-        #     self.qd_path.append(qd_current)
-        #
-        #
-        # # errors = np.array(errors).T
-        # # plt.plot(errors.T)
-        # # plt.show()
-        # #
-        # # control_actions = np.array(control_actions).T
-        # # plt.plot(control_actions.T)
-        # # plt.show()
-        # # print('Finished')
-        # velocities = np.array(velocities).T
-        # plt.plot(velocities.T)
+        # plot errors!
+        # errorsqi = np.array(errorsqi)
+        # plt.plot(errorsqi)
         # plt.show()
-        # print('Finished')
+        # command the last speed as computed (without control)
+        qdi = qds[:, i]
+        u = qdi
+        self.set_joint_target_velocities(u)
+        self.simulation.client.step()
+        q_current = self.get_joint_positions()
+        qd_current = self.get_joint_speeds()
+        # append data
+        self.q_path.append(q_current)
+        self.qd_path.append(qd_current)
 
-    # def start_joint_control(self, q_target):
-    #     while True:
-    #         errors = []
-    #         # for i in range(len(self.joints)):
-    #         for i in range(len(self.joints)):
-    #             error = self.control_joint(i, q_target[i])
-    #             errors.append(error)
-    #         total_error = np.linalg.norm(errors)
-    #         if total_error < 0.05:
-    #             break
-    #         self.simulation.client.step()
-    #
-    #     print('ENDED joint control')
-    #
-    # def control_joint(self, i, targetAngle):
-    #     jointAngle = self.simulation.sim.getJointPosition(self.joints[i])
-    #     error = targetAngle - jointAngle
-    #     sinAngle = np.sin(error)
-    #     cosAngle = np.cos(error)
-    #     error = np.arctan2(sinAngle, cosAngle)
-    #     vel = self.compute_target_velocity(i, error)
-    #     self.simulation.sim.setJointTargetVelocity(self.joints[i], vel)
-    #     return error
-    #
-    # def compute_target_velocity(self, i, error):
-    #     dynStepSize = 0.05
-    #     velUpperLimit = 2 * np.pi
-    #     PID_P = self.pid_controllers[i][0]
-    #     ctrl = error * PID_P
-    #     print('Error: ', error)
-    #     # Calculate the velocity needed to reach the position
-    #     # in one dynamic time step:
-    #     velocity = ctrl / dynStepSize
-    #     velocity = np.clip(velocity, -velUpperLimit, velUpperLimit)
-    #     # if velocity > velUpperLimit:
-    #     #     velocity = velUpperLimit
-    #     # if velocity < -velUpperLimit:
-    #     #     velocity = -velUpperLimit
-    #     return velocity
+    def apply_speed_joint_control_refine(self, q_target):
+        """
+        Apply a set of computed speeds profiles to the joints
+        try to follow qs by applying a corrected version of qds
+        caution: additive control considering the error on each of the joints
+        """
+        k = 5.5
+        for i in range(50):
+            q_current = self.get_joint_positions()
+            e = q_target - q_current
+            delta = np.linalg.norm(e)
+            if delta < 0.001:
+                break
+            u = k * e
+            self.set_joint_target_velocities(u)
+            self.simulation.client.step()
+        q_current = self.get_joint_positions()
+        qd_current = self.get_joint_speeds()
+        # append data
+        self.q_path.append(q_current)
+        self.qd_path.append(qd_current)
 
     def get_min_distance_to_objects(self):
         """
@@ -476,7 +423,7 @@ class Robot():
         Caution. target_orientationQ is specified as a quaternion
         """
         Ti = self.directkinematics(q0)
-        target_positions, target_orientations = path_planning_line(Ti.pos(), Ti.R(), target_position, target_orientation,
+        target_positions, target_orientations = path_planning_line_constant_speed(Ti.pos(), Ti.R(), target_position, target_orientation,
                                                                    linear_speed=vmax, angular_speed=wmax)
         q_path = []
         # start joint position
@@ -502,7 +449,10 @@ class Robot():
         """
         delta_time = 0.05
         Ti = self.directkinematics(q0)
-        d = np.linalg.norm((Ti.pos()-target_position.pos()))
+        if isinstance(target_position, Vector):
+            d = np.linalg.norm((Ti.pos()-target_position.pos()))
+        else:
+            d = np.linalg.norm((Ti.pos() - target_position))
         # compute time using a trapezoidal profile (as in a single joint i)
         t_total_planning = time_trapezoidal_path_i(0, d, 0, vmax, endpoint=True)
         t, dt, vt = path_trapezoidal_i(0, d, 0, t_total_planning, endpoint=True)
@@ -693,4 +643,8 @@ class Robot():
             # plt.show()
         qs = np.array(qs)
         qds = np.array(qds)
+        # plt.plot(t, qs.T)
+        # plt.show()
+        # plt.plot(t, qds.T)
+        # plt.show()
         return qs, qds
