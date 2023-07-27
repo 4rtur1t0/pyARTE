@@ -328,8 +328,8 @@ def time_trapezoidal_path_i(qA, qB, qdA, qdmax, endpoint=False):
         qdB = qdmax
     Tcte = (np.abs(qB - qA) - 0.5 * (qdA + qdmax)*Ta - 0.5 * (qdB + qdmax)*Td) / qdmax
     # if the time at constant speed is negative, then clip to zero
-    if Tcte <= 0:
-        Tcte = 0
+    if Tcte <= 0.0:
+        Tcte = 0.0
     # compute total time
     ttotal = Tcte + Ta + Td
     # round to next sample time

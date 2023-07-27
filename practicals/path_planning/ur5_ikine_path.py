@@ -95,7 +95,7 @@ def pick_and_place():
         path_p = path_planning_p(target_positions[i], target_positions[i+1], n)
         path_o = path_planning_o(Euler(target_orientations[i]), Euler(target_orientations[i+1]), n)
         q_path = inverse_kinematics_path(robot, path_p, path_o, q)
-        robot.set_joint_target_trajectory(q_path, precision='last')
+        robot.moveAbsJ(q_target=q_path, precision='last')
 
         if open_gripper[i]:
             gripper.open(precision=True)

@@ -126,11 +126,11 @@ def inversekinematics_path(robot, target_positions, target_orientations, q0):
 
 def pick_and_place():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotUR5(clientID=clientID)
+    simulation.start()
+    robot = RobotUR5(simulation=simulation)
     robot.start()
-    gripper = GripperRG2(clientID=clientID)
-    gripper.start()
+    gripper = GripperRG2(simulation=simulation)
+    gripper.start(name='/UR5/RG2/RG2_openCloseJoint')
     target_positions = [[0.6, -0.3, 0.4],
                         [0.6, -0.2, 0.25], # initial in front of conveyor
                         [0.6, 0.1, 0.25], # pick the piece
@@ -170,7 +170,9 @@ def pick_and_place():
             gripper.open(precision=True)
         else:
             gripper.close(precision=True)
-        robot.set_joint_target_trajectory(q_path, precision='last')
+        # move the robot!
+        for i in range(len(q_path)):
+            robot.moveAbsJ(q_target=q_path[i], qdfactor=0.8, precision=False, endpoint=False)
         q = q_path[-1]
 
     simulation.stop()

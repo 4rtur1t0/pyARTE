@@ -11,6 +11,7 @@ the different solutions to the inversekinematics problem.
 
 @Authors: Arturo Gil
 @Time: April 2022
+@Revision: July 2023, Arturo Gil
 """
 import numpy as np
 from artelib.euler import Euler
@@ -30,7 +31,7 @@ def inverse_kinematics(robot, target_position, target_orientation, show_target=T
     caution: closest tooooo
     """
     if show_target:
-        frame = ReferenceFrame(clientID=robot.clientID)
+        frame = ReferenceFrame(simulation=robot.simulation)
         frame.start()
         T = HomogeneousMatrix(target_position, target_orientation)
         frame.set_position_and_orientation(T)
@@ -67,7 +68,6 @@ def filter_within_range(robot, q):
     esta funcion elimina las soluciones que no están en el rango articular.
     """
     print('ELIMINANDO SOLUCIONES FUERA DE RANGO ARTICULAR: ')
-    # print(np.array_str(q, precision=2, suppress_small=True))
     if q.size > 0:
         n_valid_solutions = q.shape[1]
     else:
@@ -75,17 +75,12 @@ def filter_within_range(robot, q):
     n_in_range = 0
     q_in_range = []
     for i in range(n_valid_solutions):
-        # print(i)
         qi = q[:, i]
-        # print(np.array_str(qi, precision=2, suppress_small=True))
         total, partial = robot.check_joints(qi)
         if total:
             q_in_range.append(qi)
             n_in_range += 1
-            # print('ALL JOINTS WITHIN RANGE!!')
-        # else:
-        #     print('ONE OR MORE JOINTS OUT OF RANGE!')
-        #     print(partial)
+
     print('SE HAN ENCONTRADO ', n_in_range, 'SOLUCIONES EN RANGO ARTICULAR DEL TOTAL DE ', n_valid_solutions,
           ' SOLUCIONES VALIDAS')
     q_in_range = np.array(q_in_range).T
@@ -102,25 +97,22 @@ def move_robot(robot, q):
     for i in range(n_solutions):
         print(i)
         qi = q[:, i]
-        robot.set_joint_target_positions(qi, precision=True)
+        robot.moveAbsJ(q_target=qi, precision=True)
 
 
 def irb140_ikine():
-    # Start simulation
     simulation = Simulation()
-    clientID = simulation.start()
-    # Connect to the robot
-    robot = RobotABBIRB140(clientID=clientID)
+    simulation.start()
+    robot = RobotABBIRB140(simulation=simulation)
     robot.start()
-    # set the TCP of the RG2 gripper
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
 
     # set initial position
     q0 = np.array([0, 0, 0, 0, 0, 0])
-    robot.set_joint_target_positions(q0, precision=True)
+    robot.moveAbsJ(q_target=q0, precision=True)
 
-    target_position = Vector([0.5, 0.0, 0.9])
-    target_orientation = Euler([0, np.pi/2, 0])
+    target_position = Vector([0.5, 0.0, 1.0])
+    target_orientation = Euler([np.pi/8, np.pi/8, 0])
 
     q = inverse_kinematics(robot=robot, target_position=target_position,
                            target_orientation=target_orientation)

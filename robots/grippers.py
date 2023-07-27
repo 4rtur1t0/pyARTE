@@ -20,16 +20,14 @@ class GripperRG2():
         self.joints = [gripper_joint1]
 
     def open(self, precision=True):
-        # self.simulation.sim.setJointTargetPosition(self.joints[0], 0.1)
         self.simulation.sim.setJointTargetVelocity(self.joints[0], 0.1)
         if precision:
-            self.simulation.wait(steps=10)
+            self.simulation.wait(steps=20)
 
     def close(self, precision=False):
         self.simulation.sim.setJointTargetVelocity(self.joints[0], -0.1)
-        # self.simulation.sim.setJointTargetPosition(self.joints[0], -0.1)
         if precision:
-            self.simulation.wait(10)
+            self.simulation.wait(steps=20)
 
 
 class GripperBarretHand():
@@ -67,7 +65,7 @@ class SuctionPad():
     def start(self):
         return
 
-    def open(self, endpoint=False):
+    def open(self, precision=False):
         """
         Deactivates suction (void): thus suction==0
         The SuctionPad should have a Lua script that reads the integer signal "enable_suction_pad"
@@ -75,7 +73,7 @@ class SuctionPad():
         returnCode = self.simulation.sim.setIntegerSignal('enable_suction_pad', 0)
         # sim.simxSynchronousTrigger(clientID=self.clientID)
 
-    def close(self, endpoint=False):
+    def close(self, precision=False):
         """
         activates suction
         """
@@ -107,15 +105,15 @@ class YouBotGripper():
         gripper_joint2 = self.simulation.sim.getObject(name + '2')
         self.joints = [gripper_joint1, gripper_joint2]
 
-    def open(self, endpoint=False):
+    def open(self, precision=False):
         self.simulation.sim.setJointTargetPosition(self.joints[0], -0.05)
         self.simulation.sim.setJointTargetPosition(self.joints[1], -0.05)
-        if endpoint:
+        if precision:
             self.simulation.wait(10)
 
-    def close(self, endpoint=False):
+    def close(self, precision=False):
         self.simulation.sim.setJointTargetPosition(self.joints[0], 0.0)
         self.simulation.sim.setJointTargetPosition(self.joints[1], 0.0)
-        if endpoint:
+        if precision:
             self.simulation.wait(10)
 

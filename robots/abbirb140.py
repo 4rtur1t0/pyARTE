@@ -250,66 +250,6 @@ class RobotABBIRB140(Robot):
         wrist2 = [q4_, q5_, q6_]
         return np.array(wrist1), np.array(wrist2)
 
-    def moveAbsJ(self, q_target, qdfactor=1.0, precision=True, endpoint=True):
-        """
-        Commands the robot to the specified joint target positions.
-        The targets are filtered and the robot is not commanded whenever a single joint is out of range.
-        A path is planned considering the qdmax factor which ranges from 0 (zero speed) to 1.0 (full joint speed).
-        """
-        # remove joints out of range and get the closest joint
-        total, partial = self.check_joints(q_target)
-        if total:
-            qs, qds = self.path_plan_isochronous_trapezoidal(q_target, qdfactor=qdfactor, endpoint=endpoint)
-            # apply the computed profile in joint and speeds
-            self.apply_speed_joint_control(qs, qds)
-            if precision:
-                self.apply_speed_joint_control_refine(qs[:, -1])
-                self.command_zero_target_velocities()
-        else:
-            print('moveABSJ ERROR: target joints out of range')
-
-    def moveJ(self, target_position, target_orientation, qdfactor = 1.0, endpoint=True, extended=True, precision=True):
-        """
-        Commands the robot to a target position and orientation.
-        All solutions to the inverse kinematic problem are computed. The closest solution to the
-        current position of the robot q0 is used
-        Parameters:
-            qdmax [0, 1.0]: a ratio of the max speed for all joints.
-            target_point: if a target point, stop all joints when finished the trajectory.
-            extended: Ask the inverse kinematic algorithm to include solutions out of the [-pi, pi] range
-        """
-        q_current = self.get_joint_positions()
-        # resultado filtrado. Debe ser una matriz 6xn_movements
-        # CAUTION. This calls the inverse kinematic method of the derived class
-        q_target = self.inversekinematics(q0=q_current, target_position=target_position,
-                                          target_orientation=target_orientation, extended=extended)
-        # remove joints out of range and get the closest joint
-        # filter a valid path from q_current to any of the solutions in q_target
-        qs = filter_path(self, q_current, [q_target])
-        q_target = qs[:, 0]
-        qs, qds = self.path_plan_isochronous_trapezoidal(q_target, qdfactor=qdfactor, endpoint=endpoint)
-        # apply the computed profile in joint and speeds
-        self.apply_speed_joint_control(qs, qds)
-        if precision:
-            self.apply_speed_joint_control_refine(qs[:, -1])
-            self.command_zero_target_velocities()
-        # if endpoint:
-        #     self.command_zero_target_velocities()
-
-
-    def moveL(self, target_position, target_orientation, endpoint=False, extended=True, vmax=0.8, wmax=0.2, precision=True):
-        q0 = self.get_joint_positions()
-        # resultado filtrado. Debe ser una matriz 6xn_movements
-        qs, qds = self.inversekinematics_line(q0=q0, target_position=target_position,
-                                              target_orientation=target_orientation,
-                                              extended=extended, vmax=vmax, wmax=wmax)
-        self.apply_speed_joint_control(qs, qds)
-        if precision:
-            self.apply_speed_joint_control_refine(qs[:, -1])
-            self.command_zero_target_velocities()
-
-
-
 def extend_solutions(qi, qw):
     """
     Adds combinations of +-2pi to the solutions in wrist and concatenates

@@ -11,19 +11,9 @@ the results.
 """
 import numpy as np
 from artelib.euler import Euler
-from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.vector import Vector
 from robots.objects import ReferenceFrame
 from robots.simulation import Simulation
-
-
-def show_target_points(clientID, target_positions, target_orientations, wait_time=10):
-    frame = ReferenceFrame(clientID=clientID)
-    frame.start()
-    for i in range(len(target_positions)):
-        T = HomogeneousMatrix(target_positions[i], target_orientations[i])
-        frame.set_position_and_orientation(T)
-        frame.wait(wait_time)
 
 
 def n_movements_pos(pA, pB):
@@ -73,7 +63,9 @@ def path_planning_line(pA, oA, pB, oB):
 
 def path_in_workspace():
     simulation = Simulation()
-    clientID = simulation.start()
+    simulation.start()
+    frame = ReferenceFrame(simulation=simulation)
+    frame.start()
 
     pA = Vector([0.5, -0.5, 0.9])
     oA = Euler([0, 0, 0])
@@ -81,8 +73,8 @@ def path_in_workspace():
     oB = Euler([-np.pi / 2, np.pi / 2, -np.pi / 2])
 
     tps, tos = path_planning_line(pA, oA, pB, oB)
-
-    show_target_points(clientID=clientID, target_positions=tps, target_orientations=tos, wait_time=2)
+    # show the target points on Coppelia
+    frame.show_target_points(target_positions=tps, target_orientations=tos, wait_time=0.5)
 
     simulation.wait(50)
     simulation.stop()

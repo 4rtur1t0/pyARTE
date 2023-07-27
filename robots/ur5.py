@@ -7,8 +7,8 @@ RobotUR5 is a derived class of the Robot base class
 
 @Authors: Arturo Gil
 @Time: April 2021
+@Revision: July 2023, Arturo Gil
 """
-# import sim
 import numpy as np
 from artelib import homogeneousmatrix
 from artelib.homogeneousmatrix import HomogeneousMatrix
@@ -52,19 +52,13 @@ class RobotUR5(Robot):
         self.serialrobot.append(th=0,        d=0.0823,   a=0, alpha=0)
 
     def start(self, base_name='/UR5', joint_name='UR5_joint'):
-        errorCode, robotbase = sim.simxGetObjectHandle(self.clientID, base_name, sim.simx_opmode_oneshot_wait)
-        errorCode, q1 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '1',
-                                                sim.simx_opmode_oneshot_wait)
-        errorCode, q2 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '2',
-                                                sim.simx_opmode_oneshot_wait)
-        errorCode, q3 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '3',
-                                                sim.simx_opmode_oneshot_wait)
-        errorCode, q4 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '4',
-                                                sim.simx_opmode_oneshot_wait)
-        errorCode, q5 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '5',
-                                                sim.simx_opmode_oneshot_wait)
-        errorCode, q6 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '6',
-                                                sim.simx_opmode_oneshot_wait)
+        robotbase = self.simulation.sim.getObject(base_name)
+        q1 = self.simulation.sim.getObject(base_name + '/' + joint_name + '1')
+        q2 = self.simulation.sim.getObject(base_name + '/' + joint_name + '2')
+        q3 = self.simulation.sim.getObject(base_name + '/' + joint_name + '3')
+        q4 = self.simulation.sim.getObject(base_name + '/' + joint_name + '4')
+        q5 = self.simulation.sim.getObject(base_name + '/' + joint_name + '5')
+        q6 = self.simulation.sim.getObject(base_name + '/' + joint_name + '6')
 
         joints = []
         joints.append(q1)
@@ -103,41 +97,3 @@ class RobotUR5(Robot):
                 [q, _] = self.apply_joint_limits(q)
         return q
 
-    def moveAbsJ(self, q_target, precision=True):
-        """
-        Commands the robot to the specified joint target positions.
-        The targets are filtered and the robot is not commanded whenever a single joint is out of range.
-        """
-        # remove joints out of range and get the closest joint
-        total, partial = self.check_joints(q_target)
-        if total:
-            self.set_joint_target_positions(q_target, precision=precision)
-        else:
-            print('moveABSJ ERROR: joints out of range')
-
-    def moveJ(self, target_position, target_orientation, precision=True):
-        """
-        Commands the robot to a target position and orientation.
-        All solutions to the inverse kinematic problem are computed. The closest solution to the
-        current position of the robot q0 is used
-        """
-        q0 = self.q_current
-        # resultado filtrado. Debe ser una matriz 6xn_movements
-        # CAUTION. This calls the inverse kinematic method of the derived class
-        qs = self.inversekinematics(q0=q0, target_position=target_position,
-                                    target_orientation=target_orientation)
-        # remove joints out of range and get the closest joint
-        # 7 rows, 1 column of solutions
-        qs = self.filter_joint_limits(np.array([qs]).T)
-
-        # comandar al robot hasta
-        self.set_joint_target_positions(qs, precision=precision)
-
-    def moveL(self, target_position, target_orientation, precision=False, vmax=0.8, wmax=0.2):
-        q0 = self.q_current
-        # resultado filtrado. Debe ser una matriz 6xn_movements
-        qs = self.inversekinematics_line(q0=q0, target_position=target_position,
-                                         target_orientation=target_orientation,
-                                         vmax=vmax, wmax=wmax)
-        # command the robot
-        self.set_joint_target_positions(qs, precision=precision)

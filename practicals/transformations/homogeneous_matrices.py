@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     T5 = T2*T3
     T5 = T5.inv()
-    T5.plot('Transformation T4')
+    T5.plot('Transformation T5')
 
     # Transformar un vector
     u = Vector(np.array([1, 2, 3, 1]))

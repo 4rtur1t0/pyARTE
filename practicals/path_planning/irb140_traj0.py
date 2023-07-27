@@ -14,6 +14,7 @@ from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.rotationmatrix import RotationMatrix
 from artelib.vector import Vector
 from robots.abbirb140 import RobotABBIRB140
+from robots.grippers import GripperRG2
 from robots.objects import ReferenceFrame
 from robots.simulation import Simulation
 
@@ -25,6 +26,8 @@ if __name__ == "__main__":
     # Connect to the robot
     robot = RobotABBIRB140(simulation=simulation)
     robot.start()
+    gripper = GripperRG2(simulation=simulation)
+    gripper.start(name='/IRB140/RG2/RG2_openCloseJoint')
     frame = ReferenceFrame(simulation=simulation)
     frame.start()
 
@@ -32,8 +35,7 @@ if __name__ == "__main__":
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
 
     q0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    q1 = np.array([np.pi/8, np.pi/8, np.pi/8, np.pi/8, np.pi/8, np.pi/8])
-    q1 = np.array([0.0, 0.0, 0.0, 0.0, np.pi / 2, 0.0])
+    q1 = np.array([np.pi/2, 0.0, 0.0, 0.0, 0.0, 0.0])
     q2 = np.array([-np.pi / 2, -np.pi/4, np.pi/8, np.pi/8, np.pi/8, np.pi/8])
     q3 = np.array([-np.pi / 2, 0, 0, -np.pi/8, -np.pi/8, np.pi/8])
 
@@ -42,16 +44,17 @@ if __name__ == "__main__":
     tp2 = Vector([0.6, 0.5, 0.5])
     to2 = Euler([0, np.pi / 2, 0])
 
+    gripper.open(precision=True)
     # COMMAND TO ABSOLUTE joint coordinates
-    robot.moveAbsJ(q0, qdfactor=0.8, precision=True)
+    robot.moveAbsJ(q0, qdfactor=0.8, precision=True, endpoint=True)
     robot.moveAbsJ(q1, qdfactor=0.8, precision=True, endpoint=True)
-    error = q1 - robot.get_joint_positions()
+    robot.moveAbsJ(q2, qdfactor=0.8, precision=True, endpoint=True)
+    robot.moveAbsJ(q3, qdfactor=0.8, precision=True, endpoint=True)
+    robot.moveAbsJ(q2, qdfactor=0.8, precision=True, endpoint=True)
+    robot.moveAbsJ(q1, qdfactor=0.8, precision=True, endpoint=True)
+    robot.moveAbsJ(q0, qdfactor=0.8, precision=True, endpoint=True)
 
-    robot.moveAbsJ(q2, qdfactor=0.8, precision=True)
-    robot.moveAbsJ(q3, qdfactor=0.8, precision=True)
-    robot.moveAbsJ(q0, qdfactor=0.8, precision=True)
-
-    error = q0 - robot.get_joint_positions()
+    gripper.close(precision=True)
 
     # COMMAND TO specified target points
     robot.moveJ(target_position=tp1, target_orientation=to1, qdfactor=0.5, endpoint=True)
@@ -62,7 +65,7 @@ if __name__ == "__main__":
     frame.show_target_points(target_positions=[tp1, tp2], target_orientations=[to1, to2], wait_time=1)
     robot.moveL(target_position=tp2, target_orientation=to2, endpoint=True)
     robot.moveL(target_position=tp1, target_orientation=to1, endpoint=True)
-
+    gripper.open(precision=True)
     # BACK TO THE INITIAL POINT
     robot.moveAbsJ(q0, endpoint=True)
 

@@ -38,7 +38,7 @@ class CoppeliaObject():
             position = position.array
         elif isinstance(position, homogeneousmatrix.HomogeneousMatrix):
             position = position.pos
-        self.simulation.sim.setObjectPosition(self.handle, -1, position)
+        self.simulation.sim.setObjectPosition(self.handle, -1, position.tolist())
         self.simulation.wait()
 
     def set_orientation(self, orientation):
@@ -50,7 +50,7 @@ class CoppeliaObject():
             abg = np.array(orientation)
         elif isinstance(orientation, euler.Euler):
             abg = orientation.abg
-        self.simulation.sim.setObjectOrientation(self.handle, -1, abg)
+        self.simulation.sim.setObjectOrientation(self.handle, -1, abg.tolist())
         self.simulation.wait()
 
     def set_position_and_orientation(self, *args):
@@ -74,7 +74,7 @@ class CoppeliaObject():
 
         self.simulation.sim.setObjectPosition(self.handle, -1, position.tolist())
         self.simulation.sim.setObjectOrientation(self.handle, -1, orientation.tolist())
-        self.simulation.wait()
+        # self.simulation.wait()
 
     def get_position(self):
         position = self.simulation.sim.getObjectPosition(self.handle, -1)
@@ -115,20 +115,16 @@ class ReferenceFrame(CoppeliaObject):
         handle = self.simulation.sim.getObject(name)
         self.handle = handle
 
-    def show_target_point(self, target_position, target_orientation, wait_time=1):
+    def show_target_point(self, target_position, target_orientation, wait_time=0.5):
         T = HomogeneousMatrix(target_position, target_orientation)
         self.set_position_and_orientation(T)
-        self.wait(wait_time)
+        self.simulation.wait_time(wait_time)
 
-    def show_target_points(self, target_positions, target_orientations, wait_time=10):
+    def show_target_points(self, target_positions, target_orientations, wait_time=0.5):
         for i in range(len(target_positions)):
             self.show_target_point(target_position=target_positions[i],
                                    target_orientation=target_orientations[i],
                                    wait_time=wait_time)
-            # T = HomogeneousMatrix(target_positions[i], target_orientations[i])
-            # self.set_position_and_orientation(T)
-            # self.wait(wait_time)
-        # self.wait(wait_time)
 
 
 class Cuboid(CoppeliaObject):
@@ -151,16 +147,17 @@ class Dummy(CoppeliaObject):
         self.handle = handle
 
 
-def get_object_transform(clientID, base_name, piece_index):
+def get_object_transform(simulation, base_name, piece_index):
     """
     Returns the position and orientation of th ith Cuboid in Coppelia
     (in the global reference frame)
     Used to get the transformation matrix of collection of objects with consecutive indices
     """
-    obj = CoppeliaObject(clientID)
+    obj = CoppeliaObject(simulation=simulation)
     if piece_index == 0:
         name = base_name
     else:
-        name = base_name + str(piece_index - 1)
+        name = base_name + '[' + str(piece_index) + ']'
+    print('LOOKING FOR OBJECT TRANSFORM', name)
     obj.start(name)
     return obj.get_transform()

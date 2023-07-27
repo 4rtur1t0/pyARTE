@@ -60,3 +60,4 @@ class Simulation():
             t2 = self.sim.getSimulationTime()
             if (t2-t1) >= seconds:
                 break
+            self.client.step()

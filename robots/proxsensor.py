@@ -21,14 +21,6 @@ class ProxSensor():
         # code, state, point, handle, snv = self.simulation.sim.readProximitySensor(self.proxsensor)
         result = self.simulation.sim.readProximitySensor(self.proxsensor)
         return result[0]
-        # print('result: ', result)
-        # try:
-        #     if result[] == 0:
-        #         return 1
-        # except:
-        #     pass
-        # return 0
-
 
     def readstate(self):
         code, state, point, handle, snv = self.simulation.sim.readProximitySensor(self.proxsensor)

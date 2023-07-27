@@ -26,10 +26,10 @@ def pick(robot, gripper):
     to2 = Euler([0, np.pi, 0])
     robot.moveAbsJ(q0, endpoint=True)
     gripper.open(precision=True)
-    robot.moveJ(target_position=tp1, target_orientation=to1, endpoint=True, precision=True)
-    robot.moveL(target_position=tp2, target_orientation=to2, endpoint=True, precision=True)
+    robot.moveJ(target_position=tp1, target_orientation=to1, endpoint=True, precision=False)
+    robot.moveL(target_position=tp2, target_orientation=to2, endpoint=True, precision=True, vmax=0.1)
     gripper.close(precision=True)
-    robot.moveL(target_position=tp1, target_orientation=to1, endpoint=True, precision=True)
+    robot.moveL(target_position=tp1, target_orientation=to1, endpoint=False, precision=False)
 
 
 def place(robot, gripper, i):
@@ -54,7 +54,7 @@ def place(robot, gripper, i):
 
     robot.moveAbsJ(q0, precision=True)
     robot.moveJ(target_position=T0.pos(), target_orientation=T0.R(), endpoint=True)
-    robot.moveL(target_position=T1.pos(), target_orientation=T1.R(), vmax=0.4, endpoint=True)
+    robot.moveL(target_position=T1.pos(), target_orientation=T1.R(), vmax=0.1, endpoint=True)
     gripper.open(precision=True)
     robot.moveL(target_position=T0.pos(), target_orientation=T0.R(), endpoint=True)
 

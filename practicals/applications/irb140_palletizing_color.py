@@ -53,10 +53,10 @@ def pick(robot, gripper):
     tp1 = Vector([0.6, 0.267, 0.23])  # approximation
     tp2 = Vector([0.6, 0.267, 0.19])  # pick
     to = Euler([0, np.pi, 0])
-    gripper.open(endpoint=True)
-    robot.moveJ(target_position=tp1, target_orientation=to, endpoint=True)
-    robot.moveL(target_position=tp2, target_orientation=to, endpoint=True)
-    gripper.close(endpoint=True)
+    gripper.open(precision=True)
+    robot.moveJ(target_position=tp1, target_orientation=to, precision=True, endpoint=True)
+    robot.moveL(target_position=tp2, target_orientation=to, precision=True, endpoint=True)
+    gripper.close(precision=True)
 
 
 def place(robot, gripper, color):
@@ -76,7 +76,7 @@ def place(robot, gripper, color):
     robot.moveJ(target_position=tp, target_orientation=to)
     tp = tp + Vector(np.array([0, 0, -0.05]))
     robot.moveJ(target_position=tp, target_orientation=to)
-    gripper.open(endpoint=True)
+    gripper.open(precision=True)
 
 
 def pick_and_place():
@@ -109,7 +109,6 @@ def pick_and_place():
         color = find_color(robot, camera)
         pick(robot, gripper)
         place(robot, gripper, color)
-
     simulation.stop()
 
 
