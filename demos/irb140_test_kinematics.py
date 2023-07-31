@@ -57,7 +57,8 @@ def check_solutions2(qinv, q):
 
 if __name__ == "__main__":
     M = 5000
-    robot = RobotABBIRB140(clientID=None)
+    # CAUTION: THIS SIMULATION DOES NOT CONNECT TO COPPELIA
+    robot = RobotABBIRB140(simulation=None)
 
     for i in range(M):
         q = random_q(robot)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/irb140_paint_application.ttt scene before running this script.
+Please open the scenes/more/irb140_paint_application.ttt scene before running this script.
 
 @Authors: Arturo Gil
 @Time: November 2022
@@ -17,8 +17,8 @@ from robots.simulation import Simulation
 
 def paint():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotABBIRB140(clientID=clientID)
+    simulation.start()
+    robot = RobotABBIRB140(simulation=simulation)
     robot.start()
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.2]), RotationMatrix(np.eye(3))))
 

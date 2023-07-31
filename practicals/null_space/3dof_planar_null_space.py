@@ -7,7 +7,6 @@ import numpy as np
 
 
 if __name__ == '__main__':
-
     q1 = np.pi/2
     q2 = np.pi/2
     q3 = np.pi/2

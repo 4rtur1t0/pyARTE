@@ -74,13 +74,13 @@ def place2(robot, gripper):
 def pick_and_place1():
 
     global clientID
-    robot1 = RobotABBIRB140(clientID=clientID)
+    robot1 = RobotABBIRB140(simulation=simulation)
     robot1.start(base_name='/IRB140')
 
-    conveyor_sensor1 = ProxSensor(clientID=clientID)
+    conveyor_sensor1 = ProxSensor(simulation=simulation)
     conveyor_sensor1.start(name='/conveyor/prox_sensor')
 
-    gripper1 = GripperRG2(clientID=clientID)
+    gripper1 = GripperRG2(simulation=simulation)
     gripper1.start(name='/IRB140/RG2/RG2_openCloseJoint')
 
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
@@ -101,13 +101,13 @@ def pick_and_place1():
 def pick_and_place2():
     global clientID
 
-    robot2 = RobotABBIRB140(clientID=clientID)
+    robot2 = RobotABBIRB140(simulation=simulation)
     robot2.start(base_name='/IRB140_2')
 
-    conveyor_sensor2 = ProxSensor(clientID=clientID)
+    conveyor_sensor2 = ProxSensor(simulation=simulation)
     conveyor_sensor2.start(name='/conveyor_2/prox_sensor_2')
 
-    gripper2 = SuctionPad(clientID=clientID)
+    gripper2 = SuctionPad(simulation=simulation)
     gripper2.start()
 
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
@@ -128,7 +128,7 @@ def pick_and_place2():
 if __name__ == "__main__":
     global clientID
     simulation = Simulation()
-    clientID = simulation.start()
+    simulation.start()
 
     r1 = threading.Thread(target=pick_and_place1, args=())
     r2 = threading.Thread(target=pick_and_place2, args=())

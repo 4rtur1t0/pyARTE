@@ -16,29 +16,29 @@ from robots.ur5 import RobotUR5
 
 if __name__ == "__main__":
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotUR5(clientID=clientID)
+    simulation.start()
+    robot = RobotUR5(simulation=simulation)
     robot.start()
-    gripper = GripperBarretHand(clientID=clientID)
-    gripper.start()
+    gripper = GripperBarretHand(simulation=simulation)
+    gripper.start(name='/UR5/Barrett_openCloseJoint')
 
     target_positions = [[0.4, -0.3, 0.2]]  # drop the piece
     target_orientations = [[np.pi / 2, 0, 0]]
 
     q0 = np.pi / 8 * np.array([-1, 1, 1, 1, 1, 1])
     # set initial position of robot
-    robot.set_joint_target_positions(q0, precision=True)
+    robot.moveAbsJ(q0, precision=True, endpoint=True)
 
     robot.directkinematics(q=q0)
 
     # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
-    q_path = robot.inversekinematics_line(target_position=target_positions[0],
+    q_path, qd_path = robot.inversekinematics_line(target_position=target_positions[0],
                                           target_orientation=Euler(target_orientations[0]),
                                           q0=q0, vmax=0.5)
     gripper.open(precision=True)
-    robot.set_joint_target_trajectory(q_path, precision='last')
+    robot.moveAbsPath(q_path, precision=False, endpoint=False)
     gripper.close(precision=True)
-    robot.set_joint_target_trajectory(q_path[::-1], precision='last')
+    robot.moveAbsPath(q_path[::-1], precision=True, endpoint=True)
     gripper.open(precision=True)
 
     simulation.stop()

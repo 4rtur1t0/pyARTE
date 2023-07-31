@@ -144,22 +144,22 @@ def follow_line_obstacle(robot, sphere):
 
     # NOW execute trajectories computed before.
     # set initial position of robot
-    robot.set_joint_target_positions(q0, precision=False)
+    robot.moveAbsJ(q0, precision=False)
     robot.wait(15)
     # set the target we are willing to reach on Coppelia
     # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
-    robot.set_joint_target_trajectory(q1_path, precision='last')
+    robot.moveAbsPath(q_path=q1_path, precision=False, endpoint=False)
     # robot.set_target_position_orientation(target_positions[1], target_orientations[1])
-    robot.set_joint_target_trajectory(q2_path, precision='last')
+    robot.moveAbsPath(q_path=q2_path, precision=False, endpoint=False)
     robot.wait(15)
 
 
 def application():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotKUKALBR(clientID=clientID)
+    simulation.start()
+    robot = RobotKUKALBR(simulation=simulation)
     robot.start()
-    sphere = Sphere(clientID=clientID)
+    sphere = Sphere(simulation=simulation)
     sphere.start()
 
     follow_line_obstacle(robot, sphere)

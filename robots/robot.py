@@ -152,29 +152,6 @@ class Robot():
             qd_actual[i] = self.simulation.sim.getJointVelocity(self.joints[i])
         return qd_actual
 
-    # def get_end_effector_position_orientation(self):
-    #     errorCode, position = sim.simxGetObjectPosition(self.clientID, self.end_effector, -1,
-    #                                                     sim.simx_opmode_oneshot_wait)
-    #     errorCode, orientation = sim.simxGetObjectOrientation(self.clientID, self.end_effector, -1,
-    #                                                     sim.simx_opmode_oneshot_wait)
-    #     return position, orientation
-    #
-    # def get_target_position_orientation(self):
-    #     errorCode, position = sim.simxGetObjectPosition(self.clientID, self.target, -1,
-    #                                                     sim.simx_opmode_oneshot_wait)
-    #     errorCode, orientation = sim.simxGetObjectOrientation(self.clientID, self.target, -1,
-    #                                                     sim.simx_opmode_oneshot_wait)
-    #     return position, orientation
-    #
-    # def set_target_position_orientation(self, position, orientation):
-    #     errorCode = sim.simxSetObjectPosition(clientID=self.clientID, objectHandle=self.target,
-    #                                           relativeToObjectHandle=-1, position=position,
-    #                                           operationMode=sim.simx_opmode_oneshot_wait)
-    #     errorCode = sim.simxSetObjectOrientation(clientID=self.clientID, objectHandle=self.target,
-    #                                              eulerAngles=orientation, relativeToObjectHandle=-1,
-    #                                              operationMode=sim.simx_opmode_oneshot_wait)
-    #     return position, orientation
-
     def moveAbsJ(self, q_target, qdfactor=1.0, precision=True, endpoint=True):
         """
         Commands the robot to the specified joint target positions.
@@ -242,6 +219,14 @@ class Robot():
         if precision:
             self.apply_position_joint_control(qs[:, -1], precision=True)
             self.command_zero_target_velocities()
+
+    def moveAbsPath(self, q_path, qdfactor=1.0, precision=True, endpoint=True):
+        """
+        Commands the robot to a specified set of paths.
+        """
+        n_movements = q_path.shape[1]
+        for i in range(n_movements):
+            self.moveAbsJ(q_target=q_path[:, i], qdfactor=qdfactor, precision=precision, endpoint=endpoint)
 
     def command_zero_target_velocities(self):
         for i in range(len(self.joints)):

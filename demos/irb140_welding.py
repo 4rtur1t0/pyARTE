@@ -20,8 +20,8 @@ from robots.simulation import Simulation
 
 def welding():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotABBIRB140(clientID=clientID)
+    simulation.start()
+    robot = RobotABBIRB140(simulation=simulation)
     robot.start()
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.12]), RotationMatrix(np.eye(3))))
     q0 = np.array([0, 0, 0, 0, 0, 0])

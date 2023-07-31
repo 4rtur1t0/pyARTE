@@ -17,14 +17,14 @@ from robots.velodyne import Velodyne
 if __name__ == "__main__":
     simulation = Simulation()
     clientID = simulation.start()
-    robot = RobotUR5(clientID=clientID)
+    robot = RobotUR5(simulation=simulation)
     robot.start()
-    lidar = Velodyne(clientID=clientID)
-    lidar.start()
+    lidar = Velodyne(simulation=simulation)
+    lidar.start(name='/UR5/velodyneVPL_16')
 
     q0 = np.pi / 16 * np.array([-6, 1, 3, 1, 2, 1])
     # set initial position of robot
-    robot.set_joint_target_positions(q0, precision=True)
+    robot.moveAbsJ(q0, precision=True)
     laserdata = lidar.get_laser_data()
     print('Received Laser Data')
     print(laserdata)

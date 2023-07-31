@@ -15,7 +15,7 @@ class GripperRG2():
         self.simulation = simulation
         self.joints = None
 
-    def start(self, name='RG2_openCloseJoint'):
+    def start(self, name='/IRB140/RG2_openCloseJoint'):
         gripper_joint1 = self.simulation.sim.getObject(name)
         self.joints = [gripper_joint1]
 
@@ -41,16 +41,16 @@ class GripperBarretHand():
         self.joints = [gripper_joint1, gripper_joint2]
 
     def open(self, precision=False):
-        self.simulation.sim.setJointTargetVelocity(self.joints[0], 0.5)
-        self.simulation.sim.setJointTargetVelocity(self.joints[1], 0.5)
+        self.simulation.sim.setJointTargetVelocity(self.joints[0], 0.1)
+        self.simulation.sim.setJointTargetVelocity(self.joints[1], 0.1)
         if precision:
-            self.simulation.wait(10)
+            self.simulation.wait(20)
 
     def close(self, precision=False):
-        self.simulation.sim.setJointTargetVelocity(self.joints[0], -0.5)
-        self.simulation.sim.setJointTargetVelocity(self.joints[1], -0.5)
+        self.simulation.sim.setJointTargetVelocity(self.joints[0], -0.1)
+        self.simulation.sim.setJointTargetVelocity(self.joints[1], -0.1)
         if precision:
-            self.simulation.wait(10)
+            self.simulation.wait(20)
 
 
 class SuctionPad():

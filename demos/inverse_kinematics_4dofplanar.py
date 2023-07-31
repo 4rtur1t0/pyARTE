@@ -8,7 +8,6 @@ Please open the scenes/4dof_planar.ttt scene before running this script.
 
 """
 import numpy as np
-
 from artelib.euler import Euler
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.plottools import plot_vars, plot
