@@ -9,23 +9,22 @@ RobotABBIRB140 is a derived class of the Robot base class that
 @Time: April 2021
 """
 import numpy as np
-import sim
 from artelib.homogeneousmatrix import HomogeneousMatrix
-from artelib.path_planning import filter_path
+from artelib.path_planning import filter_path, path_trapezoidal_i
 from artelib.seriallink import SerialRobot
 from robots.robot import Robot
-
+import matplotlib.pyplot as plt
 
 class RobotABBIRB140(Robot):
-    def __init__(self, clientID):
+    def __init__(self, simulation):
         # init base class attributes
-        Robot.__init__(self)
-        self.clientID = clientID
+        Robot.__init__(self, simulation)
+        # self.clientID = clientID
         self.DOF = 6
         self.q_current = np.zeros((1, self.DOF))
 
         # maximum joint speeds (rad/s)
-        max_joint_speeds = np.array([180, 180, 180, 180, 180, 180, 180])
+        max_joint_speeds = np.array([200, 200, 245, 348, 360, 450])
         self.max_joint_speeds = max_joint_speeds * np.pi / 180.0
         # max and min joint ranges. joints 4 and 6 can be configured as unlimited
         # default joint limits:
@@ -33,8 +32,13 @@ class RobotABBIRB140(Robot):
         # here, the joint range for q4 has been extended
         joint_ranges = np.array([[-180, -90, -230, -400, -115, -400],
                                  [180,   110,  50,  400,  115, 400]])
+        self.pid_controllers = np.array([[0.8, 0, 0.2],
+                                [0.1, 0, 0.1],
+                                [0.2, 0, 0.1],
+                                [0.1, 0, 0.1],
+                                [0.1, 0, 0.1],
+                                [0.1, 0, 0.1]])
         self.joint_ranges = joint_ranges * np.pi / 180.0
-
         self.max_iterations_inverse_kinematics = 15000
         self.max_error_dist_inversekinematics = 0.01
         self.max_error_orient_inversekinematics = 0.01
@@ -43,7 +47,8 @@ class RobotABBIRB140(Robot):
         # whether to apply joint limits in inversekinematics
         self.do_apply_joint_limits = True
         # Sum of squared errors in joints to finish precision=True instructions
-        self.epsilonq = 0.0002
+        # self.epsilonq = 0.0002
+        self.epsilonq = 0.02
 
         # DH parameters of the robot
         self.serialrobot = SerialRobot(n=6, T0=np.eye(4), name='ABBIRB140')
@@ -57,14 +62,13 @@ class RobotABBIRB140(Robot):
     def start(self, base_name='/IRB140', joint_name='joint'):
         armjoints = []
         # Get the handles of the relevant objects
-        errorCode, robotbase = sim.simxGetObjectHandle(self.clientID, base_name, sim.simx_opmode_oneshot_wait)
-
-        errorCode, q1 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '1', sim.simx_opmode_oneshot_wait)
-        errorCode, q2 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '2', sim.simx_opmode_oneshot_wait)
-        errorCode, q3 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '3', sim.simx_opmode_oneshot_wait)
-        errorCode, q4 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '4', sim.simx_opmode_oneshot_wait)
-        errorCode, q5 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '5', sim.simx_opmode_oneshot_wait)
-        errorCode, q6 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '6', sim.simx_opmode_oneshot_wait)
+        robotbase = self.simulation.sim.getObject(base_name)
+        q1 = self.simulation.sim.getObject(base_name + '/' + joint_name + '1')
+        q2 = self.simulation.sim.getObject(base_name + '/' + joint_name + '2')
+        q3 = self.simulation.sim.getObject(base_name + '/' + joint_name + '3')
+        q4 = self.simulation.sim.getObject(base_name + '/' + joint_name + '4')
+        q5 = self.simulation.sim.getObject(base_name + '/' + joint_name + '5')
+        q6 = self.simulation.sim.getObject(base_name + '/' + joint_name + '6')
 
         armjoints.append(q1)
         armjoints.append(q2)
@@ -245,46 +249,6 @@ class RobotABBIRB140(Robot):
         wrist1 = [q4, q5, q6]
         wrist2 = [q4_, q5_, q6_]
         return np.array(wrist1), np.array(wrist2)
-
-    def moveAbsJ(self, q_target, precision=True):
-        """
-        Commands the robot to the specified joint target positions.
-        The targets are filtered and the robot is not commanded whenever a single joint is out of range.
-        """
-        # remove joints out of range and get the closest joint
-        total, partial = self.check_joints(q_target)
-        if total:
-            self.set_joint_target_positions(q_target, precision=precision)
-        else:
-            print('moveABSJ ERROR: joints out of range')
-
-    def moveJ(self, target_position, target_orientation, precision=True, extended=True):
-        """
-        Commands the robot to a target position and orientation.
-        All solutions to the inverse kinematic problem are computed. The closest solution to the
-        current position of the robot q0 is used
-        """
-        q0 = self.q_current
-        # resultado filtrado. Debe ser una matriz 6xn_movements
-        # CAUTION. This calls the inverse kinematic method of the derived class
-        qs = self.inversekinematics(q0=q0, target_position=target_position,
-                                    target_orientation=target_orientation, extended=extended)
-        # remove joints out of range and get the closest joint
-        qs = filter_path(self, q0, [qs])
-
-        # comandar al robot hasta
-        self.set_joint_target_positions(qs, precision=precision)
-
-    def moveL(self, target_position, target_orientation, precision=False, extended=True, vmax=0.8, wmax=0.2):
-        q0 = self.q_current
-        # resultado filtrado. Debe ser una matriz 6xn_movements
-        qs = self.inversekinematics_line(q0=q0, target_position=target_position,
-                                         target_orientation=target_orientation,
-                                         extended=extended, vmax=vmax, wmax=wmax)
-        # command the robot
-        self.set_joint_target_positions(qs, precision=precision)
-
-
 
 def extend_solutions(qi, qw):
     """

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/irb140_suction_pad.ttt scene before running this script.
+Please open the scenes/irb140.ttt scene before running this script.
 
 @Authors: Arturo Gil
 @Time: April 2022
@@ -13,23 +13,25 @@ from artelib.path_planning import compute_3D_coordinates
 from artelib.vector import Vector
 from robots.abbirb140 import RobotABBIRB140
 from robots.grippers import SuctionPad
+from robots.objects import ReferenceFrame
 from robots.proxsensor import ProxSensor
 from robots.simulation import Simulation
 
 
-def pick(robot, gripper):
+def pick(robot, gripper, frame):
     tp1 = Vector([0.6, 0.265, 0.45]) # approximation
     tp2 = Vector([0.6, 0.265, 0.193+0.04]) # pick
     to = Euler([0, np.pi, -np.pi/2])
-    robot.show_target_points([tp2], [to])
+    frame.show_target_points([tp2], [to])
     gripper.open(precision=True)
     robot.moveJ(target_position=tp1, target_orientation=to)
-    robot.moveL(target_position=tp2, target_orientation=to, precision='last')
+    robot.moveL(target_position=tp2, target_orientation=to, endpoint=True,
+                precision=True, vmax=0.3)
     gripper.close(precision=True)
     robot.moveL(target_position=tp1, target_orientation=to)
 
 
-def place(robot, gripper, i):
+def place(robot, gripper, frame, i):
     # define que piece length and a small gap
     piece_length = 0.08
     piece_gap = 0.003
@@ -49,8 +51,7 @@ def place(robot, gripper, i):
     T0 = T0m*Tmp0
     T1 = T0m*Tmp1
 
-    robot.show_target_points([T1.pos()], [T1.euler()[0]])
-
+    frame.show_target_points([T1.pos()], [T1.euler()[0]])
     robot.moveAbsJ(q0, precision=True)
     robot.moveJ(target_position=T0.pos(), target_orientation=T0.R(), precision='last')
     robot.moveL(target_position=T1.pos(), target_orientation=T1.R(), precision='last')
@@ -60,12 +61,14 @@ def place(robot, gripper, i):
 
 def pick_and_place():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotABBIRB140(clientID=clientID)
+    simulation.start()
+    robot = RobotABBIRB140(simulation=simulation)
     robot.start()
-    conveyor_sensor = ProxSensor(clientID=clientID)
+    frame = ReferenceFrame(simulation=simulation)
+    frame.start()
+    conveyor_sensor = ProxSensor(simulation=simulation)
     conveyor_sensor.start()
-    gripper = SuctionPad(clientID=clientID)
+    gripper = SuctionPad(simulation=simulation)
     gripper.start()
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.105]), Euler([-np.pi / 2, 0, 0])))
     q0 = np.array([0, 0, 0, 0, 0.1, -np.pi/2])
@@ -77,9 +80,9 @@ def pick_and_place():
                 break
             robot.wait()
         robot.moveAbsJ(q_target=q0)
-        pick(robot, gripper)
+        pick(robot, gripper,frame)
         robot.moveAbsJ(q_target=q0)
-        place(robot, gripper, i)
+        place(robot, gripper, frame, i)
     print('FINISHED!')
     simulation.stop()
 

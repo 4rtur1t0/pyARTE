@@ -18,11 +18,11 @@ from robots.ur5 import RobotUR5
 
 def ikine():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotUR5(clientID=clientID)
+    simulation.start()
+    robot = RobotUR5(simulation=simulation)
     robot.start()
-    gripper = GripperRG2(clientID=clientID)
-    gripper.start()
+    gripper = GripperRG2(simulation=simulation)
+    gripper.start(name='/UR5/RG2_openCloseJoint')
 
     target_positions = [[0.2, -0.45, 0.4],
                         [0.6, -0.2, 0.25]]
@@ -34,7 +34,7 @@ def ikine():
     for i in range(len(target_positions)):
         q = robot.inversekinematics(target_position=target_positions[i],
                                     target_orientation=Euler(target_orientations[i]), q0=q)
-        robot.set_joint_target_positions(q, precision=True)
+        robot.moveAbsJ(q, precision=True)
 
     simulation.stop()
     robot.plot_trajectories()

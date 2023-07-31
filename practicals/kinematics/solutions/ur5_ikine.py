@@ -90,11 +90,11 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
 
 def pick_and_place():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotUR5(clientID=clientID)
+    simulation.start()
+    robot = RobotUR5(simulation=simulation)
     robot.start()
-    gripper = GripperRG2(clientID=clientID)
-    gripper.start()
+    gripper = GripperRG2(simulation=simulation)
+    gripper.start(name='/UR5/RG2/RG2_openCloseJoint')
 
     target_positions = [[0.6, -0.2, 0.25], # initial in front of conveyor
                         [0.6, 0.1, 0.25], # pick the piece
@@ -109,7 +109,6 @@ def pick_and_place():
                            [-np.pi, 0, 0],
                            [-np.pi, 0, 0]]
     q0 = np.array([-np.pi, -np.pi/8, np.pi/2, 0, 0, 0])
-    # q0 = np.array([0, 0, 0, 0, 0, 0])
     # plan trajectories
     q1 = inverse_kinematics(robot=robot, target_position=target_positions[0],
                             target_orientation=Euler(target_orientations[0]), q0=q0)
@@ -126,20 +125,22 @@ def pick_and_place():
 
     # NOW execute trajectories computed before.
     # set initial position of robot
-    robot.set_joint_target_positions(q0, precision=True)
+    robot.moveAbsJ(q_target=q0, precision=True)
     robot.wait(15)
+    gripper.open(precision=True)
+    gripper.close(precision=True)
     gripper.open(precision=True)
     # set the target we are willing to reach on Coppelia
     # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
-    robot.set_joint_target_positions(q1, precision=True)
-    robot.set_joint_target_positions(q2, precision=True)
+    robot.moveAbsJ(q_target=q1, precision=True)
+    robot.moveAbsJ(q_target=q2, precision=True)
     gripper.close(precision=True)
-    robot.set_joint_target_positions(q3, precision=True)
-    robot.set_joint_target_positions(q4, precision=True)
-    robot.set_joint_target_positions(q5, precision=True)
-    robot.set_joint_target_positions(q6, precision=True)
+    robot.moveAbsJ(q_target=q3, precision=True)
+    robot.moveAbsJ(q_target=q4, precision=True)
+    robot.moveAbsJ(q_target=q5, precision=True)
+    robot.moveAbsJ(q_target=q6, precision=True)
     gripper.open(precision=True)
-    robot.set_joint_target_positions(q5)
+    robot.moveAbsJ(q_target=q5, precision=True)
 
     # Stop arm and simulation
     simulation.stop()

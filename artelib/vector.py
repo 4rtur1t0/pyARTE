@@ -47,6 +47,9 @@ class Vector():
     def cross(self, other):
         return Vector(np.cross(self.array, other.array))
 
+    def pos(self):
+        return np.array(self.array)
+
     def T(self):
         """
         Transpose, as in numpy

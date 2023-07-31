@@ -45,7 +45,7 @@ actions = {'1': '0+',
            'c': 'close_gripper'
            }
 
-delta_increment = 0.05  # rad
+delta_increment = 0.1  # rad
 q = np.zeros(6)
 press_exit = False
 
@@ -79,7 +79,9 @@ def on_press(key):
         elif caracter == 'z':
             print('ARM RESET')
             q = np.zeros(6)
-            robot.set_joint_target_positions(q, precision=True)
+            # robot.moveAbsJ(q_target=q, precision=False)
+            robot.apply_position_joint_control(q_target=q, precision=True)
+            # robot.set_joint_target_positions(q, precision=True)
             return True
         # for the rest of actions,  decode action from actions dictionary
         acti = actions[key.char]
@@ -90,16 +92,14 @@ def on_press(key):
         else:
             q[index] -= delta_increment
         [q, _] = robot.apply_joint_limits(q)
-        robot.set_joint_target_positions(q, precision=False)
-        # robot.wait()
-        # [position, orientation] = robot.get_end_effector_position_orientation()
+        robot.apply_position_joint_control(q_target=q, precision=False)
         T = robot.directkinematics(q)
         Q = T.Q()
-        print('Current q is: ', q)
-        # print('End effector position is (p): ', position)
-        # print('End effector orientation is (alpha, betta, gamma): ', orientation)
-        print('End effector T is: ', T)
-        print('End effector Q is: ', Q)
+        print('Current q is: \n', q)
+        print('End effector T is: \n', T)
+        print('End effector position is (p): \n', T.pos())
+        print('End effector orientation is (alpha, beta, gamma): \n', T.euler()[0])
+        print('End effector Q is (Quaternion): ', Q)
 
     except (AttributeError, KeyError):
         print('special key pressed: {0}'.format(key))
@@ -116,8 +116,7 @@ def on_release(key):
 
 if __name__ == "__main__":
     simulation = Simulation()
-    clientID = simulation.start()
-
+    simulation.start()
     print('Use: 1, 2, 3, 4, 5, 6, 7 to increment q_i')
     print('Use: q, w, e, r, t, y, u to decrement q_i')
     print('Use: o, c to open/close gripper')
@@ -129,18 +128,22 @@ if __name__ == "__main__":
     value = input("Please select a robot:\n")
     if value == str(1):
         print("IRB140 SELECTED")
-        robot = RobotABBIRB140(clientID=clientID)
+        robot = RobotABBIRB140(simulation=simulation)
+        robot.start()
+        gripper = GripperRG2(simulation=simulation)
+        gripper.start(name='/IRB140/RG2/RG2_openCloseJoint')
     elif value == str(2):
         print("UR5 SELECTED")
-        robot = RobotUR5(clientID=clientID)
+        robot = RobotUR5(simulation=simulation)
+        robot.start()
+        gripper = GripperRG2(simulation=simulation)
+        gripper.start(name='/UR5/RG2/RG2_openCloseJoint')
     else:
         print("KUKA LBR SELECTED")
-        robot = RobotKUKALBR(clientID=clientID)
-
-    robot.start()
-    gripper = GripperRG2(clientID=clientID)
-    gripper.start()
-    robot.set_joint_target_positions(q, precision=True)
+        robot = RobotKUKALBR(simulation=simulation)
+        robot.start()
+        gripper = GripperRG2(simulation=simulation)
+        gripper.start(name='/LBR_iiwa_14_R820/RG2/RG2_openCloseJoint')
 
     # Collect events until released
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:

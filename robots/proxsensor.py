@@ -1,29 +1,31 @@
-import sim
+"""
+A class to wrap a proximity sensor in Coppelia
+
+Author: Arturo Gil
+Date: 2022
+
+Rev: July 2023, modified to ZMQ api
+"""
 
 
 class ProxSensor():
-    def __init__(self, clientID):
-        self.clientID = clientID
+    def __init__(self, simulation):
+        self.simulation = simulation
         self.proxsensor = None
 
-    def start(self, name='prox_sensor'):
-        errorCode, prox_sensor = sim.simxGetObjectHandle(self.clientID, name, sim.simx_opmode_oneshot_wait)
+    def start(self, name='/conveyor/prox_sensor'):
+        prox_sensor = self.simulation.sim.getObject(name)
         self.proxsensor = prox_sensor
 
     def is_activated(self):
-        code, state, point, handle, snv = sim.simxReadProximitySensor(clientID=self.clientID,
-                                                                      sensorHandle=self.proxsensor,
-                                                                      operationMode=sim.simx_opmode_oneshot_wait)
-        return state
+        # code, state, point, handle, snv = self.simulation.sim.readProximitySensor(self.proxsensor)
+        result = self.simulation.sim.readProximitySensor(self.proxsensor)
+        return result[0]
 
     def readstate(self):
-        code, state, point, handle, snv = sim.simxReadProximitySensor(clientID=self.clientID,
-                                                                      sensorHandle=self.proxsensor,
-                                                                      operationMode=sim.simx_opmode_oneshot_wait)
+        code, state, point, handle, snv = self.simulation.sim.readProximitySensor(self.proxsensor)
         return state
 
     def readvalues(self):
-        code, state, point, handle, snv = sim.simxReadProximitySensor(clientID=self.clientID,
-                                                                      sensorHandle=self.proxsensor,
-                                                                      operationMode=sim.simx_opmode_oneshot_wait)
+        code, state, point, handle, snv = self.simulation.sim.simxReadProximitySensor(self.proxsensor)
         return point

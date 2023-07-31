@@ -8,16 +8,16 @@ Classes to manage a Velodyne LIDAR in Coppelia simulations (a laser sensor)
 @Time: April 2021
 
 """
-import sim
+# import sim
 
 
 class Velodyne():
-    def __init__(self, clientID):
-        self.clientID = clientID
+    def __init__(self, simulation):
+        self.simulation = simulation
         self.handle = None
 
     def start(self, name='velodyneVPL_16'):
-        errorCode, handle = sim.simxGetObjectHandle(self.clientID, name, sim.simx_opmode_oneshot_wait)
+        handle = self.simulation.sim.getObject(name)
         self.handle = handle
 
     def get_laser_data(self):
@@ -25,7 +25,7 @@ class Velodyne():
         This reads the laserdata signal in Coppelia and returns it.
         The laserdata signal must be defined as in the UR5_velodyne.ttt environment.
         """
-        error, data = sim.simxGetStringSignal(self.clientID, 'laserdata', sim.simx_opmode_oneshot_wait)
+        error, data = self.simulation.getStringSignal('laserdata')
         # TODO: after unpacking the floats, some more-readable data structure should be built.
-        data = sim.simxUnpackFloats(data)
+        data = self.simulation.sim.unpackFloats(data)
         return data

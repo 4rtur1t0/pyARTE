@@ -8,9 +8,9 @@ from robots.simulation import Simulation
 
 def move_reference_frame():
     simulation = Simulation()
-    clientID = simulation.start()
+    simulation.start()
     # Connect to the robot
-    ref_frame = ReferenceFrame(clientID=clientID)
+    ref_frame = ReferenceFrame(simulation=simulation)
     ref_frame.start()
     position = [0.5, 0, 0.5]
 

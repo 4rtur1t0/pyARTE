@@ -14,14 +14,14 @@ import numpy as np
 
 def capture_image():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotUR5(clientID=clientID)
+    simulation.start()
+    robot = RobotUR5(simulation=simulation)
     robot.start()
-    camera = Camera(clientID=clientID)
+    camera = Camera(simulation=simulation)
     camera.start()
 
     q0 = np.array([-np.pi/4, -np.pi/4, np.pi/4, np.pi/4, -np.pi/2, np.pi/2])
-    robot.set_joint_target_positions(q0, precision=True)
+    robot.moveAbsPath(q0, precision=True)
     image = camera.get_image()
     camera.save_image('image.png')
 

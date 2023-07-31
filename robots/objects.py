@@ -8,7 +8,7 @@ Classes to manage different objects in Coppelia simulations
 @Time: April 2023
 
 """
-import sim
+# import sim
 import numpy as np
 from artelib import rotationmatrix
 from artelib import homogeneousmatrix
@@ -20,13 +20,13 @@ from artelib.vector import Vector
 
 
 class CoppeliaObject():
-    def __init__(self, clientID):
-        self.clientID = clientID
+    def __init__(self, simulation):
+        self.simulation = simulation
         self.handle = None
 
     def start(self, name='/CoppeliaObject'):
         # Get the handles of the relevant objects
-        errorCode, handle = sim.simxGetObjectHandle(self.clientID, name, sim.simx_opmode_oneshot_wait)
+        handle = self.simulation.sim.getObject(name)
         self.handle = handle
 
     def set_position(self, position):
@@ -38,8 +38,8 @@ class CoppeliaObject():
             position = position.array
         elif isinstance(position, homogeneousmatrix.HomogeneousMatrix):
             position = position.pos
-        errorCode = sim.simxSetObjectPosition(self.clientID, self.handle, -1, position, sim.simx_opmode_oneshot_wait)
-        sim.simxSynchronousTrigger(clientID=self.clientID)
+        self.simulation.sim.setObjectPosition(self.handle, -1, position.tolist())
+        self.simulation.wait()
 
     def set_orientation(self, orientation):
         # if orientation is given by a RotationMatrix
@@ -50,8 +50,8 @@ class CoppeliaObject():
             abg = np.array(orientation)
         elif isinstance(orientation, euler.Euler):
             abg = orientation.abg
-        errorCode = sim.simxSetObjectOrientation(self.clientID, self.handle, sim.sim_handle_parent, abg, sim.simx_opmode_oneshot_wait)
-        sim.simxSynchronousTrigger(clientID=self.clientID)
+        self.simulation.sim.setObjectOrientation(self.handle, -1, abg.tolist())
+        self.simulation.wait()
 
     def set_position_and_orientation(self, *args):
         if len(args) == 1:
@@ -72,18 +72,16 @@ class CoppeliaObject():
             else:
                 raise Exception
 
-        errorCode = sim.simxSetObjectPosition(self.clientID, self.handle, -1, position,
-                                                      sim.simx_opmode_oneshot_wait)
-        errorCode = sim.simxSetObjectOrientation(self.clientID, self.handle, sim.sim_handle_parent, orientation,
-                                                     sim.simx_opmode_oneshot_wait)
-        sim.simxSynchronousTrigger(clientID=self.clientID)
+        self.simulation.sim.setObjectPosition(self.handle, -1, position.tolist())
+        self.simulation.sim.setObjectOrientation(self.handle, -1, orientation.tolist())
+        # self.simulation.wait()
 
     def get_position(self):
-        errorCode, position = sim.simxGetObjectPosition(self.clientID, self.handle, -1, sim.simx_opmode_oneshot_wait)
+        position = self.simulation.sim.getObjectPosition(self.handle, -1)
         return position
 
     def get_orientation(self):
-        errorCode, orientation = sim.simxGetObjectOrientation(self.clientID, self.handle, sim.sim_handle_parent, sim.simx_opmode_oneshot_wait)
+        orientation = self.simulation.sim.getObjectOrientation(self.handle, -1)
         return orientation
 
     def get_transform(self):
@@ -96,49 +94,70 @@ class CoppeliaObject():
         return T
 
     def wait(self, steps=1):
-        for i in range(0, steps):
-            sim.simxSynchronousTrigger(clientID=self.clientID)
+        self.simulation.wait(steps=steps)
 
 
 class Sphere(CoppeliaObject):
-    def __init__(self, clientID):
-        CoppeliaObject.__init__(self, clientID=clientID)
+    def __init__(self, simulation):
+        CoppeliaObject.__init__(self, simulation=simulation)
 
     def start(self, name='/Sphere'):
-        errorCode, handle = sim.simxGetObjectHandle(self.clientID, name, sim.simx_opmode_oneshot_wait)
+        handle = self.simulation.sim.getObject(name)
         self.handle = handle
 
 
 class ReferenceFrame(CoppeliaObject):
-    def __init__(self, clientID):
-        CoppeliaObject.__init__(self, clientID=clientID)
+    def __init__(self, simulation):
+        CoppeliaObject.__init__(self, simulation=simulation)
 
     def start(self, name='/ReferenceFrame'):
         # Get the handles of the relevant objects
-        errorCode, handle = sim.simxGetObjectHandle(self.clientID, name, sim.simx_opmode_oneshot_wait)
+        handle = self.simulation.sim.getObject(name)
         self.handle = handle
+
+    def show_target_point(self, target_position, target_orientation, wait_time=0.5):
+        T = HomogeneousMatrix(target_position, target_orientation)
+        self.set_position_and_orientation(T)
+        self.simulation.wait_time(wait_time)
+
+    def show_target_points(self, target_positions, target_orientations, wait_time=0.5):
+        for i in range(len(target_positions)):
+            self.show_target_point(target_position=target_positions[i],
+                                   target_orientation=target_orientations[i],
+                                   wait_time=wait_time)
 
 
 class Cuboid(CoppeliaObject):
-    def __init__(self, clientID):
-        CoppeliaObject.__init__(self, clientID=clientID)
+    def __init__(self, simulation):
+        CoppeliaObject.__init__(self, simulation=simulation)
 
     def start(self, name='/Cuboid'):
         # Get the handles of the relevant objects
-        errorCode, handle = sim.simxGetObjectHandle(self.clientID, name, sim.simx_opmode_oneshot_wait)
+        handle = self.simulation.sim.getObject(name)
         self.handle = handle
 
 
-def get_object_transform(clientID, base_name, piece_index):
+class Dummy(CoppeliaObject):
+    def __init__(self, simulation):
+        CoppeliaObject.__init__(self, simulation=simulation)
+
+    def start(self, name='/youBot/youBot_ref0'):
+        # Get the handles of the relevant objects
+        handle = self.simulation.sim.simxGetObjectHandle(name)
+        self.handle = handle
+
+
+def get_object_transform(simulation, base_name, piece_index):
     """
     Returns the position and orientation of th ith Cuboid in Coppelia
     (in the global reference frame)
     Used to get the transformation matrix of collection of objects with consecutive indices
     """
-    obj = CoppeliaObject(clientID)
+    obj = CoppeliaObject(simulation=simulation)
     if piece_index == 0:
         name = base_name
     else:
-        name = base_name + str(piece_index - 1)
+        name = base_name + '[' + str(piece_index) + ']'
+    print('LOOKING FOR OBJECT TRANSFORM', name)
     obj.start(name)
     return obj.get_transform()

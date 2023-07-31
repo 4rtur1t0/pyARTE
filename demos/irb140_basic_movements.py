@@ -17,10 +17,10 @@ def pick_and_place_rep():
     A repeated pick and place application.
     """
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotABBIRB140(clientID=clientID)
+    simulation.start()
+    robot = RobotABBIRB140(simulation=simulation)
     robot.start()
-    gripper = GripperRG2(clientID=clientID)
+    gripper = GripperRG2(simulation=simulation)
     gripper.start()
 
     q0 = np.array([0.0, 0.2, np.pi / 4, 0.1, 0.1, np.pi/2])

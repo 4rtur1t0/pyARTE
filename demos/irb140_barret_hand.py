@@ -20,16 +20,17 @@ from robots.simulation import Simulation
 
 def pick(robot, gripper):
     tp1 = Vector([0.4, 0.27, 0.25])  # approximation
-    tp2 = Vector([0.78, 0.27, 0.25]) # pick
+    tp2 = Vector([0.75, 0.27, 0.25]) # pick
     to = Euler([0, np.pi/2, np.pi/2])
 
     q0 = np.array([0, 0, 0, 0, 0, 0])
     robot.moveAbsJ(q_target=q0)
     gripper.open(precision=True)
     robot.moveJ(target_position=tp1, target_orientation=to)
-    robot.moveL(target_position=tp2, target_orientation=to, precision='last')
+    robot.moveL(target_position=tp2, target_orientation=to, vmax=0.3,
+                endpoint=True, precision=True)
     gripper.close(precision=True)
-    robot.moveL(target_position=tp1, target_orientation=to)
+    robot.moveL(target_position=tp1, target_orientation=to, vmax=0.5)
 
 
 def place(robot, gripper, i):
@@ -62,16 +63,16 @@ def place(robot, gripper, i):
 def pick_and_place():
     # Start simulation
     simulation = Simulation()
-    clientID = simulation.start()
+    simulation.start()
     # Connect to the robot
-    robot = RobotABBIRB140(clientID=clientID)
+    robot = RobotABBIRB140(simulation=simulation)
     robot.start()
     # Connect to the proximity sensor
-    conveyor_sensor = ProxSensor(clientID=clientID)
+    conveyor_sensor = ProxSensor(simulation=simulation)
     conveyor_sensor.start()
     # Connect to the gripper
-    gripper = GripperBarretHand(clientID=clientID)
-    gripper.start()
+    gripper = GripperBarretHand(simulation=simulation)
+    gripper.start(name='/IRB140/openCloseJoint')
     # set the TCP of the Barret gripper
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.3]), RotationMatrix(np.eye(3))))
 
@@ -86,7 +87,7 @@ def pick_and_place():
 
         robot.moveAbsJ(q_target=q0)
         pick(robot, gripper)
-        robot.moveAbsJ(q_target=q0)
+        robot.moveAbsJ(q_target=q0, qdfactor=0.3)
         place(robot, gripper, i)
 
     # Stop arm and simulation

@@ -16,13 +16,13 @@ from robots.simulation import Simulation
 
 if __name__ == "__main__":
     simulation = Simulation()
-    clientID = simulation.start()
-    frame = ReferenceFrame(clientID=clientID)
+    simulation.start()
+    frame = ReferenceFrame(simulation=simulation)
     frame.start()
 
     # Change position and orientation of the frame
     # using Vector and RotationMatrix
-    position = Vector([0.5, 0, 0.3])
+    position = Vector([0.5, 0.0, 0.3])
     orientation = RotationMatrix(np.array([[0, 1, 0],
                                            [-1, 0, 0],
                                            [0, 0, 1]]))
@@ -53,7 +53,6 @@ if __name__ == "__main__":
     simulation.wait(50)
     frame.set_orientation(orientation=T.R())
     simulation.wait(50)
-
     frame.set_position_and_orientation(T)
 
     simulation.stop()
