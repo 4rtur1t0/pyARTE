@@ -156,7 +156,7 @@ def pick_and_place():
                     True,
                     True]  # drop the piece
     q = np.array([-np.pi / 2, -np.pi / 8, np.pi / 2, -0.1, -0.1, -0.1])
-    robot.set_joint_target_positions(q)
+    robot.moveAbsJ(q)
     robot.wait(20)
     for i in range(len(target_positions)-1):
         # robot.set_target_position_orientation(target_positions[i+1], target_orientations[i+1])

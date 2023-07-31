@@ -14,6 +14,7 @@ from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.rotationmatrix import RotationMatrix
 from artelib.vector import Vector
 from robots.abbirb140 import RobotABBIRB140
+from robots.grippers import GripperRG2
 from robots.objects import ReferenceFrame
 from robots.simulation import Simulation
 
@@ -27,9 +28,13 @@ if __name__ == "__main__":
     robot.start()
     frame = ReferenceFrame(simulation=simulation)
     frame.start()
+    gripper = GripperRG2(simulation=simulation)
+    gripper.start(name='/IRB140/RG2/RG2_openCloseJoint')
+
 
     # set the TCP of the RG2 gripper
-    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.195]), RotationMatrix(np.eye(3))))
+    # robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.105]), Euler([-np.pi / 2, 0, 0])))
 
     q0 = np.array([0, np.pi/2, -np.pi, 0, 0, 0])
     tp1 = Vector([0.6, -0.5, 0.8])

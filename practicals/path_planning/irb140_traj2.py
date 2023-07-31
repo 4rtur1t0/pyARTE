@@ -25,9 +25,13 @@ if __name__ == "__main__":
     robot = RobotABBIRB140(simulation=simulation)
     robot.start()
     # set the TCP of the RG2 gripper
-    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.195]), RotationMatrix(np.eye(3))))
     frame = ReferenceFrame(simulation=simulation)
     frame.start()
+
+    # set the TCP of the RG2 gripper
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.195]), RotationMatrix(np.eye(3))))
+    # robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.105]), Euler([-np.pi / 2, 0, 0])))
 
     q0 = np.array([-np.pi/4, -np.pi/4, np.pi/8, -np.pi/4, np.pi / 4, -np.pi/4])
     target_positions = [Vector([0.6, -0.5, 0.8]),

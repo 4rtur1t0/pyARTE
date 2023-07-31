@@ -32,7 +32,25 @@ if __name__ == "__main__":
     frame.start()
 
     # set the TCP of the RG2 gripper
-    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
+    # robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.195]), RotationMatrix(np.eye(3))))
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.105]), Euler([-np.pi / 2, 0, 0])))
+
+    tp1 = Vector([0.6, -0.5, 0.8])
+    to1 = Euler([0, np.pi / 2, 0])
+    tp2 = Vector([0.6, 0.3, 0.5])
+    to2 = Euler([0, np.pi / 2, np.pi/2])
+
+    q0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    robot.moveAbsJ(q0, qdfactor=0.8, precision=True, endpoint=True)
+
+    T = robot.directkinematics(q0)
+
+    # COMMAND TO specified target points
+    frame.show_target_points(target_positions=[tp1], target_orientations=[to1], wait_time=1)
+    robot.moveJ(target_position=tp1, target_orientation=to1, qdfactor=0.5, endpoint=True)
+    frame.show_target_points(target_positions=[tp2], target_orientations=[to2], wait_time=1)
+    robot.moveJ(target_position=tp2, target_orientation=to2, qdfactor=0.5, endpoint=True)
+    robot.moveJ(target_position=tp1, target_orientation=to1, qdfactor=0.5, endpoint=True)
 
     q0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     q1 = np.array([np.pi/2, 0.0, 0.0, 0.0, 0.0, 0.0])
@@ -57,7 +75,9 @@ if __name__ == "__main__":
     gripper.close(precision=True)
 
     # COMMAND TO specified target points
+    frame.show_target_points(target_positions=[tp1], target_orientations=[to1], wait_time=1)
     robot.moveJ(target_position=tp1, target_orientation=to1, qdfactor=0.5, endpoint=True)
+    frame.show_target_points(target_positions=[tp2], target_orientations=[to2], wait_time=1)
     robot.moveJ(target_position=tp2, target_orientation=to2, qdfactor=0.5, endpoint=True)
     robot.moveJ(target_position=tp1, target_orientation=to1, qdfactor=0.5, endpoint=True)
 
