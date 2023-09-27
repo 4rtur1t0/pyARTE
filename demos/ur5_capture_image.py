@@ -18,10 +18,10 @@ def capture_image():
     robot = RobotUR5(simulation=simulation)
     robot.start()
     camera = Camera(simulation=simulation)
-    camera.start()
+    camera.start(name='/UR5/RG2/camera')
 
     q0 = np.array([-np.pi/4, -np.pi/4, np.pi/4, np.pi/4, -np.pi/2, np.pi/2])
-    robot.moveAbsPath(q0, precision=True)
+    robot.moveAbsJ(q0, precision=True)
     image = camera.get_image()
     camera.save_image('image.png')
 

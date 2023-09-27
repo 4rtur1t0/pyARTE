@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Codigo para proyecto transversal
-Robot UR5 jugando a los bolos
-scenes/more/bowling.ttt
+    Código para proyecto transversal
+    Robot UR5 jugando a los bolos
+    Escena: scenes/more/ur5_bowling.ttt
 """
+
 import numpy as np
 from artelib.euler import Euler
 from artelib.homogeneousmatrix import HomogeneousMatrix
@@ -23,21 +24,21 @@ def delta_q_t(J, e):
     dq = alpha*np.dot(J.T, e)
     return dq
 
-#Calcular la jacobiana moore penrose
+# Calcular la jacobiana moore penrose
 def moore_penrose_damped(J, e):
     manip = np.linalg.det(np.dot(J, J.T))
-    #Si la manipulabilidad es mayor que 0.01^2 se utiliza la moore penrose pseudo inversa
+    # Si la manipulabilidad es mayor que 0.01^2 se utiliza la moore penrose pseudo inversa
     if manip > .01 ** 2:
         iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T)))
         qd = np.dot(iJ, e.T)
         return qd
-    #Si la manipulabilidad es menor que 0.01^2 se utiliza la Damped
+    # Si la manipulabilidad es menor que 0.01^2 se utiliza la Damped
     K = 0.01 * np.eye(np.min(J.shape))
     iJ = np.dot(J.T, np.linalg.inv(np.dot(J, J.T) + K))
     qd = np.dot(iJ, e.T)
     return qd
 
-#Calcular la cinematica inversa
+# Calcular la cinematica inversa
 def inverse_kinematics(robot, target_position, target_orientation, q0):
     Ttarget = HomogeneousMatrix(target_position, target_orientation)
     q = q0
@@ -49,7 +50,7 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
         e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
         print('vwref: ', e)
         print('errordist, error orient: ', error_dist, error_orient)
-        #Sie el error es menor que 0.01 finaliza
+        #Si el error es menor que 0.01 finaliza
         if error_dist < 0.01 and error_orient < 0.01:
             print('Converged!!')
             break
@@ -61,11 +62,11 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
 # Funcion para calcular los movimientos del robot
 def posicionamiento():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotUR5(clientID=clientID)
+    simulation.start()
+    robot = RobotUR5(simulation=simulation)
     robot.start()
-    gripper = GripperBarretHand(clientID=clientID)
-    gripper.start()
+    gripper = GripperBarretHand(simulation=simulation)
+    gripper.start(name='/UR5/BarrettHand/Barrett_openCloseJoint')
 
     target_positions = [[0.31, 0.22, 0.55], #Posicion delante de la bola
                         [0.31, 0.22, 0.55], #Coger la bola
@@ -117,26 +118,26 @@ def posicionamiento():
                             target_orientation=Euler(target_orientations[10]), q0=q10)
 
 
-    #Ejecutar las trayectorias anteriores
-    robot.set_joint_target_positions(q0, precision=True)
+    # Se ejecutan las trayectorias anteriores
+    robot.moveAbsJ(q0, precision=True)
     robot.wait(15)
     gripper.open(precision=True)
     # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
-    robot.set_joint_target_positions(q1, precision=True)
-    robot.set_joint_target_positions(q2, precision=True)
+    robot.moveAbsJ(q1, precision=True)
+    robot.moveAbsJ(q2, precision=True)
     gripper.close(precision=True)
-    robot.set_joint_target_positions(q3, precision=True)
-    robot.set_joint_target_positions(q4, precision=True)
-    robot.set_joint_target_positions(q5, precision=True)
-    robot.set_joint_target_positions(q6, precision=True)
-    robot.set_joint_target_positions(q7, precision=True)
-    robot.set_joint_target_positions(q8, precision=True)
-    robot.set_joint_target_positions(q9, precision=True)
-    robot.set_joint_target_positions(q10, precision=True)
+    robot.moveAbsJ(q3, precision=True)
+    robot.moveAbsJ(q4, precision=True)
+    robot.moveAbsJ(q5, precision=True)
+    robot.moveAbsJ(q6, precision=True)
+    robot.moveAbsJ(q7, precision=True)
+    robot.moveAbsJ(q8, precision=True)
+    robot.moveAbsJ(q9, precision=True)
+    robot.moveAbsJ(q10, precision=True)
     robot.wait(20)
-    robot.set_joint_target_positions(q11, precision=True)
+    robot.moveAbsJ(q11, precision=True)
     gripper.open(precision=True)
-    #Tiempo de espera para visualizar el lanzamiento
+    # Tiempo de espera para visualizar el lanzamiento
     robot.wait(300)
 
     simulation.stop()

@@ -69,7 +69,7 @@ def place2(robot, gripper):
 
 def pick_and_place():
     simulation = Simulation()
-    clientID = simulation.start()
+    simulation.start()
 
     robot1 = RobotABBIRB140(simulation=simulation)
     robot1.start(base_name='/IRB140')

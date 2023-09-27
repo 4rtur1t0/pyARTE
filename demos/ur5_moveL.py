@@ -20,11 +20,11 @@ from robots.ur5 import RobotUR5
 
 def ikineline():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotUR5(clientID=clientID)
+    simulation.start()
+    robot = RobotUR5(simulation=simulation)
     robot.start()
-    gripper = GripperRG2(clientID=clientID)
-    gripper.start()
+    gripper = GripperRG2(simulation=simulation)
+    gripper.start(name='/UR5/RG2/RG2_openCloseJoint')
     target_positions = [Vector([0.2, -0.45, 0.4]),
                         Vector([0.6, -0.2, 0.25])]
     target_orientations = [Euler([-np.pi, 0, 0]),

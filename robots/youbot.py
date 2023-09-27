@@ -7,21 +7,15 @@ Please open the scenes/youbot.ttt scene before running this script.
 @Time: April 2021
 
 """
-import time
-import sim
-import sys
-import numpy as np
 from robots.robot import Robot
-# standard delta time for Coppelia, please modify if necessary
-DELTA_TIME = 50.0/1000.0
+import numpy as np
 
 
-class YouBotRobot(Robot):
-    def __init__(self, clientID):
-        Robot.__init__(self)
-        self.clientID = clientID
+class YouBotBase(Robot):
+    def __init__(self, simulation):
+        Robot.__init__(self, simulation)
+        self.simulation = simulation
         self.wheeljoints = None
-        self.joints = None
         self.base = None
         self.dummy = None
         self.gripper = None
@@ -34,39 +28,17 @@ class YouBotRobot(Robot):
     def start(self, base_name='/youBot', joint_name='youBotArmJoint'):
         armjoints = []
         # Get the handles of the relevant objects
-        errorCode, robotbase = sim.simxGetObjectHandle(self.clientID, base_name, sim.simx_opmode_oneshot_wait)
-        errorCode, youbotref = sim.simxGetObjectHandle(self.clientID, '/youBot/youBot_ref', sim.simx_opmode_oneshot_wait)
+        robotbase = self.simulation.sim.getObject(base_name)
+        youbotref = self.simulation.sim.getObject('/youBot/youBot_ref')
         # handles to the wheels
-        errorCode, fl = sim.simxGetObjectHandle(self.clientID, base_name + '/rollingJoint_fl',
-                                                sim.simx_opmode_oneshot_wait)
-        errorCode, rl = sim.simxGetObjectHandle(self.clientID, base_name + '/rollingJoint_rl',
-                                                sim.simx_opmode_oneshot_wait)
-        errorCode, rr = sim.simxGetObjectHandle(self.clientID, base_name + '/rollingJoint_rr',
-                                                sim.simx_opmode_oneshot_wait)
-        errorCode, fr = sim.simxGetObjectHandle(self.clientID, base_name + '/rollingJoint_fr',
-                                                sim.simx_opmode_oneshot_wait)
+        fl = self.simulation.sim.getObject(base_name + '/rollingJoint_fl')
+        rl = self.simulation.sim.getObject(base_name + '/rollingJoint_rl')
+        rr = self.simulation.sim.getObject(base_name + '/rollingJoint_rr')
+        fr = self.simulation.sim.getObject(base_name + '/rollingJoint_fr')
         wheeljoints = [fl, rl, rr, fr]
-
-        errorCode, q1 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '0',
-                                                sim.simx_opmode_oneshot_wait)
-        errorCode, q2 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '1',
-                                                sim.simx_opmode_oneshot_wait)
-        errorCode, q3 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '2',
-                                                sim.simx_opmode_oneshot_wait)
-        errorCode, q4 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '3',
-                                                sim.simx_opmode_oneshot_wait)
-        errorCode, q5 = sim.simxGetObjectHandle(self.clientID, base_name + '/' + joint_name + '4',
-                                                sim.simx_opmode_oneshot_wait)
-        # handles to the armjoints
-        armjoints.append(q1)
-        armjoints.append(q2)
-        armjoints.append(q3)
-        armjoints.append(q4)
-        armjoints.append(q5)
 
         # must store the joints
         self.wheeljoints = wheeljoints
-        self.joints = armjoints
         self.base = robotbase
         self.dummy = youbotref
         self.joint_directions = [1, -1, -1, -1, 1]
@@ -81,30 +53,59 @@ class YouBotRobot(Robot):
         # B = np.array([b+d/r])
         # V = np.array([forwardspeed, leftrigthspeed, rotspeed])
         # w = np.dot(B, V)
-        error = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[0],
-                                               targetVelocity=-forwardspeed - leftrigthspeed - rotspeed,
-                                               operationMode=sim.simx_opmode_oneshot)
-        error = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[1],
-                                               targetVelocity=-forwardspeed + leftrigthspeed - rotspeed,
-                                               operationMode=sim.simx_opmode_oneshot)
-        error = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[2],
-                                               targetVelocity=-forwardspeed - leftrigthspeed + rotspeed,
-                                               operationMode=sim.simx_opmode_oneshot)
-        error = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.wheeljoints[3],
-                                               targetVelocity=-forwardspeed + leftrigthspeed + rotspeed,
-                                               operationMode=sim.simx_opmode_oneshot)
-
-
-
+        self.simulation.sim.setJointTargetVelocity(self.wheeljoints[0], forwardspeed - leftrigthspeed - rotspeed)
+        self.simulation.sim.setJointTargetVelocity(self.wheeljoints[1], -forwardspeed + leftrigthspeed - rotspeed)
+        self.simulation.sim.setJointTargetVelocity(self.wheeljoints[2], -forwardspeed - leftrigthspeed + rotspeed)
+        self.simulation.sim.setJointTargetVelocity(self.wheeljoints[3], -forwardspeed + leftrigthspeed + rotspeed)
 
     def get_true_position_and_orientation(self):
-        error, position = sim.simxGetObjectPosition(clientID=self.clientID,
-                                             objectHandle=self.dummy,
-                                             relativeToObjectHandle=-1,
-                                             operationMode=sim.simx_opmode_oneshot_wait)
-
-        error, orientation = sim.simxGetObjectOrientation(clientID=self.clientID,
-                                             objectHandle=self.dummy,
-                                             relativeToObjectHandle=-1,
-                                             operationMode=sim.simx_opmode_oneshot_wait)
+        error, position = self.simulation.sim.getObjectPosition(objectHandle=self.dummy, relativeToObjectHandle=-1)
+        error, orientation = self.simulation.sim.simxGetObjectOrientation(objectHandle=self.dummy,
+                                             relativeToObjectHandle=-1)
         return position, orientation
+
+
+class YouBotArm(Robot):
+    def __init__(self, simulation):
+        Robot.__init__(self, simulation)
+        self.simulation = simulation
+        self.joints = None
+        self.base = None
+        self.joint_directions = None
+        # complete all data from base class
+        self.epsilonq = 0.005
+
+        # maximum joint speeds (rad/s)
+        max_joint_speeds = np.array([100, 100, 100, 100, 100, 100])
+        self.max_joint_speeds = max_joint_speeds * np.pi / 180.0
+        # max and min joint ranges. joints 4 and 6 can be configured as unlimited
+        # default joint limits:
+        # q1 (+-180), q2 (-90,110), q3 (-230, 50), q4 (+-200), q5 (+-115), q6 (+-400)
+        # here, the joint range for q4 has been extended
+        joint_ranges = np.array([[-180, -90, -230, -400, -115, -400],
+                                 [180,   110, 110,  400,  115, 400]])
+        self.joint_ranges = joint_ranges * np.pi / 180.0
+
+
+    def start(self, base_name='/youBot', joint_name='youBotArmJoint'):
+        armjoints = []
+        # Get the handles of the relevant objects
+        robotbase = self.simulation.sim.getObject(base_name)
+
+        q1 = self.simulation.sim.getObject(base_name + '/' + joint_name + '0')
+        q2 = self.simulation.sim.getObject(base_name + '/' + joint_name + '1')
+        q3 = self.simulation.sim.getObject(base_name + '/' + joint_name + '2')
+        q4 = self.simulation.sim.getObject(base_name + '/' + joint_name + '3')
+        q5 = self.simulation.sim.getObject(base_name + '/' + joint_name + '4')
+        # handles to the armjoints
+        armjoints.append(q1)
+        armjoints.append(q2)
+        armjoints.append(q3)
+        armjoints.append(q4)
+        armjoints.append(q5)
+
+        # must store the joints
+        self.joints = armjoints
+        self.base = robotbase
+        self.joint_directions = [1, -1, -1, -1, 1]
+
