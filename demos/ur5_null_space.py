@@ -25,7 +25,7 @@ def null_space_along(robot, m, col, n_steps=20):
     Define the direction of movement (column of V)
     Define the number of movements (n_steps)
     """
-    q_path = []
+    # q_path = []
     q = robot.get_joint_positions()
     for i in range(0, n_steps):
         J, Jv, Jw = robot.manipulator_jacobian(q)
@@ -34,25 +34,24 @@ def null_space_along(robot, m, col, n_steps=20):
         # caution, obtaining v transposed --> must transpose
         qd = vh.T[:, col]
         q = q + 0.05*qd
-        q_path.append(q)
-        # robot.set_joint_target_positions(q, precision=True)
-    robot.set_joint_target_trajectory(q_path)
+        # q_path.append(q)
+        robot.moveAbsJ(q_target=q, precision=True)
 
 
 if __name__ == "__main__":
     simulation = Simulation()
     clientID = simulation.start()
-    robot = RobotUR5(clientID=clientID)
+    robot = RobotUR5(simulation=simulation)
     robot.start()
-    gripper = GripperRG2(clientID=clientID)
-    gripper.start()
+    gripper = GripperRG2(simulation=simulation)
+    gripper.start(name='/UR5/RG2/RG2_openCloseJoint')
 
     q0 = np.pi / 8 * np.array([-6, 1, 3, 1, 2, 1])
     # set initial position of robot
-    robot.set_joint_target_positions(q0, precision=True)
-    null_space_along(robot, m=3, col=3)
-    null_space_along(robot, m=3, col=4)
-    null_space_along(robot, m=3, col=5)
+    robot.moveAbsJ(q0, precision=True)
+    null_space_along(robot=robot, m=3, col=3)
+    null_space_along(robot=robot, m=3, col=4)
+    null_space_along(robot=robot, m=3, col=5)
 
     robot.plot_trajectories()
     simulation.stop()

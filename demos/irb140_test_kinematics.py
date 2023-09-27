@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-This script does not need a Coppelia Scene.
+This script does not need a Coppelia Scene. It does not connect to Coppelia Sim!
 
 The script tests the inverse kinematics method of the ABB IRB140 robot.
 

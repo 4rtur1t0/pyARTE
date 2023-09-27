@@ -100,7 +100,7 @@ class YouBotGripper():
         self.simulation = simulation
         self.joints = None
 
-    def start(self, name='youBotGripperJoint'):
+    def start(self, name='/youBot/youBotGripperJoint'):
         gripper_joint1 = self.simulation.sim.getObject(name+'1')
         gripper_joint2 = self.simulation.sim.getObject(name + '2')
         self.joints = [gripper_joint1, gripper_joint2]

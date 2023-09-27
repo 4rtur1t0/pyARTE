@@ -73,71 +73,6 @@ class Robot():
         for i in range(len(qd)):
             self.simulation.sim.setJointTargetVelocity(self.joints[i], qd[i])
 
-    # def command_joint_target_positions(self, q_target, precision=True):
-    #     """
-    #     CAUTION: this function may only work if the "position control loop" is enabled at every arm joint.
-    #     :param precision: whether to wait for Coppelia until que joint values are attained with precision
-    #                 precision=True: --> the method self.wait_till_joint_position_is_met is called. This method
-    #                 checks, at each simulation time, whether the specified joint values q_target have been achieved.
-    #     :return: None
-    #     """
-    #     for i in range(len(q_target)):
-    #         self.simulation.sim.setJointTargetPosition(self.joints[i], q_target[i])
-    #     if precision:
-    #         self.wait_till_joint_position_is_met(q_target)
-    #     else:
-    #         self.wait()
-    #     self.q_path.append(q_target)
-    #     # IMPORTANT: FINALLY, set the current robot position
-    #     self.q_current = q_target
-
-    # def set_joint_target_positions(self, q_path, sampling=1, precision='last'):
-    #     """
-    #     A repeated call to set_joint_target_positions.
-    #     param q: a list of qs (joint positions).
-    #     param sampling: select sampling=1 to reproduce all the joint positions in the path
-    #               select sampling=2 to skip one out of two joint positions.
-    #     param precision:
-    #     all: wait for the simulator to wait until every q in the path is attained with precision
-    #                 (wait_till_joint_position_is_met) is called for every index i in  the trajectory.
-    #     last:  wait for the simulator to wait only on the last joint values q in  the trajectory.
-    #                (wait_till_joint_position_is_met) is called on the last i in  the trajectory.
-    #     low: a low precision over the trajectory.
-    #     none:
-    #                 if wait=True, the robot control scheme is making the joints stop and start
-    #                 for each new joint. It waits until the joints of the robot and the target are equal.
-    #                 With this option, the movement of the robot may be non-smooth.
-    #                 if wait=False: the movement is typically smoother, but the trajectory is not followed exaclty.
-    #     """
-    #     if len(q_path) == 0:
-    #         print('set_joint_target_positions ERROR: THE PATH IS EMPTY')
-    #         return
-    #     # both commanding a single q or a path
-    #     if len(q_path.shape) == 1:
-    #         self.command_joint_target_positions(q_path, precision=precision)
-    #         return
-    #     n_cols = q_path.shape[1]
-    #     # precision must be attained on all movements
-    #     if precision == 'all' or precision is True:
-    #         samples = range(0, n_cols, sampling)
-    #         for i in samples:
-    #             self.command_joint_target_positions(q_path[:, i], precision=True)
-    #     # precision is low on any
-    #     elif precision == 'low':
-    #         self.epsilonq = 1000.0 * self.epsilonq
-    #         for i in range(0, n_cols, sampling):
-    #             self.command_joint_target_positions(q_path[:, i], precision=True)
-    #         self.epsilonq = self.epsilonq / 1000.0
-    #     # precision must be attained only on the last i in the path
-    #     elif precision == 'last':
-    #         for i in range(0, n_cols, sampling):
-    #             self.command_joint_target_positions(q_path[:, i], precision=False)
-    #         self.command_joint_target_positions(q_path[:, -1], precision=True)
-    #     # precision must not be attained on any i in the path
-    #     elif precision == 'none' or precision is False:
-    #         for i in range(0, n_cols, sampling):
-    #             self.command_joint_target_positions(q_path[:, i], precision=False)
-
     def get_joint_positions(self):
         q_actual = np.zeros(len(self.joints))
         n = len(self.joints)
@@ -521,11 +456,13 @@ class Robot():
         delta_time = 0.05
         Ti = self.directkinematics(q0)
         if isinstance(target_position, Vector):
-            d = np.linalg.norm((Ti.pos()-target_position.pos()))
+            print(Ti.pos())
+            print(target_position.pos())
+            d = np.linalg.norm(Ti.pos()-target_position.pos())
         elif isinstance(target_position, list):
-            d = np.linalg.norm((Ti.pos() - np.array(target_position)))
+            d = np.linalg.norm(Ti.pos() - np.array(target_position))
         else:
-            d = np.linalg.norm((Ti.pos() - target_position))
+            d = np.linalg.norm(Ti.pos() - target_position)
         # compute time using a trapezoidal profile (as in a single joint i)
         t_total_planning = time_trapezoidal_path_i(0.0, d, 0.0, vmax, endpoint=True)
         # compute the time, position and speed of the joint considering a trapezoidal profile (as in a single joint)

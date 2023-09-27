@@ -72,8 +72,6 @@ class Camera():
         Captures an image and saves it to filename.
         """
         image = self.get_image()
-        # sensorImage = np.array(image, dtype=np.uint8)
-        # sensorImage.resize([resolution[1], resolution[0], 3])
         img = Image.fromarray(image)
         # img = ImageOps.flip(img)
         print('Saving to file: ', filename)
