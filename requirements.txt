@@ -1,3 +1,6 @@
 numpy
 matplotlib
 pynput
+pyzmq
+cbor
+opencv-python

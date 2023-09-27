@@ -26,14 +26,12 @@ Clone this repository:
 >> git clone https://github.com/4rtur1t0/pyARTE.git
 ```
 
+## DOWNLOAD AND INSTALL COPPELIA SIM
+ 
 Download and extract CoppeliaSim on your PC. Download Coppelia from https://www.coppeliarobotics.com/downloads.
+Download the EDU version of Coppelia, if pyARTE and Coppelia Sim are used for educational purposes.
+pyARTE has been tested under Ubuntu 20.04 and 22.04. It has not been tested under Mac/Windows.
 
-Next, clone the coppelia_API:
-```
->> git clone https://github.com/4rtur1t0/coppelia_API.git
-```
-Please, note that the Coppelia API is part of the distribution of Coppelia and has been included in a different 
-repository for installation purposes. If using Windows or Mac, you should look for your corresponding system library interface.
 
 
 ## INSTALL SYSTEM PACKAGES
@@ -42,7 +40,7 @@ Install python virtualenv
 >> sudo  apt-get install virtualenv
 ```
 
-Install python3-tk
+Install python3-tk (needed in some distributions to plot with matplotlib).
 ```
 >> sudo  apt-get install python3-tk
 ```
@@ -59,7 +57,7 @@ We will be creating a virtualn environment at your user's home/Applications dire
 Next, install some needed python packages. We only require matplotlib, numpy and pynput:
 ```
 >> cd /home/user/Applications/venv/bin
->> ./pip install numpy matplotlib pynput
+>> ./pip3 install numpy matplotlib pynput pyzmq cbor opencv-python
 ```
 
 ## CONFIGURE YOUR IDE
@@ -67,21 +65,21 @@ Next, install some needed python packages. We only require matplotlib, numpy and
 Open the project in Pycharm (or any other python editor). Use the option ''add root content'' in 
 File-Settings-Project Structure-- Add Content Root. Under the root content (the files that will be included in the python
 execution), you should include:
-- Add the directory coppelia_API.
-- Add pyARTE itself.
+- Add the directory with the zmQ communications library that is included with Coppelia Sim. Generally, the remote zmq Api can be found in:
+  /home/user/Applications/CoppeliaSim_Edu_V4_5_1_rev4_Ubuntu22_04/programming/zmqRemoteApi/clients/python/src
+- Check that the directory pyARTE is also included.
 
+Alternatively, the directory path with the Zmq libraries can also be added to the PYTHONPATH variable:
+$ export PYTHONPATH=/home/usuario/Applications/CoppeliaSim_Edu_V4_5_1_rev4_Ubuntu22_04/programming/zmqRemoteApi/clients/python/src
 
-## INSTALL COPPELIA SIM
-Edu 
 
 ## TEST
 Open Coppelia Sim
-Open the ur5_conveyor_belt.ttt scene
-Open the pyARTE/practicals/ur5_move_robot.py
+Open the irb140.ttt scene
+Open and execute the pyARTE/practicals/irb140_first_script.py
+Open and execute the pyARTE/practicals/applications/irb140_palletizing_color.py
 
-Execute ur5_move_robot.py. Use 1, 2, 3, 4, 5, 6 and the keys below to increment/decrement any joint qi. Use o or c to 
-open/close the gripper.
-
+The python scripts should connect to Coppelia and start the simulation.
 
 ##SCENES
 The directory pyARTE/scenes includes a set of scenes that should be opened in Coppelia Sim in order to execute the demos or tutorials in this library.
