@@ -23,7 +23,7 @@ class RobotUR5(Robot):
     def __init__(self, simulation):
         # init base class attributes
         Robot.__init__(self, simulation=simulation)
-        # self.clientID = clientID
+
         self.DOF = 6
         self.q_current = np.zeros((1, self.DOF))
         # maximum joint speeds (rad/s)

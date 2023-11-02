@@ -22,10 +22,10 @@ from robots.simulation import Simulation
 
 def ikineline():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotKUKALBR(clientID=clientID)
+    simulation.start()
+    robot = RobotKUKALBR(simulation=simulation)
     robot.start()
-    gripper = GripperRG2(clientID=clientID)
+    gripper = GripperRG2(simulation=simulation)
     gripper.start()
     target_positions = [[0.4, -0.4, 0.5],
                         [0.41, -0.4, 0.5],
@@ -64,13 +64,13 @@ def ikineline():
                            [np.pi/2, np.pi/2, -np.pi/2]]
 
     q = np.array([-np.pi/4, 0, 0, -np.pi/2, 0.1, 0.1, 0])
-    robot.set_joint_target_positions(q, precision=True)
+    robot.moveAbsJ(q, precision=True)
     w = []
     for i in range(len(target_positions)):
         # robot.set_target_position_orientation(target_positions[i], target_orientations[i])
         q_path = robot.inversekinematics_line(target_position=target_positions[i],
                                               target_orientation=Euler(target_orientations[i]), q0=q)
-        robot.set_joint_target_trajectory(q_path=q_path, precision='last')
+        robot.moveAbsPath(q_path=q_path, precision='last')
         q = q_path[-1]
 
     # show the values of the secondary function w

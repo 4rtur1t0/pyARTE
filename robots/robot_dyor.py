@@ -7,19 +7,16 @@ Please open the scenes/mobile_robot.ttt scene before using this class.
 @Time: April 2021
 """
 from robots.robot import Robot
-import sim
 
 
 class RobotDyor(Robot):
-    def __init__(self, clientID):
-        Robot.__init__(self)
-        self.clientID = clientID
+    def __init__(self, simulation):
+        Robot.__init__(self, simulation=simulation)
 
-    def start(self):
-        # Get the handles of the relevant objects
-        errorCode, robotbase = sim.simxGetObjectHandle(self.clientID, 'ROBOT_DYOR', sim.simx_opmode_oneshot_wait)
-        errorCode, wheel1 = sim.simxGetObjectHandle(self.clientID, 'motor_L', sim.simx_opmode_oneshot_wait)
-        errorCode, wheel2 = sim.simxGetObjectHandle(self.clientID, 'motor_R', sim.simx_opmode_oneshot_wait)
+    def start(self, base_name='/ROBOT_DYOR'):
+        robotbase = self.simulation.sim.getObject(base_name)
+        wheel1 = self.simulation.sim.getObject(base_name + '/' + 'motor_L')
+        wheel2 = self.simulation.sim.getObject(base_name + '/' + 'motor_R')
         wheeljoints = []
         wheeljoints.append(wheel1)
         wheeljoints.append(wheel2)
@@ -28,28 +25,20 @@ class RobotDyor(Robot):
     def forward(self):
         wheel_speeds = [5, 5]
         for i in range(2):
-            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[i],
-                                                       targetVelocity=wheel_speeds[i],
-                                                       operationMode=sim.simx_opmode_oneshot)
+            self.simulation.sim.setJointTargetVelocity(self.joints[i], wheel_speeds[i])
 
     def backwards(self):
         wheel_speeds = [-5, -5]
         for i in range(2):
-            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[i],
-                                                       targetVelocity=wheel_speeds[i],
-                                                       operationMode=sim.simx_opmode_oneshot)
+            self.simulation.sim.setJointTargetVelocity(self.joints[i], wheel_speeds[i])
 
     def left(self):
         wheel_speeds = [-5, 5]
         for i in range(2):
-            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[i],
-                                                       targetVelocity=wheel_speeds[i],
-                                                       operationMode=sim.simx_opmode_oneshot)
+            self.simulation.sim.setJointTargetVelocity(self.joints[i], wheel_speeds[i])
 
     def right(self):
         wheel_speeds = [5, -5]
         for i in range(2):
-            errorCode = sim.simxSetJointTargetVelocity(clientID=self.clientID, jointHandle=self.joints[i],
-                                                       targetVelocity=wheel_speeds[i],
-                                                       operationMode=sim.simx_opmode_oneshot)
+            self.simulation.sim.setJointTargetVelocity(self.joints[i], wheel_speeds[i])
 

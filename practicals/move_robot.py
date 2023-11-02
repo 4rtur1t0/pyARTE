@@ -45,7 +45,7 @@ actions = {'1': '0+',
            'c': 'close_gripper'
            }
 
-delta_increment = 0.1  # rad
+delta_increment = 0.05  # rad
 q = np.zeros(6)
 press_exit = False
 
@@ -79,9 +79,7 @@ def on_press(key):
         elif caracter == 'z':
             print('ARM RESET')
             q = np.zeros(6)
-            # robot.moveAbsJ(q_target=q, precision=False)
-            robot.apply_position_joint_control(q_target=q, precision=True)
-            # robot.set_joint_target_positions(q, precision=True)
+            robot.moveAbsJ(q_target=q, precision=True)
             return True
         # for the rest of actions,  decode action from actions dictionary
         acti = actions[key.char]
@@ -92,7 +90,7 @@ def on_press(key):
         else:
             q[index] -= delta_increment
         [q, _] = robot.apply_joint_limits(q)
-        robot.apply_position_joint_control(q_target=q, precision=False)
+        robot.moveAbsJ(q_target=q, precision=False)
         T = robot.directkinematics(q)
         Q = T.Q()
         print('Current q is: \n', q)
