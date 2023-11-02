@@ -34,9 +34,9 @@ class SerialRobot():
         for i in range(len(self.transformations)):
             A = self.transformations[i].dh(q[i])
             T = T*A
-            print('A', A)
-            print('T', T)
-        print(T)
+            # print('A', A)
+            # print('T', T)
+        # print(T)
         return T
 
     def get_dh_transformation(self, q, i):

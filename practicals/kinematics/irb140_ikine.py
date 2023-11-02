@@ -105,7 +105,7 @@ def irb140_ikine():
     simulation.start()
     robot = RobotABBIRB140(simulation=simulation)
     robot.start()
-    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.195]), RotationMatrix(np.eye(3))))
 
     # set initial position
     q0 = np.array([0, 0, 0, 0, 0, 0])

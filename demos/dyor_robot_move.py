@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/mobile_robot.ttt scene before running this script.
+Please open the scenes/more/dyor_robot.ttt scene before running this script.
 
 @Authors: Arturo Gil
 @Time: April 2021
@@ -12,8 +12,8 @@ from robots.simulation import Simulation
 
 def move_robot():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotDyor(clientID=clientID)
+    simulation.start()
+    robot = RobotDyor(simulation=simulation)
     robot.start()
 
     robot.forward()
