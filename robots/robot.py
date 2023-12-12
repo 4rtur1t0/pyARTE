@@ -134,6 +134,11 @@ class Robot():
         # remove joints out of range and get the closest joint
         # filter a valid path from q_current to any of the solutions in q_target
         qs = filter_path(self, q_current, [q_target])
+        # check if there is at least a single valid solution
+        # print(qs.size)
+        if qs.size == 0:
+            print('CAUTION: NO VALID SOLUTIONS FOUND! IS THE POSITIONS/ORIENTATION REACHABLE?')
+            raise Exception('INVERSE KINEMATICS ERROR. IS THE TARGET REACHABLE?')
         q_target = qs[:, 0]
         qs, qds = self.path_plan_isochronous_trapezoidal(q_target, qdfactor=qdfactor, endpoint=endpoint)
         # apply the computed profile in joint and speeds
