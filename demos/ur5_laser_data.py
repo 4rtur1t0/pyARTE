@@ -30,7 +30,6 @@ if __name__ == "__main__":
     robot.wait()
     laserdata = lidar.get_laser_data()
     robot.wait()
-    laserdata = lidar.get_laser_data()
     print('Received Laser Data')
     print(laserdata)
     simulation.stop()

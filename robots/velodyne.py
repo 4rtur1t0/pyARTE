@@ -8,6 +8,7 @@ Classes to manage a Velodyne LIDAR in Coppelia simulations (a laser sensor)
 """
 import numpy as np
 
+
 class Velodyne():
     def __init__(self, simulation):
         self.simulation = simulation
