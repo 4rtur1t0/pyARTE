@@ -35,7 +35,7 @@ def youbot_move():
 
 
 
-    laser = LaserScanner2D(clientID=clientID)
+    laser = LaserScanner2D()
     laser.start()
     distancies = laser.get_laser_data()
 
