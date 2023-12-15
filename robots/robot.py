@@ -461,8 +461,8 @@ class Robot():
         delta_time = 0.05
         Ti = self.directkinematics(q0)
         if isinstance(target_position, Vector):
-            print(Ti.pos())
-            print(target_position.pos())
+            # print(Ti.pos())
+            # print(target_position.pos())
             d = np.linalg.norm(Ti.pos()-target_position.pos())
         elif isinstance(target_position, list):
             d = np.linalg.norm(Ti.pos() - np.array(target_position))
