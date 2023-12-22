@@ -109,6 +109,10 @@ class Robot():
             else:
                 self.apply_position_joint_control(q_target, precision=True)
                 self.command_zero_target_velocities()
+            q_current = self.get_joint_positions()
+            delta = np.linalg.norm(q_target - q_current)
+            print('Error final q: ', q_target - q_current)
+            print('Error final q: ', delta)
         else:
             print('moveABSJ ERROR: target joints out of range')
 
@@ -223,11 +227,11 @@ class Robot():
         qdreal.append(qd_current)
 
         # plot trajectories!
-        qreal = np.array(qreal).T
+        # qreal = np.array(qreal).T
         # qdreal = np.array(qdreal).T
-        qreal = qreal[0, :]
+        # qreal = qreal[0, :]
         # qdreal = qdreal[0, :]
-        qs = qs[0, :]
+        # qs = qs[0, :]
         # qds = qds[0, :]
 
         # plt.plot(range(n_samples), qs)

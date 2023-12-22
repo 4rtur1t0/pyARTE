@@ -34,8 +34,8 @@ class RobotUR5(Robot):
                                  [360,   360,  360,  360,  360,  360]])
         self.joint_ranges = joint_ranges * np.pi / 180.0
         self.max_iterations_inverse_kinematics = 1500
-        self.max_error_dist_inversekinematics = 0.01
-        self.max_error_orient_inversekinematics = 0.01
+        self.max_error_dist_inversekinematics = 0.002
+        self.max_error_orient_inversekinematics = 0.005
         # self.ikmethod = 'transpose'
         self.ikmethod = 'moore-penrose-damped'
         # self.ikmethod = 'moore-penrose'

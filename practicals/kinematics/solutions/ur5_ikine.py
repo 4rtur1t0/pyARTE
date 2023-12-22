@@ -7,10 +7,10 @@ Please open the scenes/ur5.ttt scene before running this script.
 @Time: April 2021
 """
 import numpy as np
-from artelib.euler import Euler
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.tools import compute_kinematic_errors
-from robots.grippers import GripperRG2
+from artelib.vector import Vector
+from artelib.rotationmatrix import RotationMatrix
 from robots.simulation import Simulation
 from robots.ur5 import RobotUR5
 
@@ -65,88 +65,71 @@ def inverse_kinematics(robot, target_position, target_orientation, q0):
     Ttarget = HomogeneousMatrix(target_position, target_orientation)
     q = q0
     max_iterations = 10000
-    errs = []
-    for i in range(max_iterations):
-        # print('Iteration number: ', i)
+    for i in range(0, max_iterations):
+        print('Iteration number: ', i)
         Ti = robot.directkinematics(q)
         J, Jv, Jw = robot.manipulator_jacobian(q)
         e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
-        errs.append(error_dist)
-        # print('vwref: ', e)
-        # print('errordist, error orient: ', error_dist, error_orient)
+        print('Error: ', e)
+        print('errordist, error orient: ', error_dist, error_orient)
         if error_dist < 0.01 and error_orient < 0.01:
-            print('Converged in ', i, ' iterations!')
-            print(errs)
+            print('Converged!!')
             break
-        # compute delta q for the step
-        # EXERCISE: TEST THE THREE METHODS
-        qd = moore_penrose(J, e)
-        # qd = moore_penrose_damped(J, e)
-        # qd = delta_q_transpose(J, e)
-        q = q + qd
-        [q, _] = robot.apply_joint_limits(q)
+        # EJERCICIO: CALCULE LA ACTUALIZACIÓN DEL MÉTODO BASADO EN LA JACOBIANA
+        # PRUEBE LOS TRES MÉTODOS:
+        # Moore-Penrose básico.
+        # Moore-Penrose damped.
+        # delta_q = delta_q_transpose(J, e)
+        # delta_q = moore_penrose(J, e)
+        delta_q = moore_penrose_damped(J, e)
+        # Traspuesta
+        q = q + delta_q
+        # opcional, aplique una restricción del movimiento
+        #[q, _] = robot.apply_joint_limits(q)
     return q
 
 
-def pick_and_place():
+def compute_inverse_kinematics():
+    """
+    Check direct and inverse kinematics
+    Using Gradient descent/Jacobian based kinematics
+    """
     simulation = Simulation()
     simulation.start()
     robot = RobotUR5(simulation=simulation)
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.195]), RotationMatrix(np.eye(3))))
     robot.start()
-    gripper = GripperRG2(simulation=simulation)
-    gripper.start(name='/UR5/RG2/RG2_openCloseJoint')
 
-    target_positions = [[0.6, -0.2, 0.25], # initial in front of conveyor
-                        [0.6, 0.1, 0.25], # pick the piece
-                        [0.6, 0.1, 0.35], # bring the piece up
-                        [0.4, -0.1, 0.35], # middle point
-                        [0.2, -0.55, 0.4], # over the table
-                        [0.2, -0.55, 0.3]] # drop the piece
-    target_orientations = [[-np.pi/2, 0, -np.pi/2],
-                           [-np.pi/2, 0, -np.pi/2],
-                           [-np.pi/2, 0, -np.pi/2],
-                           [-np.pi / 2, 0, 0],
-                           [-np.pi, 0, 0],
-                           [-np.pi, 0, 0]]
-    q0 = np.array([-np.pi, -np.pi/8, np.pi/2, 0, 0, 0])
-    # plan trajectories
-    q1 = inverse_kinematics(robot=robot, target_position=target_positions[0],
-                            target_orientation=Euler(target_orientations[0]), q0=q0)
-    q2 = inverse_kinematics(robot=robot, target_position=target_positions[1],
-                            target_orientation=Euler(target_orientations[1]), q0=q1)
-    q3 = inverse_kinematics(robot=robot, target_position=target_positions[2],
-                            target_orientation=Euler(target_orientations[2]), q0=q2)
-    q4 = inverse_kinematics(robot=robot, target_position=target_positions[3],
-                            target_orientation=Euler(target_orientations[3]), q0=q3)
-    q5 = inverse_kinematics(robot=robot, target_position=target_positions[4],
-                            target_orientation=Euler(target_orientations[4]), q0=q4)
-    q6 = inverse_kinematics(robot=robot, target_position=target_positions[5],
-                            target_orientation=Euler(target_orientations[5]), q0=q5)
+    # Find an initial T
+    q = np.array([-np.pi/2, np.pi/4, -np.pi/4, 0.3, 0.3, 0.3])
+    T = robot.directkinematics(q)
+    print('Current T: ')
+    T.print_nice()
+    # try to find a solution
+    q0 = np.array([-0.1, -0.1, -0.1, -0.1, -0.1, -0.1])
+    # EJERCICIO: COMPLETAR ESTA FUNCIÓN
+    qinv = inverse_kinematics(robot=robot,
+                              target_position=T.pos(),
+                              target_orientation=T.R(), q0=q0)
 
-    # NOW execute trajectories computed before.
-    # set initial position of robot
-    robot.moveAbsJ(q_target=q0, precision=True)
-    robot.wait(15)
-    gripper.open(precision=True)
-    gripper.close(precision=True)
-    gripper.open(precision=True)
-    # set the target we are willing to reach on Coppelia
-    # robot.set_target_position_orientation(target_positions[0], target_orientations[0])
-    robot.moveAbsJ(q_target=q1, precision=True)
-    robot.moveAbsJ(q_target=q2, precision=True)
-    gripper.close(precision=True)
-    robot.moveAbsJ(q_target=q3, precision=True)
-    robot.moveAbsJ(q_target=q4, precision=True)
-    robot.moveAbsJ(q_target=q5, precision=True)
-    robot.moveAbsJ(q_target=q6, precision=True)
-    gripper.open(precision=True)
-    robot.moveAbsJ(q_target=q5, precision=True)
+    print('CHECKING CONSISTENCY')
+    print('FOUND solution qinv: ', qinv)
+    T_reached = robot.directkinematics(qinv)
+    print('T reached : ')
+    T_reached.print_nice()
+    Tdiff = T - T_reached
+    print('Difference in T')
+    Tdiff.print_nice()
 
-    # Stop arm and simulation
+    print('Difference in the solutions')
+    print(q-qinv)
+
+    robot.moveAbsJ(q)
+    robot.moveAbsJ(qinv)
+
     simulation.stop()
-    robot.plot_trajectories()
 
 
 if __name__ == "__main__":
-    pick_and_place()
+    compute_inverse_kinematics()
 

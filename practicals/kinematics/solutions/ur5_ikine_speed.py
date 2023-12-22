@@ -4,7 +4,7 @@
 Please open the scenes/ur5.ttt scene before running this script.
 
 @Authors: Arturo Gil
-@Time: April 2021
+@Time: December 2023
 """
 import numpy as np
 from artelib.homogeneousmatrix import HomogeneousMatrix
@@ -82,31 +82,30 @@ def compute_inverse_kinematics():
 
     # Find an initial T
     q = np.array([-np.pi/2, 0.3, 0.3, 0.3, 0.3, 0.3])
-    T = robot.directkinematics(q)
-    print('Current T: ')
-    T.print_nice()
-    # try to find a solution
-    q0 = np.array([-0.1, -0.1, -0.1, -0.1, -0.1, -0.1])
-    # EJERCICIO: COMPLETAR ESTA FUNCIÓN
-    qinv = inverse_kinematics(robot=robot,
-                              target_position=T.pos(),
-                              target_orientation=T.R(), q0=q0)
-
-    print('CHECKING CONSISTENCY')
-    print('FOUND solution qinv: ', qinv)
-    T_reached = robot.directkinematics(qinv)
-    print('T reached : ')
-    T_reached.print_nice()
-    Tdiff = T - T_reached
-    print('Difference in T')
-    Tdiff.print_nice()
-
-    print('Difference in the solutions')
-    print(q-qinv)
-
     robot.moveAbsJ(q)
-    robot.moveAbsJ(qinv)
+    T = robot.directkinematics(q)
+    T.print_nice()
+    print('Current T: ')
+    # relative point
+    v = np.array([0.0, 0.005, -0.3])
+    pb = T.pos() + 2*v
+    vw = np.array([v, [0, 0, 0]]).flatten()
 
+    while True:
+        q = robot.get_joint_positions()
+        J, _, _ = robot.manipulator_jacobian(q)
+        T = robot.directkinematics(q)
+        e = np.linalg.norm(pb - T.pos())
+        print(e)
+        if e < 0.02:
+            robot.set_joint_target_velocities([0, 0, 0, 0, 0, 0])
+            break
+        qd = np.dot(np.linalg.inv(J), vw.T)
+        robot.set_joint_target_velocities(qd)
+        robot.wait()
+
+    print('POSITION REACHED', T.pos())
+    print('ERROR: ', np.linalg.norm(T.pos()-pb))
     simulation.stop()
 
 
