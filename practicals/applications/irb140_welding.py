@@ -26,22 +26,23 @@ def welding():
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.12]), RotationMatrix(np.eye(3))))
     q0 = np.array([0, 0, 0, 0, 0, 0])
     target_positions = [[-0.3, 0.1, 0.75],
-                        [-0.3, 0.6, 0.75],
-                        [-0.2, 0.6, 0.75],
-                        [-0.1, 0.6, 0.75],
-                        [0.0, 0.6, 0.75],
-                        [0.1, 0.6, 0.75],
-                        [0.15, 0.6, 0.75],
-                        [0.2, 0.6, 0.75],
-                        [0.25, 0.6, 0.75],
-                        [0.3, 0.6, 0.75],
+                        [-0.3, 0.55, 0.75],
+                        [-0.3, 0.61, 0.75],
+                        # [-0.2, 0.61, 0.75],
+                        # [-0.1, 0.61, 0.75],
+                        # [0.0, 0.61, 0.75],
+                        # [0.1, 0.61, 0.75],
+                        # [0.15, 0.61, 0.75],
+                         [0.2, 0.61, 0.75],
+                         [0.25, 0.61, 0.75],
+                         [0.3, 0.61, 0.75],
                         [0.3, 0.1, 0.75]]  # pick
     target_orientation = Euler([-np.pi/2, 0, np.pi/2])
     robot.moveAbsJ(q_target=q0, precision=False)
     robot.moveJ(target_position=target_positions[0], target_orientation=target_orientation)
 
     for target_position in target_positions:
-        robot.moveL(target_position=target_position, target_orientation=target_orientation)
+        robot.moveL(target_position=target_position, target_orientation=target_orientation, vmax=0.3)
 
     simulation.stop()
 
