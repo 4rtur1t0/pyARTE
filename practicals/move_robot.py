@@ -142,6 +142,7 @@ if __name__ == "__main__":
         robot.start()
         gripper = GripperRG2(simulation=simulation)
         gripper.start(name='/LBR_iiwa_14_R820/RG2/RG2_openCloseJoint')
+        q = np.zeros(7)
 
     # Collect events until released
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:

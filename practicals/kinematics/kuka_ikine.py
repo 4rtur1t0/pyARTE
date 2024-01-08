@@ -10,6 +10,8 @@ This demo presents a simple inverse kinematic scheme with the KUKA IIWA LBR arm
 """
 import numpy as np
 from artelib.euler import Euler
+from artelib.homogeneousmatrix import HomogeneousMatrix
+from artelib.rotationmatrix import RotationMatrix
 from artelib.vector import Vector
 from robots.grippers import GripperRG2
 from robots.kukalbr import RobotKUKALBR
@@ -18,11 +20,13 @@ from robots.simulation import Simulation
 
 def ikine():
     simulation = Simulation()
-    clientID = simulation.start()
-    robot = RobotKUKALBR(clientID=clientID)
+    simulation.start()
+    robot = RobotKUKALBR(simulation=simulation)
     robot.start()
-    gripper = GripperRG2(clientID=clientID)
-    gripper.start()
+    gripper = GripperRG2(simulation=simulation)
+    gripper.start(name='/LBR_iiwa_14_R820/RG2/RG2_openCloseJoint')
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.195]), RotationMatrix(np.eye(3))))
+
     target_positions = [Vector([0.6, -0.2, 0.5]),
                         Vector([0.6, 0.1, 0.5]),
                         Vector([0.6, -0.1, 0.5]),
