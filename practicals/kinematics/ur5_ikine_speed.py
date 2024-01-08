@@ -15,11 +15,9 @@ from robots.simulation import Simulation
 from robots.ur5 import RobotUR5
 
 
-
-def compute_inverse_kinematics():
+def follow_line():
     """
-    Check direct and inverse kinematics
-    Using Gradient descent/Jacobian based kinematics
+    Follow a line in space with speed v.
     """
     simulation = Simulation()
     simulation.start()
@@ -51,5 +49,5 @@ def compute_inverse_kinematics():
 
 
 if __name__ == "__main__":
-    compute_inverse_kinematics()
+    follow_line()
 

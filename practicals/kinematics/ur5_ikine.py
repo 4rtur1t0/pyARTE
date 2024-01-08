@@ -87,7 +87,7 @@ def compute_inverse_kinematics():
     T.print_nice()
     # try to find a solution
     q0 = np.array([-0.1, -0.1, -0.1, -0.1, -0.1, -0.1])
-    # EJERCICIO: COMPLETAR ESTA FUNCIÓN
+    # EJERCICIO: COMPLETESE ESTA FUNCIÓN
     qinv = inverse_kinematics(robot=robot,
                               target_position=T.pos(),
                               target_orientation=T.R(), q0=q0)

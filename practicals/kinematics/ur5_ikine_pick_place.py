@@ -78,8 +78,8 @@ def pick_and_place():
     robot = RobotUR5(simulation=simulation)
     robot.start()
     gripper = GripperRG2(simulation=simulation)
-    gripper.start()
-    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
+    gripper.start(name='/UR5/RG2/RG2_openCloseJoint')
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.195]), RotationMatrix(np.eye(3))))
 
     target_positions = [[0.6, -0.2, 0.25], # initial in front of conveyor
                         [0.6, 0.1, 0.25], # pick the piece

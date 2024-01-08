@@ -15,61 +15,7 @@ from robots.simulation import Simulation
 from robots.ur5 import RobotUR5
 
 
-def delta_q_transpose(J, e):
-
-    return dq
-
-def moore_penrose(J, e):
-    """
-    Compute qd given J and v.
-    If close to singularity, used damped version.
-    """
-    manip = np.linalg.det(np.dot(J, J.T))
-    print('Manip is: ', manip)
-
-    return qd
-
-def moore_penrose_damped(J, e):
-    """
-    Compute qd given J and v.
-    If close to singularity, used damped version.
-    """
-    manip = np.linalg.det(np.dot(J, J.T))
-    print('Manip is: ', manip)
-
-    return qd
-
-
-def inverse_kinematics(robot, target_position, target_orientation, q0):
-    """
-    Find q that allows the robot to achieve the specified target position and orientaiton
-    CAUTION: target_orientation must be specified as a quaternion.
-    """
-    Ttarget = HomogeneousMatrix(target_position, target_orientation)
-    q = q0
-    max_iterations = 10000
-    for i in range(0, max_iterations):
-        print('Iteration number: ', i)
-        Ti = robot.directkinematics(q)
-        J, Jv, Jw = robot.manipulator_jacobian(q)
-        e, error_dist, error_orient = compute_kinematic_errors(Tcurrent=Ti, Ttarget=Ttarget)
-        print('Error: ', e)
-        print('errordist, error orient: ', error_dist, error_orient)
-        if error_dist < 0.01 and error_orient < 0.01:
-            print('Converged!!')
-            break
-        # EJERCICIO: CALCULE LA ACTUALIZACIÓN DEL MÉTODO BASADO EN LA JACOBIANA
-        # PRUEBE LOS TRES MÉTODOS:
-        # Moore-Penrose básico.
-        # Moore-Penrose damped.
-        # Traspuesta
-
-        # opcional, aplique una restricción del movimiento
-        #[q, _] = robot.apply_joint_limits(q)
-    return q
-
-
-def compute_inverse_kinematics():
+def follow_line():
     """
     Check direct and inverse kinematics
     Using Gradient descent/Jacobian based kinematics
@@ -88,7 +34,8 @@ def compute_inverse_kinematics():
     print('Current T: ')
     # relative point
     v = np.array([0.0, 0.005, -0.3])
-    pb = T.pos() + 2*v
+    total_time = 2
+    pb = T.pos() + total_time*v
     vw = np.array([v, [0, 0, 0]]).flatten()
 
     while True:
@@ -110,5 +57,5 @@ def compute_inverse_kinematics():
 
 
 if __name__ == "__main__":
-    compute_inverse_kinematics()
+    follow_line()
 
