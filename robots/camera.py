@@ -8,11 +8,16 @@ Classes to manage a camera in Coppelia simulations (a vision sensor)
 @Time: April 2021
 
 """
-# import sim
-# import time
 import numpy as np
 from PIL import Image, ImageOps
 import cv2
+import numpy as np
+import cv2
+import json
+from artelib.vector import Vector
+from artelib.rotationmatrix import RotationMatrix
+from artelib.homogeneousmatrix import HomogeneousMatrix
+
 
 
 class Camera():
@@ -80,3 +85,65 @@ class Camera():
         del img
         del image
         print('Image saved!')
+
+    def detect_arucos(self, show=False):
+        """
+        Returns the transformation to the detected arucos
+        """
+        # ARUCO_SIZE = 0.078  # in meters, size of the ARUCO marker in simulation
+        ARUCO_SIZE = 0.07  # in meters, size of the ARUCO marker in simulation
+        gray_image = self.get_image()
+        # gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+        # The dictionary should be defined as the one used in demos/aruco_markers/aruco_creation.py
+        # aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
+        aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+
+        # these parameters have been hardcoded from camera_calib.json in demos/calibration
+        # {"camera_matrix": [[963.414492647487, 0.0, 399.4929096751381], [0.0, 963.5418011159297, 399.48519331649914],
+        #                    [0.0, 0.0, 1.0]],
+        #  "distortion_coefficients": [0.0, 0.0, -0.00011761346505041357, -0.00018190393945947126, 0.0]}
+        # Parameters could also be loaded from a json file (calib file)
+        cameraMatrix = np.array([[960, 0.0, 400],
+                                 [0.0, 960, 400],
+                                 [0.0, 0.0, 1.0]])
+        distCoeffs = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+
+        corners, ids, rejectedImgPoints = cv2.aruco.detectMarkers(gray_image, aruco_dict)
+        if len(corners) > 0:
+            rvecs, tvecs, _objPoints = cv2.aruco.estimatePoseSingleMarkers(corners,
+                                                                           ARUCO_SIZE,
+                                                                           cameraMatrix,
+                                                                           distCoeffs)
+
+        if show:
+            cv2.imshow('aruco_detect', gray_image)
+            cv2.waitKey(1000)
+            dispimage = cv2.aruco.drawDetectedMarkers(gray_image, corners, ids, borderColor=(0, 0, 255))
+            # display corner order (Board file)
+            for item in corners:
+                for i in range(4):
+                    cv2.putText(dispimage, str(i), item[0, i].astype(int), cv2.FONT_HERSHEY_DUPLEX, 0.4, (255, 0, 0), 1,
+                                cv2.LINE_AA)
+            if len(corners) > 0:
+                # Draw axis for each marker
+                for i in range(len(rvecs)):
+                    dispimage = cv2.drawFrameAxes(dispimage, cameraMatrix, distCoeffs, rvecs[i], tvecs[i],
+                                                      length=0.2,
+                                                      thickness=2)
+
+            cv2.imshow('aruco_detect', dispimage)
+            cv2.waitKey(1000)
+
+        if len(corners) > 0:
+            # compute homogeneous matrices
+            tranformations = []
+            for i in range(len(rvecs)):
+                translation = Vector(tvecs[i][0])
+                rotation, _ = cv2.Rodrigues(rvecs[i][0])
+                rotation = RotationMatrix(rotation)
+                Trel = HomogeneousMatrix(translation,
+                                     rotation)
+                tranformations.append(Trel)
+            return ids, tranformations
+
+        return [], []
