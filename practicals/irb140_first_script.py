@@ -7,7 +7,6 @@ Please open the scenes/irb140.ttt scene before running this script.
 @Time: April 2022
 """
 import numpy as np
-
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.rotationmatrix import RotationMatrix
 from artelib.vector import Vector
