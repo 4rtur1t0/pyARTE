@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Classes to manage a Velodyne LIDAR in Coppelia simulations (a laser sensor)
+Classes to manage a OS1 LIDAR in Coppelia simulations (a LiDAR sensor)
 
 @Authors: Arturo Gil
 @Time: April 2021
@@ -9,12 +9,12 @@ Classes to manage a Velodyne LIDAR in Coppelia simulations (a laser sensor)
 import numpy as np
 
 
-class Velodyne():
+class Ouster():
     def __init__(self, simulation):
         self.simulation = simulation
         self.handle = None
 
-    def start(self, name='velodyneVPL_16'):
+    def start(self, name='OS1'):
         handle = self.simulation.sim.getObject(name)
         self.handle = handle
 

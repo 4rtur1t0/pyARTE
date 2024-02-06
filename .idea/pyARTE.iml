@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
+    <content url="file://$USER_HOME$/Applications/CoppeliaSim_Edu_V4_6_0_rev16_Ubuntu20_04/programming/zmqRemoteApi/clients/python/src" />
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="jdk" jdkName="Python 3.8 (venv) (4)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
