@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/coppelia_simulations.iml" filepath="$PROJECT_DIR$/.idea/coppelia_simulations.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/pyARTE.iml" filepath="$PROJECT_DIR$/.idea/pyARTE.iml" />
     </modules>
   </component>
 </project>

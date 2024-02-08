@@ -3,4 +3,4 @@ matplotlib
 pynput
 pyzmq
 cbor
-opencv-python
+opencv-contrib-python
