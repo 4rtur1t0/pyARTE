@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Please open the scenes/irb140_project_ARUCO.ttt scene before running this script.
+Please open the scenes/more/irb140_project_ARUCO.ttt scene before running this script.
 
 The code beneath must be completed by the student in order to produce different palletizations of ARUCO pieces
 according to their ids.
