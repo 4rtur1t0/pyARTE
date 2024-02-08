@@ -37,7 +37,7 @@ class Simulation():
         # apply stepping True after the simulation is actually created
         self.client.setStepping(True)
         # Modify simulation speed to get a nicer result
-        self.sim.setInt32Param(self.sim.intparam_speedmodifier, self.simulation_speed)
+        # self.sim.setInt32Param(self.sim.intparam_speedmodifier, self.simulation_speed)
         print('CONNECTED TO COPPELIA!')
 
     def stop(self):

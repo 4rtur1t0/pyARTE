@@ -26,6 +26,17 @@ class HuskyRobot(Robot):
         wheeljoints.append(wheelFR)
         self.joints = wheeljoints
 
+    def move(self, v, w):
+        r = 0.165
+        b = 0.4207
+        wl = (v - w * (b / 2)) / r
+        wr = (v + w * (b / 2)) / r
+
+        self.simulation.sim.setJointTargetVelocity(self.joints[0], wl)
+        self.simulation.sim.setJointTargetVelocity(self.joints[1], wl)
+        self.simulation.sim.setJointTargetVelocity(self.joints[2], wr)
+        self.simulation.sim.setJointTargetVelocity(self.joints[3], wr)
+
     def forward(self):
         wheel_speeds = [3, 3 ,3 ,3]
         print('va')

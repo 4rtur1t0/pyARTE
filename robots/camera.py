@@ -91,6 +91,7 @@ class Camera():
         Returns the transformation to the detected arucos
         """
         # ARUCO_SIZE = 0.078  # in meters, size of the ARUCO marker in simulation
+        # CAUTION: this is true for the simulations in this particular library
         ARUCO_SIZE = 0.07  # in meters, size of the ARUCO marker in simulation
         gray_image = self.get_image()
         # gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
@@ -103,8 +104,11 @@ class Camera():
         #                    [0.0, 0.0, 1.0]],
         #  "distortion_coefficients": [0.0, 0.0, -0.00011761346505041357, -0.00018190393945947126, 0.0]}
         # Parameters could also be loaded from a json file (calib file)
-        cameraMatrix = np.array([[960, 0.0, 400],
-                                 [0.0, 960, 400],
+        # cameraMatrix = np.array([[964.5, 0.0, 400],
+        #                          [0.0, 964.5, 400],
+        #                          [0.0, 0.0, 1.0]])
+        cameraMatrix = np.array([[964.5, 0.0, 400],
+                                 [0.0, 964.5, 400],
                                  [0.0, 0.0, 1.0]])
         distCoeffs = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
 
@@ -146,4 +150,23 @@ class Camera():
                 tranformations.append(Trel)
             return ids, tranformations
 
-        return [], []
+        return None, None
+
+    def detect_closer_aruco(self, show=False):
+        """
+        Returns the ARUCO marker closer to the camera frame
+        """
+        ids, transformations = self.detect_arucos(show=show)
+        if ids is None:
+            return None, None
+        # find the ARUCO that is closer to the camera
+        d = []
+        for transformation in transformations:
+            d.append(np.linalg.norm(transformation.pos()))
+        closer_index = np.argmin(d)
+        # Encontramos ahora la transformación total hasta todas la ARUCO más cercana
+        print('ID: ', ids[closer_index][0])
+        id = ids[closer_index][0]
+        transformations[closer_index].print_nice()
+        Tca = transformations[closer_index]
+        return id, Tca

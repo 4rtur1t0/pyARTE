@@ -22,23 +22,23 @@ def simulate():
     lidar = Ouster(simulation=simulation)
     lidar.start(name='/OS1')
 
-    robot.backwards()
-    robot.wait(130)
-    robot.forward()
-    robot.wait(130)
-    robot.left()
-    robot.wait(130)
-    robot.right()
-    robot.wait(100)
-
-    # get lidar data
-    data = lidar.get_laser_data()
-    print('Received Laser Data')
-    try:
-        print(data.shape)
-        print(data.dtype)
-    except:
-        print('Unknown data type')
+    robot.move(v=1, w=0)
+    simulation.wait_time(30)
+    # robot.forward()
+    # robot.wait(130)
+    # robot.left()
+    # robot.wait(130)
+    # robot.right()
+    # robot.wait(100)
+    #
+    # # get lidar data
+    # data = lidar.get_laser_data()
+    # print('Received Laser Data')
+    # try:
+    #     print(data.shape)
+    #     print(data.dtype)
+    # except:
+    #     print('Unknown data type')
 
     simulation.stop()
 
