@@ -31,8 +31,8 @@ def find_color(robot, camera):
     Computes the image to get the mean RGB value and the color name (red, green, blue).
     """
     # position and orientation so that the camera sees the piece
-    tp1 = Vector([0.6, 0.33, 0.4])
-    tp2 = Vector([0.6, 0.33, 0.3])
+    tp1 = Vector([0.6, 0.1, 0.4])
+    tp2 = Vector([0.6, 0.1, 0.3])
     to = Euler([0, np.pi, 0])
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
     robot.moveAbsJ(q0)
@@ -50,8 +50,8 @@ def pick(robot, gripper):
     """
     Picks the piece from the conveyor belt.
     """
-    tp1 = Vector([0.6, 0.267, 0.23])  # approximation
-    tp2 = Vector([0.6, 0.267, 0.19])  # pick
+    tp1 = Vector([0.6, 0.04, 0.23])  # approximation
+    tp2 = Vector([0.6, 0.04, 0.19])  # pick
     to = Euler([0, np.pi, 0])
     gripper.open(precision=True)
     robot.moveJ(target_position=tp1, target_orientation=to, precision=True, endpoint=True)

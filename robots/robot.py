@@ -573,7 +573,7 @@ class Robot():
             # store the  vector in a list
             z.append(zi)
             # compute  the  DH    transformation   matrix   from system  i - 1     to    system    i
-            A = self.serialrobot.get_dh_transformation(q, i)
+            A = self.serialrobot.dh(q, i)
             # obtain  now    the    global transformation    by     postmultiplying     the rotational
             #     part. In     the     following    iteration   we     include    the    last    DH transformation
             R0 = np.dot(R0, A[0:3, 0:3])
@@ -590,7 +590,7 @@ class Robot():
         v = Ti[0:3, 3]
         for i in range(n):
             pn[:, i] = T[0: 3, 3] - v
-            A = self.serialrobot.get_dh_transformation(q, i)
+            A = self.serialrobot.dh(q, i)
             Ti = np.dot(Ti, A)
             # v is the origin  of  the   ith  reference  system in base   coordinates
             v = Ti[0:3, 3]

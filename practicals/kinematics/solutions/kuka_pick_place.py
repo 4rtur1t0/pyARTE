@@ -34,12 +34,12 @@ def pick(robot, gripper):
     q0 = np.array([0, 0, 0, -np.pi/2, 0, np.pi/4, 0])
     robot.secondary_objective = False
 
-    robot.moveAbsJ(q_target=q0, precision=False)
+    robot.moveAbsJ(q_target=q0, precision=True)
 
     for i in range(len(target_positions)):
         q = robot.inversekinematics(target_position=target_positions[i],
                                     target_orientation=Euler(target_orientations[i]), q0=q0)
-        robot.moveAbsJ(q_target=q, precision=False)
+        robot.moveAbsJ(q_target=q, precision=True, endpoint=True)
         q0 = q
         if close_gripper[i]:
             gripper.close(precision=True)

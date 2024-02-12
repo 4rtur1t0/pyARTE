@@ -49,14 +49,14 @@ class RobotKUKALBR(Robot):
 
         self.serialrobot = SerialRobot(n=7, T0=np.eye(4), name='KUKALBR')
         self.serialrobot.append(th=0, d=0.36,  a=0, alpha=-np.pi/2, link_type='R')
-        self.serialrobot.append(th=0, d=0,     a=0, alpha= np.pi/2, link_type='R')
-        self.serialrobot.append(th=0, d=0.420, a=0, alpha= np.pi/2, link_type='R')
+        self.serialrobot.append(th=0, d=0,     a=0, alpha=np.pi/2, link_type='R')
+        self.serialrobot.append(th=0, d=0.420, a=0, alpha=np.pi/2, link_type='R')
         self.serialrobot.append(th=0, d=0,     a=0, alpha=-np.pi/2, link_type='R')
         self.serialrobot.append(th=0, d=0.4,   a=0, alpha=-np.pi/2, link_type='R')
         self.serialrobot.append(th=0, d=0,     a=0, alpha=np.pi/2, link_type='R')
         self.serialrobot.append(th=0, d=0.111, a=0, alpha=0)
 
-    def start(self, base_name='/LBR_iiwa_14_R820', joint_name='LBR_iiwa_14_R820_joint'):
+    def start(self, base_name='/LBR_iiwa_14_R820', joint_name='joint'):
         robotbase = self.simulation.sim.getObject(base_name)
         q1 = self.simulation.sim.getObject(base_name + '/' + joint_name + '1')
         q2 = self.simulation.sim.getObject(base_name + '/' + joint_name + '2')

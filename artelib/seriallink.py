@@ -39,7 +39,7 @@ class SerialRobot():
         # print(T)
         return T
 
-    def get_dh_transformation(self, q, i):
+    def dh(self, q, i):
         return self.transformations[i].dh(q[i])
 
     def get_link_type(self, i):
