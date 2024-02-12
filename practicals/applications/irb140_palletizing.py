@@ -20,8 +20,8 @@ from robots.simulation import Simulation
 
 def pick(robot, gripper):
     q0 = np.array([0, 0, 0, 0, np.pi/2, 0])
-    tp1 = Vector([0.6, 0.267, 0.26])  # approximation
-    tp2 = Vector([0.6, 0.267, 0.21]) # pick
+    tp1 = Vector([0.6, 0.04, 0.26])  # approximation
+    tp2 = Vector([0.6, 0.04, 0.21]) # pick
     to1 = Euler([0, np.pi, 0])
     to2 = Euler([0, np.pi, 0])
     robot.moveAbsJ(q0, endpoint=True)
