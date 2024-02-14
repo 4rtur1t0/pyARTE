@@ -44,22 +44,6 @@ class RobotUR5(Robot):
         self.do_apply_joint_limits = True
         self.epsilonq = 0.005
 
-        # self.serialrobot = SerialRobot(n=6, T0=np.eye(4), name='UR5')
-        # self.serialrobot.append(th=-np.pi/2, d=0.089159, a=0, alpha=np.pi/2)
-        # self.serialrobot.append(th=+np.pi/2, d=0,        a=0.425, alpha=0)
-        # self.serialrobot.append(th=0,        d=0,        a=0.39225, alpha=0)
-        # self.serialrobot.append(th=-np.pi/2, d=0.10915,  a=0, alpha=-np.pi/2)
-        # self.serialrobot.append(th=0,        d=0.09465,  a=0, alpha=np.pi/2)
-        # self.serialrobot.append(th=0,        d=0.0823,   a=0, alpha=0)
-
-        # self.serialrobot = SerialRobot(n=6, T0=np.eye(4), name='UR5')
-        # self.serialrobot.append(th=-np.pi / 2, d=0.0661, a=0, alpha=np.pi / 2, link_type='R')
-        # self.serialrobot.append(th=+np.pi / 2, d=0, a=0.4251, alpha=0, link_type='R')
-        # self.serialrobot.append(th=0, d=0, a=0.3922, alpha=0, link_type='R')
-        # self.serialrobot.append(th=-np.pi / 2, d=0.0397, a=0, alpha=-np.pi / 2, link_type='R')
-        # self.serialrobot.append(th=0, d=0.0492, a=0, alpha=np.pi / 2, link_type='R')
-        # self.serialrobot.append(th=0, d=0.08275, a=0.04918, alpha=0, link_type='R')
-
         self.serialrobot = SerialRobot(n=6, T0=np.eye(4), name='UR5')
         self.serialrobot.append(th=0, d=0.0892, a=0, alpha=np.pi / 2, link_type='R')
         self.serialrobot.append(th=np.pi / 2, d=0, a=0.4251, alpha=0, link_type='R')
@@ -210,7 +194,8 @@ class RobotUR5(Robot):
         for i in range(q.shape[1]):
             qi = q[:, i]
             n = np.isnan(qi)
-            if any(n==True):
+            # if found any nan in the solution, skip this solution
+            if any(n):
                 continue
             if valid == 0:
                 q_filtered = np.array(qi)
@@ -229,11 +214,12 @@ class RobotUR5(Robot):
         L6 = self.serialrobot.transformations[5].d
         L4 = self.serialrobot.transformations[3].d
         p = T[0:3, 3]
-        # % z5 is parallel to z6 (aligned)
+        # z5 is parallel to z6 (aligned)
         z5 = T[0:3, 2]
 
         # Pw: wrist position(false wrist or pseudo wrist)
         # however all  possible pw lie on a circle around z3
+        # Compute pw that lies in the intersection of z5 with z4
         pw = p - L6 * z5
         R = np.sqrt(pw[0]**2 + pw[1]**2)
         # caution, clip to 0, 1, to avoid error near singular points
@@ -271,31 +257,40 @@ class RobotUR5(Robot):
         # % if norm z4a < threshold, then z5 = z3
         # two solutions + -
         z4 = np.cross(z3, z5)
-        print('Z4 NORM IS: ', np.linalg.norm(z4))# % if norm(z4) == 0 --> z singular condition
-
         if np.linalg.norm(z4) > 0.01:
             # compute two different solutions depending on the direction of z4
-            # this is the standard solution
+            # this is the standard solution with z4 perpendicular to the plane formed by z3 and z5
             z4 = signo * z4 / np.linalg.norm(z4)
         else:
             # z3 and z5 are parallel
-            print('CAUTION, SINGULAR CONTIDION')
+            print('CAUTION, SINGULAR CONDITION DETECTED: z3 and z5 are ALIGNED')
+            print('Z4 NORM IS: ', np.linalg.norm(z4))  # % if norm(z4) == 0 --> z singular condition
             # whenever z3 and z5 are parallel, we are at a singular point with a null
             # det(J) and infinite solutions. In this case, we may use the vector
             # z4 = [0,0,1], which is perpendicular to z3 and, in this case also to z5
             z4 = signo*np.array([0, 0, 1])
+            # x3 = A01[0:3, 0]
+            # z4 = x3
 
         # Now, given that z3, z4 and z5 are known, compute pm
-        # pm is computedfor this solution particular configuration of z4
+        # pm is computed for this solution particular configuration of z4
+        # pm is the origin of the X3Y3Z3 DH reference system
         pm0 = p - L6 * z5 - L5 * z4 - L4 * z3
         pm0 = np.append(pm0, [1])
         pm1 = np.dot(A01.inv().array, pm0.T)
-
+        # the Euclidian distance from the origin of X1Y1Z1 to the origin of X3Y3Z3
         R = np.sqrt(pm1[0]**2 + pm1[1]**2)
+        if R > L2+L3:
+            print('CAUTION: The point is not reachable by the robot')
+            q2 = np.array([np.nan, np.nan])
+            q3 = np.array([np.nan, np.nan])
+            return q2, q3, z4
         alpha = np.arctan2(pm1[1], pm1[0])
-        # if (L2 ** 2 + R ** 2 - L3 ** 2) / (2 * L2 * R) <= 1.0:
-        beta = np.arccos((L2 ** 2 + R ** 2 - L3 ** 2) / (2 * L2 * R))
-        eta = np.arccos((L2 ** 2 + L3 ** 2 - R ** 2) / (2 * L2 * L3))
+        # caution, clipping to -1, 1, since the point pm1 should be in range now
+        cbeta = np.clip((L2 ** 2 + R ** 2 - L3 ** 2) / (2 * L2 * R), -1.0, 1.0)
+        ceta = np.clip((L2 ** 2 + L3 ** 2 - R ** 2) / (2 * L2 * L3), -1.0, 1.0)
+        beta = np.arccos(cbeta)
+        eta = np.arccos(ceta)
         # two possible soutions for q2
         q2up = alpha + beta - np.pi / 2
         q2down = alpha - beta - np.pi / 2
