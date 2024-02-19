@@ -27,6 +27,9 @@ def normalize(q):
 
 
 def normalize_angle(eul):
+    """
+    Normalize angles in array to [-pi, pi]
+    """
     e = []
     for i in range(len(eul)):
         e.append(np.arctan2(np.sin(eul[i]), np.cos(eul[i])))

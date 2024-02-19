@@ -65,13 +65,32 @@ class Robot():
 
     def set_joint_target_velocities(self, qd):
         """
-        CAUTION: this function does only work if the position control loop is disabled at every youbot armjoint.
+        CAUTION: this function does only work if the control mode is set to velocity.
         Set the arm joint speeds
         :param qd: joint speeds rad/s
         :return:
         """
         for i in range(len(qd)):
             self.simulation.sim.setJointTargetVelocity(self.joints[i], qd[i])
+
+    def control_joint_positions(self, q):
+        """
+        A very simple joint control
+        CAUTION: this function does only work if the joint control mode is set to Position-control.
+        Set the arm joint positions
+        :param q: joint position rad
+        :return:
+        """
+        for i in range(len(q)):
+            self.simulation.sim.setJointTargetPosition(self.joints[i], q[i])
+
+        for i in range(500):
+            self.wait()
+            qc = self.get_joint_positions()
+            e = np.linalg.norm(q-qc)
+            if e < self.epsilonq:
+                break
+
 
     def get_joint_positions(self):
         q_actual = np.zeros(len(self.joints))
