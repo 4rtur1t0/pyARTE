@@ -25,13 +25,16 @@ class Quaternion():
         """
         Convert Quaternion to Euler angles XYZ
         """
-        return euler.Euler(q2euler(self.array))
+        return euler.Euler(q2euler(self.array)[0]), euler.Euler(q2euler(self.array)[1])
 
     def Q(self):
         return self
 
     def __str__(self):
         return str(self.array)
+
+    def __getitem__(self, item):
+        return self.array[item[0]]
 
     def toarray(self):
         return self.array

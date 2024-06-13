@@ -36,6 +36,9 @@ class RotationMatrix():
     def __str__(self):
         return str(self.array)
 
+    def __getitem__(self, item):
+        return self.array[item[0], item[1]]
+
     def toarray(self):
         return self.array
 

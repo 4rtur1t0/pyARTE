@@ -72,8 +72,12 @@ execution), you should include:
 - Check that the directory pyARTE is also included.
 
 Alternatively, the directory path with the Zmq libraries can also be added to the PYTHONPATH variable:
-$ export PYTHONPATH=/home/usuario/Simulations/CoppeliaSim_Edu_V4_5_1_rev4_Ubuntu22_04/programming/zmqRemoteApi/clients/python/src
 
+Also, if using Visual Studio the library itself and the communications library must be included.
+
+```
+$ export PYTHONPATH=/home/usuario/Simulations/CoppeliaSim_Edu_V4_5_1_rev4_Ubuntu22_04/programming/zmqRemoteApi/clients/python/src
+```
 
 ## TEST
 Open Coppelia Sim.
@@ -89,14 +93,6 @@ The directory pyARTE/scenes includes a set of scenes that should be opened in Co
 ## INSTALL SCRIPT
 
 Of course, Coppelia Sim should be downloaded from their webpage and extracted to a directory.
-
-IMPORTANT: if using pycharm or Visual Studio, you must include the communications library between Coppelia and python.
-In pycharm: File--> Settings --> Project --> Project Structure --> Add root content --> Add the directory with the zmQ communications library that is included with Coppelia Sim. Generally, the remote zmq Api can be found in:
-  /home/user/Simulations/CoppeliaSim_Edu_V4_5_1_rev4_Ubuntu22_04/programming/zmqRemoteApi/clients/python/src
-
-Alternatively, you can also add the libraries directly to the python path
-$ export PYTHONPATH=/home/usuario/Simulations/CoppeliaSim_Edu_V4_5_1_rev4_Ubuntu22_04/programming/zmqRemoteApi/clients/python/src
-
 Just copy-paste to your terminal the following lines to get everything up and running in seconds.
 
 ```
