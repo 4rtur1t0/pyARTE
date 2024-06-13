@@ -34,6 +34,7 @@ if __name__ == "__main__":
     gripper.open(precision=True)
     gripper.close(precision=True)
     gripper.open(precision=True)
+    T= robot.directkinematics(q1)
     robot.moveAbsJ(q1, endpoint=True)
     robot.moveAbsJ(q2, endpoint=True)
     robot.moveAbsJ(q3, endpoint=True, precision=True)

@@ -91,6 +91,20 @@ class HomogeneousMatrix():
     def __getitem__(self, item):
         return self.array[item[0], item[1]]
 
+    def t2v(self, n=2):
+        # converting from SE(2)
+        if n == 2:
+            tx = self.array[0, 3]
+            ty = self.array[1, 3]
+            th = np.arctan2(self.array[1, 0], self.array[0, 0])
+            return np.array([tx, ty, th])
+        else:
+            tx = self.array[0, 3]
+            ty = self.array[1, 3]
+            tz = self.array[2, 3]
+            th = self.Q().Euler().abg
+            return np.array([tx, ty, tz, th[0], th[1], th[2]])
+
     def plot(self, title='Homogeneous transformation', block=True):
         """
         Plot a rotation and translation using matplotlib's quiver method
