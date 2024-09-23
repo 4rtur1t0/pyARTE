@@ -39,6 +39,16 @@ class RotationMatrix():
     def __getitem__(self, item):
         return self.array[item[0], item[1]]
 
+    def print_nice(self, precision=3):
+        temp_array = self.array
+        th = 0.01
+        idx = np.abs(temp_array) < th
+        temp_array[idx] = 0
+        print(np.array_str(self.array, precision=precision, suppress_small=True))
+
+    def print(self):
+        self.print_nice()
+
     def toarray(self):
         return self.array
 

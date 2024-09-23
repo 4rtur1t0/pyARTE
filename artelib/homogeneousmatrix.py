@@ -57,6 +57,9 @@ class HomogeneousMatrix():
         temp_array[idx] = 0
         print(np.array_str(self.array, precision=precision, suppress_small=True))
 
+    def print(self):
+        self.print_nice()
+
     def inv(self):
         return HomogeneousMatrix(np.linalg.inv(self.array))
 
