@@ -34,6 +34,7 @@ def look_for_arucos(robot, camera, show=True):
 
 
 # def compute_target_point(robot, frame, Tca):
+
 #     return tp
 
 
