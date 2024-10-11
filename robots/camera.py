@@ -92,7 +92,8 @@ class Camera():
         """
         # ARUCO_SIZE = 0.078  # in meters, size of the ARUCO marker in simulation
         # CAUTION: this is true for the simulations in this particular library
-        ARUCO_SIZE = 0.07  # in meters, size of the ARUCO marker in simulation
+        # ARUCO_SIZE = 0.07  # in meters, size of the ARUCO marker in simulation
+        ARUCO_SIZE = 0.0695  # in meters, size of the ARUCO marker in simulation
         gray_image = self.get_image()
         # gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         # The dictionary should be defined as the one used in demos/aruco_markers/aruco_creation.py
@@ -107,8 +108,30 @@ class Camera():
         # cameraMatrix = np.array([[964.5, 0.0, 400],
         #                          [0.0, 964.5, 400],
         #                          [0.0, 0.0, 1.0]])
-        cameraMatrix = np.array([[964.5, 0.0, 400],
-                                 [0.0, 964.5, 400],
+
+        # import numpy as np
+
+
+
+        # # Go
+        # fov_x = np.rad2deg(2 * np.arctan2(w, 2 * fx))
+        # fov_y = np.rad2deg(2 * np.arctan2(h, 2 * fy))
+        #
+        # print("Field of View (degrees):")
+        # print(fov_x)
+        # print(fov_y)
+
+        fx = w/(2*np.tan(np.pi/8))
+
+        # Prepare
+        w, h = 800, 800
+        fx, fy = 965.5, 965.5
+
+        # cameraMatrix = np.array([[964.5, 0.0, 400],
+        #                          [0.0, 964.5, 400],
+        #                          [0.0, 0.0, 1.0]])
+        cameraMatrix = np.array([[fx, 0.0, (w-1)/2],
+                                 [0.0, fy, (h-1)/2],
                                  [0.0, 0.0, 1.0]])
         distCoeffs = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
 
@@ -165,8 +188,8 @@ class Camera():
             d.append(np.linalg.norm(transformation.pos()))
         closer_index = np.argmin(d)
         # Encontramos ahora la transformación total hasta todas la ARUCO más cercana
-        print('ID: ', ids[closer_index][0])
+        # print('ID: ', ids[closer_index][0])
         id = ids[closer_index][0]
-        transformations[closer_index].print_nice()
+        # transformations[closer_index].print_nice()
         Tca = transformations[closer_index]
         return id, Tca
