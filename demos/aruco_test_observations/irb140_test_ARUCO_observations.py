@@ -22,7 +22,7 @@ from robots.simulation import Simulation
 from robots.camera import Camera
 import matplotlib.pyplot as plt
 
-def look_for_arucos(robot, camera, show=True):
+def look_for_arucos(robot, camera, show=True, aruco_size=0.1):
     """
     In case we want a list to all ARUCOS along with its transformation
     """
@@ -30,7 +30,7 @@ def look_for_arucos(robot, camera, show=True):
     robot.moveAbsJ(q)
     robot.moveJ(target_position=Vector([0.5, 0.05, 0.35]),
                 target_orientation=Euler([0, np.pi, 0]))
-    id, Tca = camera.detect_closer_aruco(show=show)
+    id, Tca = camera.detect_closer_aruco(show=show, aruco_size=aruco_size)
     return id, Tca
 
 
@@ -65,7 +65,7 @@ def observe_arucos():
     frame.start()
     conveyor_sensor = ProxSensor(simulation=simulation)
     conveyor_sensor.start(name='/conveyor/prox_sensor')
-    camera = Camera(simulation=simulation)
+    camera = Camera(simulation=simulation, resolution=1200, fov_degrees=25.0)
     camera.start(name='/IRB140/camera')
     gripper = SuctionPad(simulation=simulation)
     gripper.start()
@@ -75,7 +75,7 @@ def observe_arucos():
     q = np.array([0, 0, 0, 0, np.pi / 2, 0])
     robot.moveAbsJ(q)
 
-    tp = np.array([0.5, -0.1, 0.07])
+    tp = np.array([0.5, 0, 0.05])
     es = []
     zs = []
     for i in range(15):
@@ -84,7 +84,7 @@ def observe_arucos():
                     target_orientation=Euler([0, np.pi, 0]), endpoint=True,
                     precision=True)
         simulation.wait()
-        id, Tca = camera.detect_closer_aruco(show=True)
+        id, Tca = camera.detect_closer_aruco(show=False)
         if id is None:
             print('NO ARUCO FOUND')
             break

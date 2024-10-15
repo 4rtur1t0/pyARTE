@@ -1,0 +1,8 @@
+1) Observe the ARUCO markers with 
+id, Tca=camera.detect_closer_aruco
+
+2) Pick the ARUCOs at random position/orientations
+
+3) Place the ARUCOS ordered on the left pallet.
+
+
