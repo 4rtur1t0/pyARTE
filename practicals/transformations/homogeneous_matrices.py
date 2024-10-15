@@ -4,6 +4,12 @@
 This script introduces you to the use of the classes:
     HomogeneousMatrix
 
+    There exist different ways to create a Homogeneous matrix:
+    - from a python list/array.
+    - from an np.array
+    - using the class Vector and RotationMatrix
+    - using the class Vector and Euler
+
     The use of the plot method is illustrated.
     Finally, a Homogeneous matrix can be created by means of a RotationMatrix and a Vector.
 

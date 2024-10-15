@@ -8,22 +8,33 @@ Classes to manage a camera in Coppelia simulations (a vision sensor)
 @Time: April 2021
 
 """
-import numpy as np
+# import numpy as np
 from PIL import Image, ImageOps
-import cv2
+# import cv2
 import numpy as np
 import cv2
-import json
+# import json
 from artelib.vector import Vector
 from artelib.rotationmatrix import RotationMatrix
 from artelib.homogeneousmatrix import HomogeneousMatrix
 
 
-
 class Camera():
-    def __init__(self, simulation):
+    # def __init__(self, simulation):
+    #     self.simulation = simulation
+    #     self.camera = None
+    def __init__(self, simulation, resolution, fov_degrees):
+        """
+        Construct the camera object.
+        wh: resolution of the image (must be square)
+        fov: camera fov in degrees
+        """
         self.simulation = simulation
         self.camera = None
+        # image width and height
+        self.wh = resolution
+        self.fov = np.deg2rad(fov_degrees)
+        self.fxy = self.wh / (2 * np.tan(self.fov / 2))
 
     def start(self, name='camera'):
         camera = self.simulation.sim.getObject(name)
@@ -86,36 +97,30 @@ class Camera():
         del image
         print('Image saved!')
 
-    def detect_arucos(self, show=False):
+    def detect_arucos(self, show=False, aruco_size=0.1):
         """
         Returns the transformation to the detected arucos
         """
         # ARUCO_SIZE = 0.078  # in meters, size of the ARUCO marker in simulation
         # CAUTION: this is true for the simulations in this particular library
-        ARUCO_SIZE = 0.07  # in meters, size of the ARUCO marker in simulation
+        # ARUCO_SIZE = 0.07  # in meters, size of the ARUCO marker in simulation
+        # ARUCO_SIZE = 0.0695  # in meters, size of the ARUCO marker in simulation
         gray_image = self.get_image()
         # gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         # The dictionary should be defined as the one used in demos/aruco_markers/aruco_creation.py
         # aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 
-        # these parameters have been hardcoded from camera_calib.json in demos/calibration
-        # {"camera_matrix": [[963.414492647487, 0.0, 399.4929096751381], [0.0, 963.5418011159297, 399.48519331649914],
-        #                    [0.0, 0.0, 1.0]],
-        #  "distortion_coefficients": [0.0, 0.0, -0.00011761346505041357, -0.00018190393945947126, 0.0]}
-        # Parameters could also be loaded from a json file (calib file)
-        # cameraMatrix = np.array([[964.5, 0.0, 400],
-        #                          [0.0, 964.5, 400],
-        #                          [0.0, 0.0, 1.0]])
-        cameraMatrix = np.array([[964.5, 0.0, 400],
-                                 [0.0, 964.5, 400],
+
+        cameraMatrix = np.array([[self.fxy, 0.0, (self.wh-1)/2],
+                                 [0.0, self.fxy, (self.wh-1)/2],
                                  [0.0, 0.0, 1.0]])
         distCoeffs = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
 
         corners, ids, rejectedImgPoints = cv2.aruco.detectMarkers(gray_image, aruco_dict)
         if len(corners) > 0:
             rvecs, tvecs, _objPoints = cv2.aruco.estimatePoseSingleMarkers(corners,
-                                                                           ARUCO_SIZE,
+                                                                           aruco_size,
                                                                            cameraMatrix,
                                                                            distCoeffs)
 
@@ -152,11 +157,11 @@ class Camera():
 
         return None, None
 
-    def detect_closer_aruco(self, show=False):
+    def detect_closer_aruco(self, show=False, aruco_size=0.1):
         """
         Returns the ARUCO marker closer to the camera frame
         """
-        ids, transformations = self.detect_arucos(show=show)
+        ids, transformations = self.detect_arucos(show=show, aruco_size=aruco_size)
         if ids is None:
             return None, None
         # find the ARUCO that is closer to the camera
@@ -165,8 +170,8 @@ class Camera():
             d.append(np.linalg.norm(transformation.pos()))
         closer_index = np.argmin(d)
         # Encontramos ahora la transformación total hasta todas la ARUCO más cercana
-        print('ID: ', ids[closer_index][0])
+        # print('ID: ', ids[closer_index][0])
         id = ids[closer_index][0]
-        transformations[closer_index].print_nice()
+        # transformations[closer_index].print_nice()
         Tca = transformations[closer_index]
         return id, Tca
