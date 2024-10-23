@@ -1,6 +1,6 @@
 # Change INSTALLDIR to your needs. It currently points to your desktop
 # the library's directory pyARTE should be placed at the same directory.
-INSTALLDIR=~/Simulations
+INSTALLDIR=~/Escritorio
 mkdir $INSTALLDIR
 
 echo 'INSTALLING pyARTE in'
