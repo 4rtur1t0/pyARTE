@@ -34,24 +34,25 @@ if __name__ == "__main__":
     # robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.105]), Euler([-np.pi / 2, 0, 0])))
 
     q0 = np.array([-np.pi/4, -np.pi/4, np.pi/8, -np.pi/4, np.pi / 4, -np.pi/4])
-
-    ########################################################
-    #
-    # COMPLETE EL CÓDIGO
-    # Defina las posiciones y orientaciones a alcanzar
-    ########################################################
-    target_positions = []
-    target_orientations = []
+    target_positions = [Vector([0.6, -0.5, 0.8]),
+                        Vector([0.6, -0.5, 0.3]),
+                        Vector([0.6, 0.5, 0.3]),
+                        Vector([0.6, 0.5, 0.8]),
+                        Vector([0.6, 0, 0.8])]
+    target_orientations = [Euler([0, np.pi / 2, 0]),
+                           Euler([0, np.pi / 2, 0]),
+                           Euler([0, np.pi / 2, 0]),
+                           Euler([0, np.pi / 2, 0]),
+                           Euler([0, np.pi / 2, 0])]
 
     # mostrar en Coppelia los target points anteriores
     frame.show_target_points(target_positions, target_orientations, wait_time=0.5)
     robot.moveAbsJ(q0, endpoint=True)
-    #for i in range(len(target_positions)):
-        ####################################################
-        # COMPLETE EL CÓDIGO
-        # comande al robot a cada uno de los puntos deseados
-        ####################################################
-
+    for i in range(len(target_positions)):
+        frame.show_target_point(target_positions[i], target_orientations[i], wait_time=0.5)
+        robot.moveL(target_position=target_positions[i], target_orientation=target_orientations[i],
+                    endpoint=True,
+                    vmax=0.4)
 
     # Stop arm and simulation
     simulation.stop()

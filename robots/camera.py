@@ -8,22 +8,16 @@ Classes to manage a camera in Coppelia simulations (a vision sensor)
 @Time: April 2021
 
 """
-# import numpy as np
 from PIL import Image, ImageOps
-# import cv2
 import numpy as np
 import cv2
-# import json
 from artelib.vector import Vector
 from artelib.rotationmatrix import RotationMatrix
 from artelib.homogeneousmatrix import HomogeneousMatrix
 
 
 class Camera():
-    # def __init__(self, simulation):
-    #     self.simulation = simulation
-    #     self.camera = None
-    def __init__(self, simulation, resolution, fov_degrees):
+    def __init__(self, simulation, resolution=1200, fov_degrees=45.0):
         """
         Construct the camera object.
         wh: resolution of the image (must be square)

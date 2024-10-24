@@ -50,14 +50,33 @@ def pick(robot, gripper):
     """
     Picks the piece from the conveyor belt.
     """
-    return
+    tp1 = Vector([0.6, 0.04, 0.23])  # approximation
+    tp2 = Vector([0.6, 0.04, 0.19])  # pick
+    to = Euler([0, np.pi, 0])
+    gripper.open(precision=True)
+    robot.moveJ(target_position=tp1, target_orientation=to, precision=False, endpoint=False, qdfactor=1.2)
+    robot.moveL(target_position=tp2, target_orientation=to, precision=True, endpoint=True, vmax=0.2)
+    gripper.close(precision=True)
 
 
 def place(robot, gripper, color):
     """
     Places, at three different heaps the pieces
     """
-    return
+    if color == 'R':
+        tp = Vector([-0.4, -0.4, 0.4])  # pallet R base position
+    elif color == 'G':
+        tp = Vector([0.0, -0.4, 0.4])  # pallet R base position
+    else:
+        tp = Vector([0.4, -0.4, 0.4])  # pallet R base position
+
+    to = Euler([0, np.pi, 0])
+    q0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    robot.moveAbsJ(q0)
+    robot.moveJ(target_position=tp, target_orientation=to)
+    tp = tp + Vector(np.array([0, 0, -0.05]))
+    robot.moveJ(target_position=tp, target_orientation=to)
+    gripper.open(precision=True)
 
 
 def pick_and_place():
@@ -76,7 +95,7 @@ def pick_and_place():
     # set the TCP of the RG2 gripper
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
     # Connect a camera to obtain images
-    camera = Camera(simulation=simulation, resolution=1200, fov_degrees=45.0)
+    camera = Camera(simulation=simulation, resolution=1200, fov_degrees=45)
     camera.start(name='/IRB140/RG2/camera')
 
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])

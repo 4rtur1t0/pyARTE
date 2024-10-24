@@ -544,8 +544,6 @@ class Robot():
         # plt.show()
         return q_path, qd_path
 
-
-
     def plot_trajectories(self):
         plt.figure()
         q_path = np.array(self.q_path)
@@ -556,13 +554,13 @@ class Robot():
         for i in range(0, sh[1]):
             plt.plot(q_path[:, i], label='q' + str(i + 1))
         plt.legend()
-        plt.title('JOINT TRAJECTORIES')
+        plt.title('JOINT TRAJECTORIES (rad, m)')
         plt.show(block=True)
         # Now plot speeds
         for i in range(0, sh[1]):
             plt.plot(qd_path[:, i], label='qd' + str(i + 1))
         plt.legend()
-        plt.title('JOINT VELOCITIES')
+        plt.title('JOINT VELOCITIES (rad/s, m/s)')
         plt.show(block=True)
 
     def get_trajectories(self):

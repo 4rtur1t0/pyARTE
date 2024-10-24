@@ -20,16 +20,16 @@ from robots.simulation import Simulation
 
 def pick(robot, gripper):
     q0 = np.array([0, 0, 0, 0, np.pi/2, 0])
-    tp1 = Vector([0.6, 0.267, 0.26])  # approximation
-    tp2 = Vector([0.6, 0.267, 0.21]) # pick
+    tp1 = Vector([0.6, 0.04, 0.3])  # approximation
+    tp2 = Vector([0.6, 0.04, 0.21]) # pick
     to1 = Euler([0, np.pi, 0])
     to2 = Euler([0, np.pi, 0])
     robot.moveAbsJ(q0, endpoint=True)
     gripper.open(precision=True)
-    robot.moveJ(target_position=tp1, target_orientation=to1, endpoint=True, precision=False)
+    robot.moveJ(target_position=tp1, target_orientation=to1, endpoint=True, precision=True, qdfactor=1.2)
     robot.moveL(target_position=tp2, target_orientation=to2, endpoint=True, precision=True, vmax=0.1)
     gripper.close(precision=True)
-    robot.moveL(target_position=tp1, target_orientation=to1, endpoint=False, precision=False)
+    robot.moveL(target_position=tp1, target_orientation=to1, endpoint=False, precision=False, vmax=1.2)
 
 
 def place(robot, gripper, i):
@@ -38,12 +38,8 @@ def place(robot, gripper, i):
     piece_gap = 0.02
     q0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     # POSITION AND ORIENTATION OF THE PALLETs
-    # a) PALLET ON THE RIGHT
     pallet_position = Vector([-0.15, -0.65, 0.15])
     pallet_orientation = Euler([0, 0, 0])
-    # b) PALLET ON THE LEFT
-    pallet_position = Vector([-0.069, 0.36, 0.15])
-    pallet_orientation = Euler([0, 0, np.pi/6])
     T0m = HomogeneousMatrix(pallet_position, pallet_orientation)
     # POSICION DE LA PIEZA i EN EL SISTEMA MÓVIL m (RELATIVA)
     pi = compute_3D_coordinates(index=i, n_x=3, n_y=4, n_z=2, piece_length=piece_length, piece_gap=piece_gap)
@@ -82,7 +78,7 @@ def pick_and_place():
     # para usar la ventosa
     # gripper = SuctionPad(simulation=simulation)
     # gripper.start()
-    # # set the TCP of the suction pad
+    # set the TCP of the suction pad
     # robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.11]), Euler([-np.pi/2, 0, 0])))
 
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
