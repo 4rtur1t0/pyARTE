@@ -363,23 +363,41 @@ class HuskyRobot(Robot):
         self.simulation.sim.setJointTargetVelocity(self.joints[2], wr)
         self.simulation.sim.setJointTargetVelocity(self.joints[3], wr)
 
-    def forward (self):
+    def forward(self):
         wheel_speeds = [3, 3, 3, 3]
         print('va')
         for i in range(4):
             self.simulation.sim.setJointTargetVelocity(self.joints[i], wheel_speeds[i])
 
-    def backwards (self):
+    def backward(self):
         wheel_speeds = [-3, -3, -3, -3]
         for i in range(4):
             self.simulation.sim.setJointTargetVelocity(self.joints[i], wheel_speeds[i])
 
-    def left (self):
+    def left(self):
         wheel_speeds = [0, 0, 3, 3]
         for i in range(4):
             self.simulation.sim.setJointTargetVelocity(self.joints[i], wheel_speeds[i])
 
-    def right (self):
+    def right(self):
         wheel_speeds = [3, 3, 0, 0]
         for i in range(4):
             self.simulation.sim.setJointTargetVelocity(self.joints[i], wheel_speeds[i])
+
+    def get_wheel_torques(self):
+        torques = []
+        # Caution: someone used the wrong direction for the joints
+        # torques are considered positive when the robot exerts a force that makes
+        # the robot go forward
+        for i in range(4):
+            tau = -self.simulation.sim.getJointForce(self.joints[i])
+            torques.append(tau)
+        return np.array(torques)
+
+    def get_mean_wheel_torques(self):
+        tau = 0.0
+        # Caution: someone used the wrong direction for the joints
+        for i in range(4):
+            tau += -self.simulation.sim.getJointForce(self.joints[i])
+        return tau/4.0
+
