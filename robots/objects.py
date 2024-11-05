@@ -8,7 +8,6 @@ Classes to manage different objects in Coppelia simulations
 @Time: April 2023
 
 """
-# import sim
 import numpy as np
 from artelib import rotationmatrix
 from artelib import homogeneousmatrix
