@@ -1,0 +1,36 @@
+#!/bin/sh
+# wait for network
+IP1=8.8.8.8
+IP2=4.4.4.4
+
+#start first ping, remember its pid
+ping -W 1 -c 1 $IP1 >/dev/null&
+PID1=$!
+
+# start second ping, remember its pid
+#ping -W 1 -c 1 $IP2 >/dev/null&
+#PID2=$!
+
+# wait for pings to finish
+if wait $PID1
+then echo $IP1 is reachable, internet is working; 
+#exit 0
+fi
+
+# none reachable
+echo "Internet is up"
+echo "Updating repos"
+
+
+# update repos
+cd /home/usuario/Escritorio/pyARTE/
+git stash
+git stash clear
+git pull
+
+cd /home/usuario/Escritorio/ARTE/
+git stash
+git stash clear
+git pull
+
+
