@@ -12,7 +12,7 @@ croncmd="$UPDATEFILE > $UPDATELOG"
 cronjob="@reboot $croncmd"
 
 #To add it to the crontab, with no duplication:
-#"( crontab -l | grep -v -F "$croncmd" ; echo "$cronjob" ) | crontab -"
+#( crontab -l | grep -v -F "$croncmd" ; echo "$cronjob" ) | crontab -"
 #To remove it from the crontab whatever its current schedule:
 #( crontab -l | grep -v -F "$croncmd" ; echo "$cronjob" ) | crontab -
 # add to a single command
