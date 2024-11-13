@@ -19,45 +19,21 @@ echo "Internet is up"
 echo "Updating repos"
 echo "Internet is up updating repos" >> $UPDATELOG
 
-sudo sudo -i -u usuario
+#sudo sudo -i -u usuario
 # update repos
-cd /home/usuario/Escritorio/pyARTE/
+cd $INSTALLDIR
 #git config --global --add safe.directory /home/usuario/Escritorio/pyARTE/
 git stash >> $UPDATELOG 2>&1
 git stash clear >> $UPDATELOG 2>&1
 git pull >> $UPDATELOG 2>&1
 
-cd /home/usuario/Escritorio/ARTE/
-#git config --global --add safe.directory /home/usuario/Escritorio/ARTE/
-git stash >> $UPDATELOG 2>&1
-git stash clear >> $UPDATELOG 2>&1
-git pull >> $UPDATELOG 2>&1
+#cd /home/usuario/Escritorio/ARTE/
+##git config --global --add safe.directory /home/usuario/Escritorio/ARTE/
+#git stash >> $UPDATELOG 2>&1
+#git stash clear >> $UPDATELOG 2>&1
+#git pull >> $UPDATELOG 2>&1
 
 #chown -R usuario:usuario /home/usuario/Escritorio/pyARTE/
 #chown -R usuario:usuario /home/usuario/Escritorio/ARTE/
 
 echo "Process ended correctly" >> $UPDATELOG
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-cd $INSTALLDIR
-git stash
-git pull
-
-
-
