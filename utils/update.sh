@@ -2,7 +2,8 @@
 # Change INSTALLDIR to your needs. It currently points to your desktop
 # the library's directory pyARTE should be placed at the same directory.
 INSTALLDIR=~/Escritorio/pyARTE
-#PIP=~/Applications/venv/bin/pip
+REQUIREMENTS=~/Escritorio/pyARTE/requirements.txt
+PIP=~/Applications/venv/bin/pip
 
 while [ "$(hostname -I)" = "" ]; do
   echo -e "\e[1A\e[KNo network: $(date)"
@@ -22,8 +23,8 @@ git stash
 git stash clear
 git pull
 
-# now install packages
-#pip install -r requirements.txt
+# now install packages WITh pip
+$PIP install -r $REQUIREMENTS
 
 
 echo "Process ended correctly on
