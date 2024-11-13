@@ -1,5 +1,5 @@
 #
-# USED TO update 
+# USED TO update all computers
 #
 # Instrucciones:
 # Ordenador profesor: >> sudo apt install sshpass
@@ -18,7 +18,6 @@ cronjob="@reboot $croncmd"
 # this command executes crontab and add the desired line
 commandssh="( crontab -l | grep -v -F "$croncmd" ; echo "$cronjob" ) | crontab -"
 echo $commandssh
-
 
 #!/bin/bash
 for i in {2..100}
