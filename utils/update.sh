@@ -2,7 +2,7 @@
 # Change INSTALLDIR to your needs. It currently points to your desktop
 # the library's directory pyARTE should be placed at the same directory.
 INSTALLDIR=~/Escritorio/pyARTE
-UPDATELOG=~/Escritorio/pyARTE/update.log
+UPDATELOG=~/Escritorio/pyARTE/utils/update.log
 
 while [ "$(hostname -I)" = "" ]; do
   echo -e "\e[1A\e[KNo network: $(date)"
