@@ -14,6 +14,7 @@ from artelib.vector import Vector
 from artelib.rotationmatrix import RotationMatrix
 from robots.abbirb140 import RobotABBIRB140
 from robots.grippers import GripperRG2, SuctionPad
+from robots.objects import ReferenceFrame
 from robots.proxsensor import ProxSensor
 from robots.simulation import Simulation
 
@@ -24,11 +25,13 @@ def pick(robot, gripper):
     """
     return
 
-def place(robot, gripper, i):
+
+def place(robot, gripper, frame, i):
     """
     COMPLETE EL CÓDIGO
     """
     return
+
 
 def pick_and_place():
     simulation = Simulation()
@@ -50,6 +53,9 @@ def pick_and_place():
     # set the TCP of the suction pad
     # robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.11]), Euler([-np.pi/2, 0, 0])))
 
+    frame = ReferenceFrame(simulation=simulation)
+    frame.start()
+
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
     # MOVEMOS AL ROBOT A UNA POSICIÓN INICIAL
     robot.moveAbsJ(q0, endpoint=True, precision=True)
@@ -64,7 +70,7 @@ def pick_and_place():
         # cogemos una pieza
         pick(robot, gripper)
         # la paletizamos
-        place(robot, gripper, i)
+        place(robot, gripper, frame, i)
         # repetimos ad eternum
     # Stop arm and simulation
     simulation.stop()

@@ -73,7 +73,7 @@ class CoppeliaObject():
 
         self.simulation.sim.setObjectPosition(self.handle, -1, position.tolist())
         self.simulation.sim.setObjectOrientation(self.handle, -1, orientation.tolist())
-        # self.simulation.wait()
+        self.simulation.wait()
 
     def get_position(self):
         position = self.simulation.sim.getObjectPosition(self.handle, -1)
