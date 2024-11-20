@@ -120,7 +120,7 @@ def pick_and_place_arucos():
         #     simulation.wait()
         #     if conveyor_sensor.is_activated():
         #         break
-        id, Tca = look_for_arucos(robot, camera, show=False, aruco_size=0.1)
+        id, Tca = look_for_arucos(robot, camera, show=True, aruco_size=0.1)
 
         if id is None:
             print('NO ARUCO FOUND')
@@ -129,6 +129,7 @@ def pick_and_place_arucos():
         tp = compute_target_point(robot, frame, Tca)
         pick_aruco(robot, gripper, frame, tp)
         place_aruco(robot, gripper)
+        simulation.wait()
 
     simulation.stop()
 
