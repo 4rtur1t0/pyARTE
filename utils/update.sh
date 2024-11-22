@@ -10,12 +10,7 @@ while [ "$(hostname -I)" = "" ]; do
   sleep 1
 done
 
-echo "I have network"
-echo "Internet is reachable"
-
-# none reachable
-echo "Internet is up"
-echo "Updating repos"
+echo "Network available. Internet is reachable. Updating repositories:"
 
 # update repos
 cd $INSTALLDIR
@@ -26,6 +21,24 @@ git pull
 # now install packages WITh pip
 $PIP install -r $REQUIREMENTS
 
+
+#################### 
+## CHECKS COPPELIA VERSION INSTALLED AND THE ONE CONFIGURED IN PYCHARM WORKSPACE TO MATCH THEM
+version_coppelia=$(grep -oP 'Applications/(Coppelia[^/]+)/' ~/Escritorio/coppeliasim.desktop)
+version_pycharm=$(grep -oP 'Applications/(Coppelia[^/]+)/' ~/Escritorio/pyARTE/.idea/workspace.xml)
+
+echo "Coppelia version detected in the system is: $version_coppelia"
+echo "Coppelia version configured in pycharm: $version_pycharm"
+
+
+if [ "$num1" -eq "$num2" ]; then
+  echo "Both version detected are the same, no need to update."
+else
+  echo "Coppelia version differs from the one configured in workspace and the one installed in the system."
+  echo "Updating Workspace XML configuration:"
+	sed -i "s|$version_pycharm|$version_coppelia|g" ~/Escritorio/pyARTE/.idea/workspace.xml
+fi
+####################
 
 echo "Process ended correctly on
 date
