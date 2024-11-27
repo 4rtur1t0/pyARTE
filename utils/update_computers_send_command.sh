@@ -19,7 +19,7 @@ cronjob="@reboot $croncmd"
 # add to a single command
 # this command executes crontab and add the desired line
 # ARTURO: commandssh="( crontab -l | grep -v -F "$croncmd" ; echo "$cronjob" ) | crontab -"
-commandssh="( crontab -l 1>/dev/null || echo "" | crontab -; crontab -l | grep -v -F \"$cronjob\" ; echo \"$cronjob\" ) | crontab -"
+commandssh="chown -R usuario:usuario ~/Escritorio/pyARTE"
 
 
 echo "Command to execute is: $commandssh"
@@ -36,7 +36,7 @@ for i in {2..100}
   sshpass -pusuario ssh -oStrictHostKeyChecking=no usuario@172.16.28.$i "$commandssh"
   echo "[SUCCESS] Updated crontab command to update repository in IP: 172.16.28.$i"
 #  sshpass -pusuario ssh -oStrictHostKeyChecking=no usuario@172.16.28.$i "echo 'usuario' | sudo -S -k halt"
-  sshpass -pusuario ssh -oStrictHostKeyChecking=no usuario@172.16.28.$i "echo 'usuario' | sudo -S -k shutdown -P 1"
+  #sshpass -pusuario ssh -oStrictHostKeyChecking=no usuario@172.16.28.$i "echo 'usuario' | sudo -S -k shutdown -P 1"
  else
   echo "[ERROR] Could not connect to 172.16.28.$i"
  fi
