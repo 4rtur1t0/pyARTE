@@ -18,6 +18,9 @@ git stash
 git stash clear
 git pull
 
+echo "Changing permissions to user"
+chown -R usuario:usuario $INSTALLDIR
+
 # now install packages WITh pip
 $PIP install -r $REQUIREMENTS
 
@@ -39,6 +42,9 @@ else
 	sed -i "s|$version_pycharm|$version_coppelia|g" ~/Escritorio/pyARTE/.idea/workspace.xml
 fi
 ####################
+
+echo "Changing permissions to user"
+chown -R usuario:usuario $INSTALLDIR
 
 echo "Process ended correctly on
 date

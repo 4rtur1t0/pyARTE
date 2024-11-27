@@ -61,3 +61,6 @@ class Simulation():
             if (t2-t1) >= seconds:
                 break
             self.client.step()
+
+    def get_simulation_time_step(self):
+        return self.sim.getSimulationTimeStep()

@@ -25,11 +25,35 @@ def plot_path(q, qd, qdd, t):
     plt.legend()
 
 
-def path_planning(q, qd, qdd, t):
+def plot_error(robot, q, qd, qdd, t):
+    # plt.figure()
+    # plt.plot(t, label='planned time')
+    # plt.plot(robot.t, label='simulation time')
+    # plt.show()
+    # errors in position
+    plt.figure()
+    plt.plot(t, q, label='q reference', linewidth=4)
+    plt.plot(t, robot.q, label='q robot', linewidth=4)
+    # plt.plot(t, qd, label='qd', linewidth=4)
+    # plt.plot(t, qdd, label='qdd', linewidth=4)
+    plt.legend()
+    plt.show()
+
+    # errors in speed
+    plt.figure()
+    plt.plot(t, qd, label='qd reference', linewidth=4)
+    plt.plot(t, robot.qd, label='qd robot', linewidth=4)
+    plt.legend()
+    plt.show()
+
+
+
+
+def path_planning(q, qd, qdd, t, delta_t):
     """
     function[q_t, qd_t, qdd_t, time, k] = fifth_order(q, qd, qdd, t, delta_t)
     """
-    delta_t = 0.05
+    # delta_t = 0.005
     A = np.array([[1, t[0], t[0]**2, t[0]**3, t[0]**4, t[0] ** 5],
                   [1, t[1], t[1]**2, t[1]**3, t[1]**4, t[1]**5],
                   [0,    1,  2*t[0], 3*t[0]**2, 4*t[0]**3, 5*t[0]**4],
@@ -58,10 +82,41 @@ def path_planning(q, qd, qdd, t):
         q.append(q_t)
         qd.append(qd_t)
         qdd.append(qdd_t)
+    # # append 5 more!!
+    # for i in range(10):
+    #     q.append(q[1])
+    #     qd.append(qd[1])
+    #     qdd.append(qdd[1])
     q = np.array(q)
     qd = np.array(qd)
     qdd = np.array(qdd)
     return q, qd, qdd, t
+
+
+def control(robot, q, qd, qdd, t):
+    for i in range(len(t)):
+        robot.save_state()
+        # control_step_open(robot, q[i], qd[i], qdd[i], t[i])
+        control_step_closed_loop(robot, q[i], qd[i], qdd[i], t[i])
+    return
+
+
+def control_step_open(robot, qref, qdref, qddref, t):
+    tau = robot.inversedynamics(qref, qdref, qddref)
+    robot.set_torques([tau])
+    robot.wait(1)
+    return
+
+
+def control_step_closed_loop(robot, qref, qdref, qddref, t):
+    tau = robot.inversedynamics(qref, qdref, qddref)
+    q, qd = robot.get_state()
+    # Add a PD control action
+    tau = tau + 5 * (qdref - qd) + 2 * (qref - q)
+    robot.set_torques([tau])
+    robot.wait(1)
+    return
+
 
 
 if __name__ == "__main__":
@@ -71,19 +126,10 @@ if __name__ == "__main__":
     # Connect to the robot
     robot = OneDOFRobot(simulation=simulation)
     robot.start()
-    g = 9.81
-    m = 1
-    L = 1
-    I = 8
+    delta_t = simulation.get_simulation_time_step()
 
-    q, qd, qdd, t = path_planning([0, np.pi/2], [0, 0], [0, 0], [0, 2])
-
-    qi, qdi, qddi = robot.get_state()
-    tau = robot.inversedynamics()
-
-    robot.set_torques([tau])
-    # simulation.wait_time(50)
-
-
-
+    q, qd, qdd, t = path_planning([0, np.pi/4], [0, 0], [0, 0], [0, 2], delta_t)
+    plot_path(q, qd, qdd, t)
+    control(robot, q, qd, qdd, t)
+    plot_error(robot, q, qd, qdd, t)
     simulation.stop()

@@ -22,6 +22,11 @@ class OneDOFRobot(Robot):
         Robot.__init__(self, simulation)
         self.DOF = 1
         self.q_current = np.zeros((1, self.DOF))
+        self.qd_current = np.zeros((1, self.DOF))
+        self.qdd_current = np.zeros((1, self.DOF))
+        self.q = []
+        self.qd = []
+        self.t = []
 
         # maximum joint speeds (rad/s)
         max_joint_speeds = np.array([500])
@@ -54,6 +59,11 @@ class OneDOFRobot(Robot):
         self.serialrobot = SerialRobot(n=1, T0=np.eye(4), name='OneDOFRobot')
         self.serialrobot.append(th=0, d=0.352, a=0.07, alpha=-np.pi / 2, link_type='R')
 
+        self.I = 1
+        self.m = 1
+        self.g = 9.81
+        self.L = 1
+
     def start(self, base_name='/ROBOTBASE', joint_name='joint'):
         armjoints = []
         # Get the handles of the relevant objects
@@ -68,27 +78,39 @@ class OneDOFRobot(Robot):
             self.simulation.sim.setJointTargetForce(self.joints[i], tau[i])
 
     def get_state(self):
-        q = []
-        qd = []
-        qdd = []
+        # q = []
+        # qd = []
+        # qdd = []
+        # return joint position, speed and acceleration
+        # for i in range(len(self.joints)):
+        qi = self.simulation.sim.getJointPosition(self.joints[0])
+        qdi = self.simulation.sim.getJointVelocity(self.joints[0])
+            # qddi = self.simulation.sim.getJointAcceleration(self.joints[i])
+            # q.append(qi)
+            # qd.append(qdi)
+            # qdd.append(qddi)
+        # q = np.array(q)
+        # qd = np.array(qd)
+        # qdd = np.array(qdd)
+        return qi, qdi #, qdd
+
+    def save_state(self):
         # return joint position, speed and acceleration
         for i in range(len(self.joints)):
             qi = self.simulation.sim.getJointPosition(self.joints[i])
             qdi = self.simulation.sim.getJointVelocity(self.joints[i])
-            qddi = self.simulation.sim.getJointAcceleration(self.joints[i])
+            # qddi = self.simulation.sim.getJointAcceleration(self.joints[i])
+            self.q.append(qi)
+            self.qd.append(qdi)
+            # qdd.append(qddi)
+        ti = self.simulation.sim.getSimulationTime()
+        self.t.append(ti)
 
-            q.append(qi)
-            qd.append(qdi)
-        q = np.array(q)
-        qd = np.array(qd)
-        qdd = np.array(qdd)
-        return
-
-    def inversedynamics(self):
+    def inversedynamics(self, q, qd, qdd):
         I = self.I
         m = self.m
         g = self.g
         L = self.L
-        q, qd, qdd = self.get_state()
-        tau = I*qdd[0] + m*g*(L/2)*np.cos(q[0])
+        # q, qd, qdd = self.get_state()
+        tau = I*qdd + m*g*(L/2)*np.cos(q)
         return tau
