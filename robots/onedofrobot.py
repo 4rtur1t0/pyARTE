@@ -59,10 +59,10 @@ class OneDOFRobot(Robot):
         self.serialrobot = SerialRobot(n=1, T0=np.eye(4), name='OneDOFRobot')
         self.serialrobot.append(th=0, d=0.352, a=0.07, alpha=-np.pi / 2, link_type='R')
 
-        self.I = 1
         self.m = 1
         self.g = 9.81
         self.L = 1
+        self.I = (1 / 3)*self.m*self.L**2
 
     def start(self, base_name='/ROBOTBASE', joint_name='joint'):
         armjoints = []

@@ -68,6 +68,7 @@ def plot_trajectories(q_rs):
     plt.legend()
     plt.show(block=True)
 
+
 def move_robot():
     global q
     [q, _] = robot.apply_joint_limits(q)
@@ -79,7 +80,6 @@ def move_robot():
     print('End effector position is (p): \n', T.pos())
     print('End effector orientation is (alpha, beta, gamma): \n', T.euler()[0])
     print('End effector Q is (Quaternion): ', Q)
-
 
 
 def on_press(key):
@@ -172,7 +172,7 @@ if __name__ == "__main__":
             # Block at most one second
             print('Press Key:')
             # time.sleep(0.01)
-            event = events.get(0.05)
+            event = events.get()
             if event is None:
                 print('You did not press a key within one second')
                 # move_robot()
@@ -187,5 +187,5 @@ if __name__ == "__main__":
                 print('Received key: ', event.key)
                 on_press(event.key)
                 move_robot()
-
+            robot.wait()
     simulation.stop()

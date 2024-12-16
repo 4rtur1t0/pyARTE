@@ -11,7 +11,10 @@ the results.
 """
 import numpy as np
 from artelib.euler import Euler
+from artelib.homogeneousmatrix import HomogeneousMatrix
+from artelib.rotationmatrix import RotationMatrix
 from artelib.vector import Vector
+from robots.abbirb140 import RobotABBIRB140
 from robots.objects import ReferenceFrame
 from robots.simulation import Simulation
 
@@ -52,8 +55,10 @@ def path_planning_line(pA, oA, pB, oB):
     t = np.linspace(0, 1, n)
     positions = []
     orientations = []
+    # EJERCICIO: INTERPOLE POSICIONES Y ORIENTACIONES PARA IR DE PA/OA A PB/OB
+    # CUIDADO: Debe expresar las posiciones como Vector(np.array[x, y, z])
+    # CUIDADO: Debe expresar las orientaciones como Euler(np.array[alpha, beta, gamma])
 
-    # EJERCICIO: INTERPOLE POSICIONES Y ORIENTAICONES PARA IR DE A A B
 
     return positions, orientations
 
@@ -63,6 +68,10 @@ def path_in_workspace():
     simulation.start()
     frame = ReferenceFrame(simulation=simulation)
     frame.start()
+    robot = RobotABBIRB140(simulation=simulation)
+    robot.start()
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.195]), RotationMatrix(np.eye(3))))
+
 
     pA = Vector([0.5, -0.5, 0.9])
     oA = Euler([0, 0, 0])
@@ -71,7 +80,11 @@ def path_in_workspace():
 
     tps, tos = path_planning_line(pA, oA, pB, oB)
 
-    frame.show_target_points(target_positions=tps, target_orientations=tos, wait_time=2)
+    # ESTA FUNCIÓN MUESTRA TODAS LAS POSICIONES Y ORIENTACIONES INTERPOLADAS
+    frame.show_target_points(target_positions=tps, target_orientations=tos, wait_time=0.5)
+
+    # FINALMENTE, INTENTE ALCANZAR LAS POSICIONES Y ORIENTACIONES CON EL ROBOT
+    # USE MOVEJ
 
     simulation.wait(50)
     simulation.stop()

@@ -11,7 +11,10 @@ the results.
 """
 import numpy as np
 from artelib.euler import Euler
+from artelib.homogeneousmatrix import HomogeneousMatrix
+from artelib.rotationmatrix import RotationMatrix
 from artelib.vector import Vector
+from robots.abbirb140 import RobotABBIRB140
 from robots.objects import ReferenceFrame
 from robots.simulation import Simulation
 
@@ -66,6 +69,9 @@ def path_in_workspace():
     simulation.start()
     frame = ReferenceFrame(simulation=simulation)
     frame.start()
+    robot = RobotABBIRB140(simulation=simulation)
+    robot.start()
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.195]), RotationMatrix(np.eye(3))))
 
     pA = Vector([0.5, -0.5, 0.9])
     oA = Euler([0, 0, 0])
@@ -74,7 +80,13 @@ def path_in_workspace():
 
     tps, tos = path_planning_line(pA, oA, pB, oB)
     # show the target points on Coppelia
-    frame.show_target_points(target_positions=tps, target_orientations=tos, wait_time=0.5)
+    print('SHOWING TARGET POINTS ON COPPELIA!!')
+    # frame.show_target_points(target_positions=tps, target_orientations=tos, wait_time=0.1)
+
+    for i in range(len(tps)):
+        # frame.show_target_point(target_position=tps[i], target_orientation=tos[i], wait_time=0.01)
+        robot.moveJ(target_position=tps[i],
+                    target_orientation=tos[i])
 
     simulation.wait(50)
     simulation.stop()

@@ -32,6 +32,7 @@ class HomogeneousMatrix():
                 position = np.array(position)
             elif isinstance(position, vector.Vector):
                 position = np.array(position.array)
+
             if isinstance(orientation, euler.Euler):
                 array = buildT(position, orientation)
             elif isinstance(orientation, list):

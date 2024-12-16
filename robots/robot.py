@@ -295,6 +295,9 @@ class Robot():
     def wait(self, steps=1):
         self.simulation.wait(steps=steps)
 
+    def wait_time(self, seconds):
+        self.simulation.wait_time(seconds=seconds)
+
     def wait_till_joint_position_is_met(self, q_target):
         for i in range(self.max_iterations_joint_target):
             q_actual = self.get_joint_positions()
