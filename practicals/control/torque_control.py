@@ -112,7 +112,7 @@ def control_step_closed_loop(robot, qref, qdref, qddref, t):
     tau = robot.inversedynamics(qref, qdref, qddref)
     q, qd = robot.get_state()
     # Add a PD control action
-    tau = tau + 5 * (qdref - qd) + 2 * (qref - q)
+    tau = tau + 1 * (qdref - qd) + 1 * (qref - q)
     robot.set_torques([tau])
     robot.wait(1)
     return

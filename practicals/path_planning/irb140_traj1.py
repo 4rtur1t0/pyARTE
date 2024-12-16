@@ -31,7 +31,6 @@ if __name__ == "__main__":
     gripper = GripperRG2(simulation=simulation)
     gripper.start(name='/IRB140/RG2/RG2_openCloseJoint')
 
-
     # set the TCP of the RG2 gripper
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.195]), RotationMatrix(np.eye(3))))
     # robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.105]), Euler([-np.pi / 2, 0, 0])))

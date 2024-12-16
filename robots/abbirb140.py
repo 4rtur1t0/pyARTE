@@ -15,6 +15,7 @@ from artelib.seriallink import SerialRobot
 from robots.robot import Robot
 import matplotlib.pyplot as plt
 
+
 class RobotABBIRB140(Robot):
     def __init__(self, simulation):
         # init base class attributes
@@ -132,6 +133,8 @@ class RobotABBIRB140(Robot):
         q = np.array(q)
         q = q.T
         if len(q) == 0:
+            print(10*'*!')
+            print('ERROR: NO SOLUTIONS FOUND!! IS THE TARGET POINT REACHABLE?')
             return []
         n_solutions = q.shape[1]
         q_total = []
