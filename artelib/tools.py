@@ -257,7 +257,9 @@ def rot2euler(R):
         gamma1 = np.arctan2(-s1*R[0][1], s1*R[0][0])
         alpha2 = np.arctan2(-s2*R[1][2], s2*R[2][2])
         gamma2 = np.arctan2(-s2*R[0][1], s2*R[0][0])
+    # degenerate case
     else:
+        print('CAUTION: rot2euler detected a degenerate solution when computing the Euler angles.')
         alpha1 = 0
         alpha2 = np.pi
         beta1 = np.arcsin(R[0, 2])
