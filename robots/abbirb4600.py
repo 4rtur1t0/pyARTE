@@ -166,36 +166,48 @@ class RobotABBIRB4600(Robot):
     def solve_for_theta23(self, q1, Pm):
         # See arm geometry
         L2 = self.serialrobot.transformations[1].a
-        L3 = self.serialrobot.transformations[3].d
+        L3 = self.serialrobot.transformations[2].a
+        L4 = self.serialrobot.transformations[3].d
+        L3p = np.sqrt(L3**2+L4**2)
+
         A01 = self.serialrobot.transformations[0].dh(q1)
         Pm = np.concatenate((Pm, [1]), axis=0)
         # Express     Pm in the     reference     system     1,    for convenience
         p1 = np.dot(A01.inv().toarray(), Pm.T)
         r = np.linalg.norm(np.array([p1[0], p1[1]]))
-        beta = np.arctan2(-p1[1], p1[0])
+        # alpha
+        alpha = np.arctan2(-p1[1], p1[0])
 
-        a = (L2**2 + r**2 - L3**2) / (2 * r *L2)
-        b = (L2**2 + L3**2 - r**2) / (2 * L2 * L3)
+        a = (L2**2 + r**2 - L3p**2) / (2 * r *L2)
+        b = (L2**2 + L3p**2 - r**2) / (2 * L2 * L3p)
+        c = (L3**2 + L3p**2 - L4**2) / (2 * L3 * L3p)
 
         if np.abs(a) < 1.0:
-            gamma = np.arccos(a)
+            beta = np.arccos(a)
+        else:
+            print('WARNING: ONE OF THE INVERSE KINEMATIC SOLUTIONS IS NOT FEASIBLE (ABB IRB140 ROBOT). The point is out of the workspace')
+            beta = np.nan
+
+        if np.abs(b) < 1.0:
+            gamma = np.arccos(b)
         else:
             print('WARNING: ONE OF THE INVERSE KINEMATIC SOLUTIONS IS NOT FEASIBLE (ABB IRB140 ROBOT). The point is out of the workspace')
             gamma = np.nan
 
-        if np.abs(b) < 1.0:
-            eta = np.arccos(b)
+        if np.abs(c) < 1.0:
+            eta = np.arccos(c)
         else:
             print('WARNING: ONE OF THE INVERSE KINEMATIC SOLUTIONS IS NOT FEASIBLE (ABB IRB140 ROBOT). The point is out of the workspace')
             eta = np.nan
+
         # elbow  up
-        q2_1 = np.pi / 2 - beta - gamma
+        q2_1 = np.pi / 2 - beta - alpha
         # elbow  down
-        q2_2 = np.pi / 2 - beta + gamma
+        q2_2 = np.pi / 2 + beta - alpha
         # elbow up
-        q3_1 = np.pi / 2 - eta
+        q3_1 = np.pi - eta - gamma
         # elbow down
-        q3_2 = eta - 3 * np.pi / 2
+        q3_2 = np.pi - eta + gamma
         # joint ranges are considered and we try to restrict the solution in that case.
         if q2_1 < self.joint_ranges[0, 1] or q2_1 > self.joint_ranges[1, 1]:
             q2_1 = np.arctan2(np.sin(q2_1), np.cos(q2_1))

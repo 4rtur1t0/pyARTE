@@ -26,34 +26,22 @@ if __name__ == "__main__":
     orientation = RotationMatrix(np.array([[0, 1, 0],
                                            [-1, 0, 0],
                                            [0, 0, 1]]))
-    frame.set_position(position=position)
-    simulation.wait(50)
-    frame.set_orientation(orientation=orientation)
-    simulation.wait(50)
-    # same as before
-    frame.set_position_and_orientation(position, orientation)
-    simulation.wait(50)
+    # Show the target point
+    frame.show_target_point(target_position=position, target_orientation=orientation)
 
     # using Vector and Euler
     position = Vector([.6, 0, .6])
     orientation = Euler([np.pi/4, np.pi/4, np.pi/4])
-    frame.set_position(position=position)
-    simulation.wait(50)
-    frame.set_orientation(orientation=orientation)
-    simulation.wait(50)
-    # same as before
-    frame.set_position_and_orientation(position, orientation)
-    simulation.wait(50)
+    # Show the target point
+    frame.show_target_point(target_position=position, target_orientation=orientation)
+
     # using a HomogeneousMatrix
     T = HomogeneousMatrix([[0, 0, -1, 0.6],
                            [0, 1, 0, -0.3],
                            [1, 0, 0, 0.8],
                            [0, 0, 0, 1]])
-    frame.set_position(position=T.pos())
-    simulation.wait(50)
-    frame.set_orientation(orientation=T.R())
-    simulation.wait(50)
-    frame.set_position_and_orientation(T)
+    frame.show_target_point(target_position=T.pos(), target_orientation=T.R())
+    simulation.wait_time(5)
 
     simulation.stop()
 

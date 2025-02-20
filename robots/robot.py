@@ -71,7 +71,7 @@ class Robot():
         :return:
         """
         for i in range(len(qd)):
-            self.simulation.sim.setJointTargetVelocity(self.joints[i], qd[i])
+            self.simulation.sim.setJointTargetVelocity(self.joints[i], float(qd[i]))
 
     def control_joint_positions(self, q):
         """
@@ -148,8 +148,9 @@ class Robot():
         q_current = self.get_joint_positions()
         # resultado filtrado. Debe ser una matriz 6xn_movements
         # CAUTION. This calls the inverse kinematic method of the derived class
-        q_target = self.inversekinematics(q0=q_current, target_position=target_position,
-                                          target_orientation=target_orientation, extended=extended)
+
+        q_target = self.inversekinematics(target_position=target_position,
+                                          target_orientation=target_orientation, extended=extended, q0=q_current)
         if len(q_target) == 0:
             print('ERROR COMPUTING INVERSE KINEMATICS')
             print('Please check that the specified target point is reachable')
@@ -328,6 +329,10 @@ class Robot():
         A = self.serialrobot.directkinematics(q)
         T = self.T0*A*self.Ttcp
         return T
+
+    def dh(self, q, i):
+        A = self.serialrobot.dh(q, i)
+        return A
 
     def compute_time(self, Tcurrent, Ttarget, vmax=1.0):
         """

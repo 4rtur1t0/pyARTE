@@ -112,20 +112,26 @@ def irb4600_ikine():
     q0 = np.array([0, 0, 0, 0, 0, 0])
     robot.moveAbsJ(q_target=q0, precision=True)
 
-    target_position = Vector([1.5, 1.0, 1.0])
+    target_position = Vector([1.2, 0.8, 1.0])
     target_orientation = Euler([np.pi/8, np.pi/8, 0])
 
-    q = inverse_kinematics(robot=robot, target_position=target_position,
+    qinv = inverse_kinematics(robot=robot, target_position=target_position,
                            target_orientation=target_orientation)
 
+    for i in range(qinv.shape[1]):
+        Ttarget = HomogeneousMatrix(target_position, target_orientation)
+        T = robot.directkinematics(qinv[:, i])
+        Tdiff = Ttarget-T
+        Tdiff.print_nice()
+
     # Visualizamos todas las soluciones
-    view_all_solutions(robot, q)
+    view_all_solutions(robot, qinv)
 
     # Se eliminan aquellas que no estan en rango articular
-    q = filter_within_range(robot, q)
+    qinv = filter_within_range(robot, qinv)
 
     # Se comanda al robot a estas soluciones
-    move_robot(robot, q)
+    move_robot(robot, qinv)
 
     # Stop arm and simulation
     simulation.stop()

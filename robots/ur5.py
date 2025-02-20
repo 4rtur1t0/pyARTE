@@ -99,7 +99,7 @@ class RobotUR5(Robot):
     #             [q, _] = self.apply_joint_limits(q)
     #     return q
 
-    def inversekinematics(self, target_position, target_orientation):
+    def inversekinematics(self, target_position, target_orientation, q0=None, extended=True):
         """
         Solve the inverse kinematics using a closed method.
         The technique used here is based on a geometrical analysis of the robot.
