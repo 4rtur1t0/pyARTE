@@ -41,12 +41,12 @@ def simulate():
     #  TORQUES
     # now, obtain the mean torques or torques for each wheel
     # during 50 simulat steps.
-    for i in range(50):
+    for i in range(350):
         # tau = robot.get_mean_wheel_torques()
         # axyz = accel.get_accel_data()
         T = robot_center.get_transform()
         id_aruco, Tca = observe_aruco(camera=camera)
-        robot.move(v=-0.5, w=0.5)
+        robot.move(v=0.1, w=0.7)
         # print(T)
         # print(tau)
         # print(axyz)

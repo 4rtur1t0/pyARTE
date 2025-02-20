@@ -51,9 +51,9 @@ class HomogeneousMatrix():
     def toarray(self):
         return self.array
 
-    def print_nice(self, precision=3):
+    def print_nice(self, precision=5):
         temp_array = self.array
-        th = 0.01
+        th = 0.0001
         idx = np.abs(temp_array) < th
         temp_array[idx] = 0
         print(np.array_str(self.array, precision=precision, suppress_small=True))

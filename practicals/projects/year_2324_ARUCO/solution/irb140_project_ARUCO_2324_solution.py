@@ -112,7 +112,7 @@ def pick_and_place_arucos():
     # q = robot.get_joint_positions()
     # T0 = robot.directkinematics(q)
 
-    simulation.wait_time(seconds=1)
+    simulation.wait_time(seconds=2)
 
     for i in range(6):
         # frame.show_target_point(target_position=T0.pos(), target_orientation=T0.R())
