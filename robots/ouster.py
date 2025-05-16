@@ -48,4 +48,13 @@ class Ouster():
     def draw_pointcloud(self):
         o3d.visualization.draw_geometries([self.pointcloud])
 
+    def down_sample(self):
+        self.pointcloud = self.pointcloud.voxel_down_sample(voxel_size=0.2)
+
+    def estimate_normals(self):
+        self.pointcloud.estimate_normals(
+                o3d.geometry.KDTreeSearchParamHybrid(radius=0.2,
+                                                     max_nn=50))
+
+
 
