@@ -23,7 +23,7 @@ def create_arucos():
     borderType = cv2.BORDER_CONSTANT
     value = [255, 255, 255]
     dst = None
-    n = 10
+    n = 30
     for i in range(n):
         img = aruco.generateImageMarker(aruco_dict, i, 700)
         img_border = cv2.copyMakeBorder(img, top, bottom, left, right,

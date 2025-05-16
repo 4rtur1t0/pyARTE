@@ -105,7 +105,8 @@ class Camera():
         # aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 
-
+        # In this special case, the focal, width and height of the camera are computed based on Coppelia's parameters:
+        # FOV and resolution
         cameraMatrix = np.array([[self.fxy, 0.0, (self.wh-1)/2],
                                  [0.0, self.fxy, (self.wh-1)/2],
                                  [0.0, 0.0, 1.0]])
@@ -131,8 +132,8 @@ class Camera():
                 # Draw axis for each marker
                 for i in range(len(rvecs)):
                     dispimage = cv2.drawFrameAxes(dispimage, cameraMatrix, distCoeffs, rvecs[i], tvecs[i],
-                                                      length=0.2,
-                                                      thickness=2)
+                                                  length=0.2,
+                                                  thickness=2)
 
             cv2.imshow('aruco_detect', dispimage)
             cv2.waitKey(1000)

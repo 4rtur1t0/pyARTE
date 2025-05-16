@@ -29,18 +29,18 @@ import numpy as np
 import os
 import json
 
-NO_DISTORTION = True
+NO_DISTORTION = False
 # Calibrate camera with stored image files (calibration pattern)
 # Calibration pattern inner corners (cols Y-axis, rows X-axis)
-patternSize = (9, 6)
+patternSize = (6, 8)
 # CAUTION: this is not the standard size. Please, bear in mind that the pattern may be resized when included in Coppelia
-squareSize = 33.65       # square pattern side in mm
+squareSize = 40.0       # square pattern side in mm
 
 # 3D object points coordinates (x,y,z)
 objp3D = np.zeros((patternSize[1], patternSize[0], 3), np.float32)
 for x in range(patternSize[1]):
     for y in range(patternSize[0]):
-        objp3D[x,y] = (x*squareSize, y*squareSize, 0)
+        objp3D[x, y] = (x*squareSize, y*squareSize, 0)
 
 objp3D = objp3D.reshape(-1, 3)   #  transform in a  row vector of (x,y,z) tuples
 
@@ -49,19 +49,24 @@ imgpoints = []      # 2D points in image plane
 num_patterns = 0    # number of detected patterns. We need at lest 3
 
 # reading directory files
-prefix = 'calib_pattern'
+prefix = '25-03-05_'
+directory = './captures_real/visible/'
 valid_extension = ('jpg', 'jpeg', 'png', 'tiff', 'tif', 'bmp', 'pgm')
-directoryList = sorted(os.listdir("./captures"))
+directoryList = sorted(os.listdir(directory))
+n_images = len(directoryList)
+i = 0
 for file in directoryList:
     # Filter non image files
     if not file.startswith(prefix) or not file.endswith(valid_extension):
         continue
 
-    print(f"Processing image file: {file}")
-    image = cv.imread('./captures/' + file)
+    print(f"Processing image file: {directory + file}")
+    print("File", i, "out of", n_images)
+    i += 1
+    image = cv.imread(directory + file)
     gray_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)  # transforms to gray level
 
-    # cv.imshow('tt', gray_image)
+    cv.imshow('tt', gray_image)
     # cv.waitKey(0)
 
     # Calibration pattern inner corners (cols Y-axis, rows X-axis)
@@ -81,17 +86,18 @@ for file in directoryList:
         cv.drawChessboardCorners(image, patternSize, corners, patternWasFound)
 
         cv.imshow('WINDOW_CAMERA', image)     # Display the resulting frame
-        key = cv.waitKey(1000)              # update image and wait 1 second
+        # key = cv.waitKey(1000)              # update image and wait 1 second
+        key = cv.waitKey(10)  # update image and wait 1 second
 
 # end for file in  os.listdir("."):
 
 if num_patterns >= 3:
-    # imageSize:  (cols, rows)
+    print("")# imageSize:  (cols, rows)
     termCriteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     cameraMatrix = np.array([])
     if NO_DISTORTION:
         distCoeffs = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
-        flags = cv.CALIB_FIX_K1+cv.CALIB_FIX_K2+ \
+        flags = cv.CALIB_FIX_K1+cv.CALIB_FIX_K2 + \
             cv.CALIB_FIX_K3 + cv.CALIB_FIX_K4 + \
             cv.CALIB_FIX_K5 + cv.CALIB_FIX_K6
         rms, cameraMatrix, distCoeffs, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints,
