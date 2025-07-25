@@ -24,13 +24,17 @@ def euler2rot(abg, convention):
         Ra = Rx(abg[0])
         Rb = Ry(abg[1])
         Rc = Rz(abg[2])
+    elif convention == 'xzx':
+        Ra = Rx(abg[0])
+        Rb = Rz(abg[1])
+        Rc = Rx(abg[2])
     elif convention == 'zxz':
         Ra = Rz(abg[0])
         Rb = Rx(abg[1])
         Rc = Rz(abg[2])
-    elif convention == 'xzx':
-        Ra = Rx(abg[0])
-        Rb = Rz(abg[1])
+    elif convention == 'zyx':
+        Ra = Rz(abg[0])
+        Rb = Ry(abg[1])
         Rc = Rx(abg[2])
     elif convention == 'zyz':
         Ra = Rz(abg[0])
@@ -64,8 +68,3 @@ if __name__ == '__main__':
     print('Rxzx to XYZ:')
     print(Rxyz.euler()[0], Rxyz.euler()[1])
 
-    # Rzyz = euler2rot([-np.pi / 2, -np.pi / 2, np.pi / 2], 'zyz')
-    # Rzyz.print_nice()
-    #
-    # Rxyx = euler2rot([np.pi / 2, -np.pi / 2, np.pi / 2], 'xyx')
-    # Rxyx.print_nice()
