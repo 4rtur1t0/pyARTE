@@ -22,8 +22,7 @@ class Simulation():
         """
         # Python connect to the V-REP client and start simulation
         self.client = RemoteAPIClient()
-        # self.sim = self.client.getObject('sim')
-        self.sim = self.client.require('sim')
+        self.sim = self.client.getObject('sim')
         # self.client.setStepping(True)
         state = self.sim.getSimulationState()
 

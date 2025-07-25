@@ -32,7 +32,7 @@ def simulate():
 
     # MOVEMENTSDA
     print('MOVING ROBOT')
-    robot.move(v=1, w=-0.5)
+    robot.move(v=-1, w=0.0)
     # Must wait till the speed is reached
     # approx 2 seconds (torques
     simulation.wait()
@@ -40,7 +40,7 @@ def simulate():
     #  TORQUES
     # now, obtain the mean torques or torques for each wheel
     # during 50 simulat steps.
-    for i in range(2):
+    for i in range(50):
         tau = robot.get_mean_wheel_torques()
         axyz = accel.get_accel_data()
         T = robot_center.get_transform()
