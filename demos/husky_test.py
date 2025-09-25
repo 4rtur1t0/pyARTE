@@ -22,7 +22,7 @@ def simulate():
     robot.start(base_name='/HUSKY')
     # Simulate a LiDAR
     lidar = Ouster(simulation=simulation)
-    lidar.start(name='/OS1')
+    # lidar.start(name='/OS1')
     # A dummy object ath the robot center
     robot_center = CoppeliaObject(simulation=simulation)
     robot_center.start(name='/HuskyCenter')
