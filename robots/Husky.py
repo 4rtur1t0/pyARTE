@@ -55,7 +55,7 @@ class HuskyRobot(Robot):
         :param w: Desired angular velocity
 
         """
-        v, w = self.accelcontrol(v, w)
+        # v, w = self.accelcontrol(v, w)
         self.V = v
         self.W = w
         r = self.wheel_radius
