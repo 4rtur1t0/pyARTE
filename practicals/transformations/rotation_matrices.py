@@ -14,9 +14,10 @@ from artelib.vector import Vector
 
 if __name__ == "__main__":
     # Diferentes formas de crear una matriz de Rotación
+    # Una matriz de rotación identidad de 3x3
     R = RotationMatrix(3)
     R.plot('Identity 3x3')
-
+    # Definiendo tres filas
     R = RotationMatrix([[0, 0, -1], [0, 1, 0], [1, 0, 0]])
     R.plot()
     # create different rotation matrices
@@ -33,7 +34,8 @@ if __name__ == "__main__":
 
     # inverse and determinant
     R = R.inv()
-    print('Inverse matrix (tranpose): ')
+    R = R.T()
+    print('Inverse matrix (transposed, actually): ')
     print(R)
     print('Determinant: ', R.det())
     # Rotación de un vector
