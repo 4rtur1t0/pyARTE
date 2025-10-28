@@ -28,13 +28,13 @@ if __name__ == "__main__":
                                            [0, 0, 1]]))
     # Show the target point
     frame.show_target_point(target_position=position, target_orientation=orientation)
-
+    simulation.wait_time(5)
     # using Vector and Euler
     position = Vector([.6, 0, .6])
     orientation = Euler([np.pi/4, np.pi/4, np.pi/4])
     # Show the target point
     frame.show_target_point(target_position=position, target_orientation=orientation)
-
+    simulation.wait_time(5)
     # using a HomogeneousMatrix
     T = HomogeneousMatrix([[0, 0, -1, 0.6],
                            [0, 1, 0, -0.3],
