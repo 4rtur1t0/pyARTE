@@ -14,7 +14,7 @@ from robots.simulation import Simulation
 
 def find_transforms():
     simulation = Simulation()
-    # simulation.start()
+    simulation.start()
     robot = RobotMitsubishiRV8CRL(simulation=simulation)
     # robot.start()
     frame = ReferenceFrame(simulation=simulation)
