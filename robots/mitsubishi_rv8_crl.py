@@ -56,8 +56,8 @@ class RobotMitsubishiRV8CRL(Robot):
         # If link_type is P, then d is d + qi
         # Caution! these parameters must be completed!!
         self.serialrobot = SerialRobot(n=6, T0=np.eye(4), name='RV8_CRL')
-        self.serialrobot.append(th=0, d=0.0, a=0.0, alpha=0.0, link_type='R')
-        self.serialrobot.append(th=0, d=0, a=0.0, alpha=0, link_type='R')
+        self.serialrobot.append(th=0, d=0.39, a=0.0, alpha=-np.pi/2, link_type='R')
+        self.serialrobot.append(th=-np.pi/2, d=0, a=0.45, alpha=0, link_type='R')
         self.serialrobot.append(th=0, d=0, a=0.1, alpha=-np.pi / 2, link_type='R')
         self.serialrobot.append(th=0, d=0.47, a=0, alpha=np.pi / 2, link_type='R')
         self.serialrobot.append(th=0, d=0, a=0, alpha=-np.pi / 2, link_type='R')
