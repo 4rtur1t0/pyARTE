@@ -25,13 +25,13 @@ def directkinematics():
     # Se configura el TCP de la herramienta
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.2]), Euler([0, 0, 0])))
 
-    q = np.array([0.2, 0.2, 0.2, 0.2, 0.2, 0.2])
+    q = np.array([0.5, 0.2, 0.2, 0.2, 0.2, 0.2])
     robot.moveAbsJ(q_target=q)
 
     q = robot.get_joint_positions()
     T = robot.directkinematics(q)
 
-    print('ROBOT END EFFECTOR IS AT: ')
+    print('THE ROBOT END EFFECTOR IS AT: ')
     T.print_nice()
 
     frame.show_target_point(target_position=T.pos(),
