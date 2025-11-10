@@ -19,20 +19,6 @@ from robots.proxsensor import ProxSensor
 from robots.simulation import Simulation
 
 
-def pick(robot, gripper):
-    """
-    COMPLETE EL CÓDIGO
-    """
-    return
-
-
-def place(robot, gripper, frame, i):
-    """
-    COMPLETE EL CÓDIGO
-    """
-    return
-
-
 def pick_and_place():
     simulation = Simulation()
     simulation.start()
@@ -67,11 +53,12 @@ def pick_and_place():
             if conveyor_sensor.is_activated():
                 break
             simulation.wait()
-        # cogemos una pieza
-        pick(robot, gripper)
-        # la paletizamos
-        place(robot, gripper, frame, i)
-        # repetimos ad eternum
+
+        # COGEMOS UNA PIEZA
+        # ....
+        # LA PALETIZAMOS
+        # ....
+        # REPETIMOS SINE DIE
     # Stop arm and simulation
     simulation.stop()
 
