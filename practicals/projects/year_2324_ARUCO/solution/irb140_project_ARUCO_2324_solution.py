@@ -44,7 +44,7 @@ def calibrate(robot, camera):
     robot.moveAbsJ(q)
     robot.moveJ(target_position=Vector([0.5, 0.05, 0.35]),
                 target_orientation=Euler([0, np.pi, 0]))
-    id, Tca = camera.detect_closer_aruco(show=show)
+    id, Tca = camera.detect_closer_aruco(show=True)
     q = robot.get_joint_positions()
     T = robot.directkinematics(q)
     # KNOWN POSITION/ORIENTATION OF THE ARUCO
