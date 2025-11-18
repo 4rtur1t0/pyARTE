@@ -48,7 +48,7 @@ class Vector():
         return Vector(np.cross(self.array, other.array))
 
     def pos(self):
-        return np.array(self.array)
+        return np.array(self.array[0:3])
 
     def T(self):
         """
