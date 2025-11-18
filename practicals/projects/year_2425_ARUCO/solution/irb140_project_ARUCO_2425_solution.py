@@ -109,7 +109,7 @@ def pick_and_place_arucos():
     gripper.start()
     # TCP DE LA VENTOSA! OJO!: debe ser el adecuado para la escena
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0.0, 0.05]), Euler([0, 0, 0])))
-    q = np.array([np.pi/2, 0, 0, 0, np.pi / 2, 0])
+    q = np.array([0, 0, 0, 0, np.pi / 2, 0])
     robot.moveAbsJ(q)
     # find frame
     # _, T0f = look_for_frame(robot, camera, show=True, aruco_size=0.03)
