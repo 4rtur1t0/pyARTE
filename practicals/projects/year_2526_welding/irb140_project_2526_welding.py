@@ -10,21 +10,15 @@ The code beneath must be completed by the student in order to engrave/solder let
 @Time: November 2025
 """
 import numpy as np
-from pexpect.pxssh import pxssh
-
 from artelib.euler import Euler
-from artelib.path_planning import compute_3D_coordinates
 from artelib.vector import Vector
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from practicals.projects.year_2526_welding.read_hershey import generate_text_trajectory
 from robots.abbirb140 import RobotABBIRB140
-from robots.grippers import SuctionPad
 from robots.objects import get_object_transform, ReferenceFrame
-from robots.proxsensor import ProxSensor
 from robots.simulation import Simulation
 from robots.camera import Camera
 import matplotlib.pyplot as plt
-from hershey import hershey_dict
 
 
 
