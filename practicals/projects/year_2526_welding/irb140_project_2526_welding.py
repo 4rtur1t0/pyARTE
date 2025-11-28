@@ -19,7 +19,7 @@ from robots.objects import get_object_transform, ReferenceFrame
 from robots.simulation import Simulation
 from robots.camera import Camera
 import matplotlib.pyplot as plt
-
+from read_hershey import generate_text_trajectory
 
 
 def find_aruco_two_steps(robot, camera):
@@ -81,17 +81,17 @@ def engrave_on_plate():
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0.0, 0.2]), Euler([0, 0, 0])))
 
     # UNA PRUEBA PARA VER LA CINEMÁTICA DIRECTA (CONOCIDO EL TCP)
-    q = np.array([0, 0, 0, 0, 0, 0])
-    T = robot.directkinematics(q)
-    T.print_nice()
-    print(T.pos())
-    frame.show_target_point(target_position=T.pos(), target_orientation=T.R())
+    # q = np.array([0, 0, 0, 0, 0, 0])
+    # T = robot.directkinematics(q)
+    # T.print_nice()
+    # print(T.pos())
+    # frame.show_target_point(target_position=T.pos(), target_orientation=T.R())
 
     # una prueba de soldadura
-    robot.moveJ(target_position=Vector([0.5, -.1, 0.15]),
-                target_orientation=Euler([0, np.pi, 0]))
-    robot.moveL(target_position=Vector([0.5, 0.2, 0.15]),
-                target_orientation=Euler([0, np.pi, 0]))
+    # robot.moveJ(target_position=Vector([0.5, -.1, 0.15]),
+    #             target_orientation=Euler([0, np.pi, 0]))
+    # robot.moveL(target_position=Vector([0.5, 0.2, 0.15]),
+    #             target_orientation=Euler([0, np.pi, 0]))
 
     # Encontramos la plancha
     q = np.array([0, 0, 0, 0, np.pi / 2, 0])

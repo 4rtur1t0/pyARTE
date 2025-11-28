@@ -50,6 +50,7 @@ def generate_text_trajectory(text):
     No es necesario escalar las letras.
     Debe llamar a la función generate_letter_trajectory para cada letra
     """
+    robot_trajectory = []
     return #robot_trajectory
 
 
