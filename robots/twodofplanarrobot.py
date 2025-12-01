@@ -193,7 +193,7 @@ class TwoDOFRobot(Robot):
         plt.plot(self.t, np.array(self.q).T[0, :], label='q1 robot', linewidth=4)
         plt.plot(self.t, np.array(self.q).T[1, :], label='q2 robot', linewidth=4)
         plt.legend()
-        plt.show()
+        plt.show(block=True)
 
         # errors in speed
         plt.figure()
@@ -202,14 +202,14 @@ class TwoDOFRobot(Robot):
         plt.plot(self.t, np.array(self.qd).T[0, :], label='qd1', linewidth=4)
         plt.plot(self.t, np.array(self.qd).T[1, :], label='qd2', linewidth=4)
         plt.legend()
-        plt.show()
+        plt.show(block=True)
 
         plt.figure()
         plt.title('Torques')
         plt.plot(self.t, np.array(self.tau).T[0, :], label='Tau 1')
         plt.plot(self.t, np.array(self.tau).T[1, :], label='Tau 2')
         plt.legend()
-        plt.show()
+        plt.show(block=True)
 
     def plot_errors(self, q, qd, qdd, t):
         # view errors in joint
@@ -217,10 +217,10 @@ class TwoDOFRobot(Robot):
         plt.plot(self.t, q[0, :]-np.array(self.q).T[0, :], label='q1 error (rad)', linewidth=4)
         plt.plot(self.t, q[1, :]-np.array(self.q).T[1, :], label='q2 error (rad)', linewidth=4)
         plt.legend()
-        plt.show()
+        plt.show(block=True)
         # errors in speed
         plt.figure()
         plt.plot(self.t, qd[0, :]-np.array(self.qd).T[0, :], label='qd1 error (rad/s)', linewidth=4)
         plt.plot(self.t, qd[1, :]-np.array(self.qd).T[1, :], label='qd2 error (rad/s)', linewidth=4)
         plt.legend()
-        plt.show()
+        plt.show(block=True)
