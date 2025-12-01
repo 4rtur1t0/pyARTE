@@ -106,6 +106,7 @@ class TwoDOFRobot(Robot):
         q = []
         qd = []
         tau = []
+        # t = []
         for i in range(len(self.joints)):
             qi = self.simulation.sim.getJointPosition(self.joints[i])
             qdi = self.simulation.sim.getJointVelocity(self.joints[i])
@@ -117,9 +118,14 @@ class TwoDOFRobot(Robot):
         self.q.append(q)
         self.qd.append(qd)
         self.tau.append(tau)
-        # qdd.append(qddi)
         ti = self.simulation.sim.getSimulationTime()
         self.t.append(ti)
+
+    def reset_state(self):
+        self.q = []
+        self.qd = []
+        self.tau = []
+        self.t = []
 
     def inversedynamics(self, q, qd, qdd):
         g = self.g
@@ -140,24 +146,21 @@ class TwoDOFRobot(Robot):
         qdd2 = qdd[1]
         cosq1 = np.cos(q1)
         cosq2 = np.cos(q2)
-        sinq1 = np.sin(q1)
+        # sinq1 = np.sin(q1)
         sinq2 = np.sin(q2)
         cosq1q2 = np.cos(q1+q2)
-
         # tau = Mqdd+C()+G(q)
         M11 = I1 + I2 + m1 * a1 ** 2 + m2 * (l1 ** 2 + a2 ** 2 + 2 * l1 * a2 * cosq2)
         M12 = I2 + m2*(a2**2 + l1*a2*cosq2)
         M21 = M12
         M22 = I2 + m2*a2**2
         M = np.array([[M11, M12],
-                    [M21, M22]])
-
+                     [M21, M22]])
         # Coriollis
         b = m2*l1*a2
         C1 = -b*sinq2*(2*qd1*qd2+qd2**2)
         C2 = b*sinq2*(qd1**2)
         C = np.array([[C1], [C2]])
-
         # Gravity
         G1 = (m1*a1 + m2*l1)*g*cosq1 + m2*a2*g*cosq1q2
         G2 = m2*a2*g*cosq1q2
@@ -165,3 +168,59 @@ class TwoDOFRobot(Robot):
         qdd = np.array([qdd1, qdd2])
         tau = np.matmul(M, qdd.T) + C.T + G.T
         return tau[0]
+
+    def plot_states(self):
+        plt.figure()
+        plt.plot(self.t, np.array(self.q).T[0, :], label='q1', linewidth=4)
+        plt.plot(self.t, np.array(self.q).T[1, :], label='q2', linewidth=4)
+        plt.plot(self.t, np.array(self.qd).T[0, :], label='qd1', linewidth=4)
+        plt.plot(self.t, np.array(self.qd).T[1, :], label='qd2', linewidth=4)
+        plt.legend()
+        plt.show(block=True)
+
+        plt.figure()
+        plt.title('Torques')
+        plt.plot(self.t, np.array(self.tau).T[0, :], label='Tau 1')
+        plt.plot(self.t, np.array(self.tau).T[1, :], label='Tau 2')
+        plt.legend()
+        plt.show(block=True)
+
+    def plot_results(self, q, qd, qdd, t):
+        # view reference and joint coordinates
+        plt.figure()
+        plt.plot(self.t, q[0, :], label='q1 reference', linewidth=4)
+        plt.plot(self.t, q[1, :], label='q2 reference', linewidth=4)
+        plt.plot(self.t, np.array(self.q).T[0, :], label='q1 robot', linewidth=4)
+        plt.plot(self.t, np.array(self.q).T[1, :], label='q2 robot', linewidth=4)
+        plt.legend()
+        plt.show()
+
+        # errors in speed
+        plt.figure()
+        plt.plot(self.t, qd[0, :], label='qd1 reference', linewidth=4)
+        plt.plot(self.t, qd[1, :], label='qd2 reference', linewidth=4)
+        plt.plot(self.t, np.array(self.qd).T[0, :], label='qd1', linewidth=4)
+        plt.plot(self.t, np.array(self.qd).T[1, :], label='qd2', linewidth=4)
+        plt.legend()
+        plt.show()
+
+        plt.figure()
+        plt.title('Torques')
+        plt.plot(self.t, np.array(self.tau).T[0, :], label='Tau 1')
+        plt.plot(self.t, np.array(self.tau).T[1, :], label='Tau 2')
+        plt.legend()
+        plt.show()
+
+    def plot_errors(self, q, qd, qdd, t):
+        # view errors in joint
+        plt.figure()
+        plt.plot(self.t, q[0, :]-np.array(self.q).T[0, :], label='q1 error (rad)', linewidth=4)
+        plt.plot(self.t, q[1, :]-np.array(self.q).T[1, :], label='q2 error (rad)', linewidth=4)
+        plt.legend()
+        plt.show()
+        # errors in speed
+        plt.figure()
+        plt.plot(self.t, qd[0, :]-np.array(self.qd).T[0, :], label='qd1 error (rad/s)', linewidth=4)
+        plt.plot(self.t, qd[1, :]-np.array(self.qd).T[1, :], label='qd2 error (rad/s)', linewidth=4)
+        plt.legend()
+        plt.show()
