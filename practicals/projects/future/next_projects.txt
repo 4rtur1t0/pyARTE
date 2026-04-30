@@ -1,0 +1,50 @@
+Idees per a projectes futurs...
+PALETITZAT A LA INDÚSTRIA FARMACÈUTICA
+Sistema d'envasat, encaixat i paletitzat.
+Té tres subsistemes:
+A encaixat de medicaments.
+ - Tenim una cita on venen caixes menudes en orientació/posició variable. Les caixes, potser
+ estiguen tombades. S'ha d'utilitzar una estació de treball en mig que establisca una
+ orientació adequada per a que la caixa es puga emplenar.
+ - Tenim una cita on venen medicaments (en blister o ampolla) en orientació/posició variable..
+B caixes en caixes
+ - Tenim una cita on venen caixes grans en orientació/posició variable.
+ - Tenim una cita on venen les caixes anteriors plenes de medicaments en orientació/posició variable.
+ - S'ha de posar 3 caixes menudes en una caixa gran.
+C paletitzat
+ - S'ha de fer un paletitzat de les últimes caixes.
+ - Tenim una cinta transportadora de pallets. Els pallets tenen una posició/orientació
+ lleugerament variable.
+
+
+
+
+Té variacions: es pot emprar una única cinta transportadora on es posen totes les
+caixes (venen de màquines montadores
+
+SISTEMA DE DESTRIAT DE BROSSA
+Suposem que tenim ampolles (de vidre, de plàstic, d'alumini) que estan marcades and
+ARUCOs. El robot i/o el robot amb un sistema de càmeres han de trobar estes ampolles i destriarles,
+posant-les en cintes transportadores diferents.
+
+EL ROBOT QUE JUGA AL BÀSQUET
+- ARUCO i cistella amb llançament. Càlcul de posició de la cistella mitjançant ARUCO, càlcul de la trajectòria més adient de la
+pilota. Càlcul de la cinemática inversa en velocitat a una determinada posició/orientació
+de l'espai. Donada la velocitat lineal y angular en una posició y orientació en l'espai del robot, s'ha de fer
+una planificació, de manera que el robot puga accelerar les articulacions de forma adient.
+Igualment, s'ha de considerar si, efectivament, aqueixa velocitat es assolible.
+Alternativament es pot jugar als bols sobre una pista.
+
+TRAJECTÒRIES CIRCULARS
+- Trajectòria circular amb un planificador de trajectòries continu.
+- Sistema complet de palletitzat amb caixes irregulars (pero de mides conegudes). S'ha de mantindre
+una memòria de l'espai buit i utilitzat.
+
+TRAJECTÒRIES AMB OBSTACLES
+- Inclou considerar un sistema de detecció de col·lisions.
+- S'ha d'emprar un RRT (per exemple) en l'espai de les solucions de la cinemàtica inversa sobre una
+trajectòria recta (planificant entre punts consecutius). Igualment, es pot planificar
+des d'un punt de partida qa fins a qb, considerant RRT que permeta enllaçar ambdues
+posicions articulars.
+
+

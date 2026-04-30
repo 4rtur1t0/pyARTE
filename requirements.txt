@@ -1,0 +1,7 @@
+numpy
+matplotlib
+pynput
+pyzmq
+cbor
+open3d
+opencv-contrib-python

@@ -1,0 +1,22 @@
+
+- ACTIVITAT 1:
+    - Es pot paletitzar amb gap=0 utilitzan la pinça?
+    - Si es canvia el pes de la peça... què passa? què s'observa?
+    - La pinça paletitza malament, s'ha d'emprar la ventosa?
+           fer els canvis per a paletitzar amb ventosa.
+    - Mínim espai per a paletitzar amb ventosa... de què depén?
+
+- ACTIVITAT 2: TEMPS REAL TEMPS SIMULAT
+       - Definir la relació entre el temps real i el temps de simulació (prèmer bo DEFINIR EL TEMPS REAL DURANT I EL TEMPS DE LA SIMULACIÓ.
+       - Qué passa si es canvia  speed_factor=1.0 --> speed_factor=2.0... etc. Quin significat té?
+                Compte. speed_factor=1.0 representa el temps de moviment real del robot, donades
+                les característiques técniques del fabricant (no por funcionar més ràpid).
+       - Canviar el temps entre peces... amb speed_factor=1.0... es pot veure així el màxim de peces
+          per minut que es poden paletitzar.
+
+- ACTIVITAT 3: límits de l'aplicació
+               - quantes peces per minut es poden paletitzar.
+               - grandària màxima del palet en NxMxK
+                   definir el nombre de peces per a fer un pallet sencer.
+               - pes máxim de les peces
+              (has de fer fallar l'aplicació
