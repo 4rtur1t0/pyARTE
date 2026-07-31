@@ -11,13 +11,14 @@ from artelib.euler import Euler
 from artelib.rotationmatrix import RotationMatrix
 
 if __name__ == '__main__':
-    e = Euler([-np.pi/2,  0, 0])
+    e = Euler([np.pi/4, np.pi/2, np.pi/4])
     print('Euler angles XYZ:')
     print(e.abg)
 
     print('Conversion from Euler to a rotation matrix:')
     R = e.R()
-    print('R\n', R)
+    print('R: ')
+    R.print()
     R.plot()
 
     # convert R to Euler angles
@@ -27,12 +28,14 @@ if __name__ == '__main__':
     print('Please check that R1, R2 and R are equal')
     R1 = e1.R()
     R2 = e2.R()
-    print('R1:\n', R1)
-    print('R2:\n', R2)
+    print('R1: ')
+    R1.print()
+    print('R2: ')
+    R2.print()
 
     # Convert any R to Euler angles
     R = RotationMatrix(np.array([[0, 0, -1], [0, 1, 0], [1, 0, 0]]))
-    print('R\n', R)
+    print('R\n', R.print())
     R.plot()
     print('Euler angles (XYZ) that yield R:')
     [e3, e4] = R.euler()
@@ -40,5 +43,5 @@ if __name__ == '__main__':
     print('Please check that R3, R4 and R are equal')
     R3 = e3.R()
     R4 = e4.R()
-    print('R3:\n', R3)
-    print('R4:\n', R4)
+    print('R3:\n', R3.print())
+    print('R4:\n', R4.print())

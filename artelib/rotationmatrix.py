@@ -40,10 +40,6 @@ class RotationMatrix():
         return self.array[item[0], item[1]]
 
     def print_nice(self, precision=3):
-        temp_array = self.array
-        th = 0.01
-        idx = np.abs(temp_array) < th
-        temp_array[idx] = 0
         print(np.array_str(self.array, precision=precision, suppress_small=True))
 
     def print(self):
@@ -92,14 +88,14 @@ class RotationMatrix():
         """
         For debugging purposes. The sum of two rotation matrices IS NOT a rotation matrix
         """
-        R = self.array+other.array
+        R = self.array + other.array
         return RotationMatrix(R)
 
     def __sub__(self, other):
         """
         For debugging purposes. The sum of two rotation matrices IS OBVIOUSLY NOT a rotation matrix
         """
-        R = self.array-other.array
+        R = self.array - other.array
         return RotationMatrix(R)
 
     def angle_between(self, R2):
@@ -134,9 +130,30 @@ class RotationMatrix():
             colors = ['red', 'green', 'blue', 'red', 'red', 'green', 'green', 'blue', 'blue']
             ax.view_init(15, 35)
             # plot identity
-            I = np.eye(3)
-            ax.quiver(0, 0, 0, I[0, :], I[1, :], I[2, :], color=colors, linestyle='dashed', linewidth=3)
-            ax.quiver(0, 0, 0, self.array[0, :], self.array[1, :], self.array[2, :], color=colors, linewidth=3)
+            # I = np.eye(3)
+            # ax.quiver(0, 0, 0, I[0, :], I[1, :], I[2, :], color=colors, linestyle='dashed', linewidth=3)
+            # ax.quiver(0, 0, 0, self.array[0, :], self.array[1, :], self.array[2, :], color=colors, linewidth=3)
+
+            origin = [0, 0, 0]
+            # 3. Plot Base Vectors (Fixed Reference System) -> RGB & Dashed
+            # X = Red, Y = Green, Z = Blue
+            ax.quiver(*origin, 1, 0, 0, color='r', linestyle='--', linewidth=2, arrow_length_ratio=0.1, label='Base X')
+            ax.quiver(*origin, 0, 1, 0, color='g', linestyle='--', linewidth=2, arrow_length_ratio=0.1, label='Base Y')
+            ax.quiver(*origin, 0, 0, 1, color='b', linestyle='--', linewidth=2, arrow_length_ratio=0.1, label='Base Z')
+
+            # 4. Plot Mobile Vectors (Rotated Reference System) -> RGB & Solid
+            # Columns of R represent the new X, Y, and Z axes
+            ax.quiver(*origin, self.array[0, 0], self.array[1, 0], self.array[2, 0], color='r', linestyle='-', linewidth=2.5,
+                      arrow_length_ratio=0.1, label="Mobile X'")
+            ax.quiver(*origin, self.array[0, 1], self.array[1, 1], self.array[2, 1], color='g', linestyle='-', linewidth=2.5,
+                      arrow_length_ratio=0.1, label="Mobile Y'")
+            ax.quiver(*origin, self.array[0, 2], self.array[1, 2], self.array[2, 2], color='b', linestyle='-', linewidth=2.5,
+                      arrow_length_ratio=0.1, label="Mobile Z'")
+
+
+
+
+
             ax.set_xlim([-1, 1])
             ax.set_ylim([-1, 1])
             ax.set_zlim([-1, 1])
@@ -255,8 +272,8 @@ def rot2euler(R):
             gamma2 = np.arctan2(R[1][0], R[1][1])-alpha2
         else:
             beta2 = -np.pi/2
-            gamma1 = np.arctan2(-R[1][0], R[1][1])
-            gamma2 = np.arctan2(-R[1][0], R[1][1])-alpha2
+            gamma1 = np.arctan2(R[1][0], R[1][1])
+            gamma2 = np.arctan2(R[1][0], R[1][1])+alpha2
     # finally normalize to +-pi
     e1 = normalize_angle([alpha1, beta1, gamma1])
     e2 = normalize_angle([alpha2, beta2, gamma2])

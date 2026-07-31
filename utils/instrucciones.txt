@@ -1,0 +1,40 @@
+
+A INSTALAR servicio ssh
+He modificado el script para hacer todo automático. IMPORTANTE: es necesario instalar el servicio ssh en cada equipo para poder ejecutar comandos. Así que primero de todo hay que entrar en cada equipo y hacer en un terminal
+$ sudo apt update
+$ sudo apt install openssh-server
+$ sudo ssh-keygen -A
+
+REINICIAR CADA PC PARA QUE INIICALICE el servicio ssh con las nuevas claves generadas.
+
+Con esto, ya nos podemos conectar y hacer el resto de cosas de forma remota.
+
+
+PARA INSTALAR EN CADA ORDENADOR:
+- script run_all.sh    (lanza remote_install_i.sh para cada ip)
+- script run_all_matlab.sh (lanza remote_install_matlab_i.sh para cada ip) HAY QUE MOVER 18 GB pero funciona el script y lo instala
+  (básicamente lo copia a un sistema Linux idéntico)
+
+
+INSTALAR EN CADA ORDENADOR
+- MATLAB
+- COPPELIA SIM
+- PYCHARM
+- repositorio pyARTE: sudo git clone https://github.com/4rtur1t0/pyARTE
+- repositorio ARTE: sudo git clone https://github.com/4rtur1t0/ARTE
+- repositorio Intro2AI: sudo git clone https://github.com/4rtur1t0/Intro2AI
+
+Hola Emilio:
+
+
+PARA INSTALAR MATLAB
+Vamos a hacer la instalación standalone. Guardo todo en la carpeta del escritorio
+MATLAB
+
+1) standalone:
+- Install choosing the option "Use a File Installation Key" and supply the following FIK
+	09806-07443-53955-64350-21751-41297
+- Use license_standalone.lic to activate
+
+- after the installation finishes copy the folders to %installdir% to overwriting the originally installed files --> copia el fichero libmwlmgrimpl.so a /usr/local/MATLAB/R2018a/bin/glnxa64/matlab_startup_plugins/lmgrimpl/
+

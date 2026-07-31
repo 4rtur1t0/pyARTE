@@ -6,7 +6,6 @@ The HomogeneousMatrix class
 @Time: April 2023
 """
 import numpy as np
-# from artelib.euler import Euler
 from artelib.tools import buildT
 from artelib import quaternion, rotationmatrix, euler, vector
 import matplotlib.pyplot as plt
@@ -32,6 +31,8 @@ class HomogeneousMatrix():
                 position = np.array(position)
             elif isinstance(position, vector.Vector):
                 position = np.array(position.array)
+            else:
+                raise Exception
 
             if isinstance(orientation, euler.Euler):
                 array = buildT(position, orientation)
@@ -52,10 +53,6 @@ class HomogeneousMatrix():
         return self.array
 
     def print_nice(self, precision=5):
-        temp_array = self.array
-        th = 0.0001
-        idx = np.abs(temp_array) < th
-        temp_array[idx] = 0
         print(np.array_str(self.array, precision=precision, suppress_small=True))
 
     def print(self):
@@ -64,10 +61,15 @@ class HomogeneousMatrix():
     def inv(self):
         return HomogeneousMatrix(np.linalg.inv(self.array))
 
+    def T(self):
+        """
+        Returns itself.
+        """
+        return HomogeneousMatrix(self.array)
+
     def Q(self):
         R = self.R()
         return R.Q()
-        # return quaternion.Quaternion(rot2quaternion(self.array))
 
     def R(self):
         return rotationmatrix.RotationMatrix(self.array[0:3, 0:3])
@@ -77,6 +79,9 @@ class HomogeneousMatrix():
 
     def pos(self):
         return self.array[0:3, 3]
+
+    def vector(self):
+        return vector.Vector(self.array[0:3, 3])
 
     def __mul__(self, other):
         if isinstance(other, HomogeneousMatrix):

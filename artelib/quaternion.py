@@ -14,13 +14,16 @@ class Quaternion():
     def __init__(self, array):
         self.array = np.array(array)
 
+    def T(self):
+        return homogeneousmatrix.HomogeneousMatrix([0, 0, 0], quaternion2rot(self.array))
+
     def R(self):
         return rotationmatrix.RotationMatrix(quaternion2rot(self.array))
 
-    def homogeneous(self):
-        return homogeneousmatrix.HomogeneousMatrix(np.zeros(3), self.R())
+    # def homogeneous(self):
+    #     return homogeneousmatrix.HomogeneousMatrix(np.zeros(3), self.R())
 
-    def Euler(self):
+    def euler(self):
         """
         Convert Quaternion to Euler angles XYZ
         """
@@ -136,6 +139,11 @@ class Quaternion():
         angle_rad = 2.0 * np.arccos(abs_dot)
         return angle_rad
 
+    def print_nice(self, precision=3):
+        print(np.array_str(self.array, precision=precision, suppress_small=True))
+
+    def print(self):
+        self.print_nice()
 
 def quaternion2rot(Q):
     qw = Q[0]
@@ -152,7 +160,7 @@ def quaternion2rot(Q):
     R[2, 0] = 2 * qx * qz - 2 * qy * qw
     R[2, 1] = 2 * qy * qz + 2 * qx * qw
     R[2, 2] = 1 - 2 * qx**2 - 2 * qy**2
-    return R
+    return rotationmatrix.RotationMatrix(R)
 
 
 def q2euler(Q):

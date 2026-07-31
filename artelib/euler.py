@@ -7,8 +7,7 @@ The Euler orientation class
 
 """
 import numpy as np
-# from artelib.tools import euler2rot, euler2q
-from artelib import quaternion, rotationmatrix
+from artelib import quaternion, rotationmatrix, homogeneousmatrix
 
 
 class Euler():
@@ -20,7 +19,16 @@ class Euler():
         elif isinstance(abg, Euler):
             self.abg = abg.abg
 
+    def T(self):
+        """
+        Returns a HomogeneousMatrix with the Euler orientation and null translation.
+        """
+        return homogeneousmatrix.HomogeneousMatrix([0, 0, 0], euler2rot(self.abg))
+
     def R(self):
+        """
+        Returns a Rotation matrix with the corresponding orientation.
+        """
         return rotationmatrix.RotationMatrix(euler2rot(self.abg))
 
     def Q(self):
@@ -28,6 +36,12 @@ class Euler():
 
     def __str__(self):
         return str(self.abg)
+
+    def print_nice(self, precision=5):
+        print(np.array_str(self.abg, precision=precision, suppress_small=True))
+
+    def print(self):
+        self.print_nice()
 
 
 def euler2rot(abg):
@@ -42,7 +56,7 @@ def euler2rot(abg):
     Rz = np.array([[cgamma, -sgamma, 0], [sgamma, cgamma, 0], [0, 0, 1]])
     R = np.matmul(Rx, Ry)
     R = np.matmul(R, Rz)
-    return R
+    return rotationmatrix.RotationMatrix(R)
 
 
 def euler2q(abg):

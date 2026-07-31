@@ -131,8 +131,12 @@ if __name__ == "__main__":
         print("IRB140 SELECTED")
         robot = RobotABBIRB140(simulation=simulation)
         robot.start()
-        gripper = GripperRG2(simulation=simulation)
-        gripper.start()
+        try:
+            gripper = GripperRG2(simulation=simulation)
+            gripper.start()
+        except:
+            print('NO RG2 Gripper FOUND')
+            pass
     elif value == str(2):
         print("UR5 SELECTED")
         robot = RobotUR5(simulation=simulation)

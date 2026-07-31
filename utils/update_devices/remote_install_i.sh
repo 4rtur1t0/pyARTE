@@ -24,8 +24,8 @@ echo "trying to install address $address"
 #!/bin/bash
 if ping -c1 172.16.28.$address 2>&1 2>/dev/null; then
   echo "Found up IP: 172.16.28.$address"
-#  echo "Transferring Coppelia Sim"
-#  sshpass -p usuario scp -r $COPPELIA_PATH usuario@172.16.28.$i:~/Applications
+  echo "Transferring Coppelia Sim"
+  sshpass -p usuario scp -r $COPPELIA_PATH usuario@172.16.28.$i:~/Applications
 
   echo "Cloning ARTE"
   sshpass -p usuario ssh -o StrictHostKeyChecking=no usuario@172.16.28.$address "

@@ -46,6 +46,13 @@ class Vector():
         scalar = np.dot(self.array, other.array)
         return scalar
 
+    def dot(self, other):
+        """
+        scalar product
+        """
+        scalar = np.dot(self.array, other.array)
+        return scalar
+
     def cross(self, other):
         return Vector(np.cross(self.array, other.array))
 
@@ -57,6 +64,18 @@ class Vector():
         Transpose, as in numpy
         """
         return Vector(self.array.T)
+
+    def norm(self):
+        """
+        L2 norm. Id est, distancia euclídea
+        """
+        return np.linalg.norm(self.array)
+
+    def print_nice(self, precision=5):
+        print(np.array_str(self.array, precision=precision, suppress_small=True))
+
+    def print(self):
+        self.print_nice()
 
     def plot(self, title='3D Vector', block=True):
         """

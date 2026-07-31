@@ -30,6 +30,7 @@ if __name__ == "__main__":
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.195]), RotationMatrix(np.eye(3))))
 
     q1 = np.array([-np.pi/4, np.pi/8, -np.pi/8, np.pi/4, -np.pi/4, np.pi/4])
+    q1 = np.array([-np.pi / 2, 0.0, 0.0, 0.0, 0.0, 0.0])
     q2 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     q3 = np.array([np.pi/8, 0, -np.pi/4, 0, -np.pi/4, 0])
     q4 = np.array([0, 0, 0, 0, np.pi / 2, 0])

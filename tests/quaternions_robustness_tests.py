@@ -18,10 +18,8 @@ normalizes R if needed.
 import numpy as np
 from artelib.homogeneousmatrix import HomogeneousMatrix
 from artelib.rotationmatrix import RotationMatrix
-#from artelib.tools import slerp
 from artelib.vector import Vector
 from robots.abbirb140.abbirb140 import RobotABBIRB140
-from artelib.path_planning import random_q
 
 
 if __name__ == "__main__":

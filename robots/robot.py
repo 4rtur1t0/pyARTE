@@ -91,8 +91,8 @@ class Robot(ABC):
         self.robot_state.joint_handlers = armjoints
         # SET CONTROL MODE TO FORCE/TORQUE
         self.set_control_to_force_mode()
-        q = np.zeros(self.DOF)
-        self.moveAbsJ(q_target=q, precision=False)
+        # q = np.zeros(self.DOF)
+        # self.moveAbsJ(q_target=q, precision=False)
 
     def stop_joints(self):
         """

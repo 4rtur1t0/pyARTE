@@ -14,8 +14,12 @@ from artelib.vector import Vector
 if __name__ == "__main__":
     u = Vector(np.array([1, 1, 1]))
     v = Vector([1, 0, 1])
+
     print('u:', u)
     print('v:', v)
+    print('norma u', u.norm())
+    print('norma v', v.norm())
+
 
     # Traspuesto
     w = u.T()

@@ -19,6 +19,8 @@ The script is used to freely move a robot (the IRB 140, UR5 or KUKA IIWA) based 
 
 @Time: July 2022
 """
+import time
+
 import numpy as np
 import matplotlib.pyplot as plt
 from pynput import keyboard
@@ -115,7 +117,7 @@ def on_press(key):
             R = R*Ry(delta)
         elif command == 'C':
             R = R * Rz(delta)
-        robot.moveJ(target_position=pos, target_orientation=R, precision=False)
+        robot.motveJ(target_position=pos, target_orientation=R, precision=False, speed_factor=3.0)
         T = robot.directkinematics(q)
         Q = T.Q()
         # np.set_printoptions(precision=2, floatmode="fixed")
