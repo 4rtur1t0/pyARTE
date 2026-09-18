@@ -1,0 +1,3 @@
+- catch exception at MoveJ, MoveL... if no solutions to the inverse kinematics exist. Provide an explanation.
+- include (with option) the initial and end target points with a reference system. In the case
+that the target point is out of the workspace, that would provide more info to the students.
