@@ -1,0 +1,21 @@
+name: Sync Public Branch (in this private repository) to Public Repo
+
+on:
+  push:
+    branches:
+      - public
+
+jobs:
+  publish-public:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Private Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Push Public Branch to Public Repo
+        run: |
+          git remote add public https://x-access-token:${{ secrets.PUBLIC_REPO_PAT }}@github.com/4rtur1t0/pyARTE.git
+          git push public public:main --force
