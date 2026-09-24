@@ -26,20 +26,19 @@ def welding():
     frame.start()
     robot = RobotABBIRB140(simulation=simulation, frame=frame)
     robot.start()
-    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.12]), RotationMatrix(np.eye(3))))
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.23]), RotationMatrix(np.eye(3))))
 
-    target_positions = [[0.3, 0.3, 0.75],
-                        [0.3, 0.5, 0.75],
-                        [-0.3, 0.5, 0.75],
-                        [-0.3, 0.3, 0.75]]  # pick
+    target_positions = [[0.3, 0.3, 0.65],
+                        [0.3, 0.6, 0.65],
+                        [-0.3, 0.6, 0.65],
+                        [-0.3, 0.3, 0.65]]  # pick
     target_orientation = Euler([-np.pi/2, 0, np.pi/2])
     q0 = np.array([0, 0, 0, 0, 0, 0])
     robot.moveAbsJ(q_target=q0, precision=False)
     robot.moveJ(target_position=target_positions[0], target_orientation=target_orientation)
 
     for target_position in target_positions:
-        robot.moveL(target_position=target_position,
-                    target_orientation=target_orientation)
+        robot.moveL(target_position=target_position, target_orientation=target_orientation)
 
     simulation.stop()
 

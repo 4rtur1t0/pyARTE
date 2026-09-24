@@ -292,7 +292,7 @@ class Robot(ABC):
         if not total:
             self.error_print.print('moveL KINEMATIC ERROR: one of the joints moved two much between consecutive poses.',
                                    'red')
-            raise Exception
+            # raise Exception
         # compute joint speed and acceleration approximately
         qd_path = np.gradient(q_path, self.simulation.delta_time, axis=1)
         qdd_path = np.gradient(qd_path, self.simulation.delta_time, axis=1)

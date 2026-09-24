@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d8a98572-3f98-4262-921c-07f6e1c6487b" name="Changes" comment="" />
+    <list default="true" id="d8a98572-3f98-4262-921c-07f6e1c6487b" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/artelib/homogeneousmatrix.py" beforeDir="false" afterPath="$PROJECT_DIR$/artelib/homogeneousmatrix.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/applications/welding/irb140_welding.py" beforeDir="false" afterPath="$PROJECT_DIR$/practicals/applications/welding/irb140_welding.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/applications/welding/irb140_welding.ttt" beforeDir="false" afterPath="$PROJECT_DIR$/practicals/applications/welding/irb140_welding.ttt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/path_planning/irb140_traj1.py" beforeDir="false" afterPath="$PROJECT_DIR$/practicals/path_planning/irb140_traj1.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/projects/year_2526_welding/irb140_project_2526_welding.ttt" beforeDir="false" afterPath="$PROJECT_DIR$/practicals/projects/year_2526_welding/irb140_project_2526_welding.ttt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/projects/year_2526_welding/solution/irb140_project_2526_welding.py" beforeDir="false" afterPath="$PROJECT_DIR$/practicals/projects/year_2526_welding/solution/irb140_project_2526_welding.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/robots/robot.py" beforeDir="false" afterPath="$PROJECT_DIR$/robots/robot.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -16,12 +25,12 @@
     &quot;assignee&quot;: &quot;4rtur1t0&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/4rtur1t0/pyARTE_full&quot;,
-    &quot;accountId&quot;: &quot;91c46523-b660-4bcd-a14e-54c8fb8de1b2&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/4rtur1t0/pyARTE_full.git",
+    "accountId": "91c46523-b660-4bcd-a14e-54c8fb8de1b2"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 1,
   &quot;fromUser&quot;: false
@@ -31,17 +40,44 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/arturo/Escriptori/pyARTE_full&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.irb140_palletizing_color_solution.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/home/arturo/Applications/CoppeliaSim_Edu_V4_10_0_rev0_Ubuntu24_04/programming/zmqRemoteApi/clients/python/src",
+    "settings.editor.selected.configurable": "com.intellij.pycharm.community.ide.impl.configuration.PythonContentEntriesConfigurable"
   }
-}</component>
-  <component name="RunManager">
+}]]></component>
+  <component name="RunManager" selected="Python.irb140_palletizing_color_solution">
+    <configuration name="irb140_palletizing_color_solution" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="pyARTE_full" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/practicals/applications/palletizing/solutions" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="false" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/practicals/applications/palletizing/solutions/irb140_palletizing_color_solution.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="pyARTE_full" />
       <option name="ENV_FILES" value="" />
@@ -66,6 +102,11 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.irb140_palletizing_color_solution" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>

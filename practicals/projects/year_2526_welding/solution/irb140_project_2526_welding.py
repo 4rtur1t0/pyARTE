@@ -22,11 +22,22 @@ from hershey import hershey_dict
 
 
 def find_aruco_two_steps(robot, camera):
-    id, T0p = look_for_aruco(robot, camera, show=True, aruco_size=0.03)
-
-    robot.moveJ(target_position=T0p.pos() + np.array([0.0, 0.05, 0.05]),
-                target_orientation=Euler([0, np.pi, 0]))
-    id, T0p = look_for_aruco(robot, camera, show=True, aruco_size=0.03)
+    id, T0p = look_for_aruco(robot, camera, show=False, aruco_size=0.03)
+    pos = []
+    orientation = []
+    # compute the mean value of several iterations
+    for i in range(5):
+        d = np.random.uniform(-0.01, 0.01)
+        robot.moveJ(target_position=T0p.pos() + np.array([0.0, 0.05+d, 0.02+d]),
+                    target_orientation=Euler([0, np.pi, 0]))
+        id, T0p = look_for_aruco(robot, camera, show=False, aruco_size=0.03)
+        pos.append(T0p.pos())
+        orientation.append(T0p.euler()[0].abg)
+    pos = np.array(pos)
+    pos = np.mean(pos, axis=0)
+    orientation = np.array(orientation)
+    orientation = np.mean(orientation, axis=0)
+    T0p = HomogeneousMatrix(pos, Euler(orientation))
     return id, T0p
 
 

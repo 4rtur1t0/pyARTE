@@ -28,8 +28,8 @@ if __name__ == "__main__":
     # Connect to the robot
     robot = RobotABBIRB140(simulation=simulation, frame=frame)
     robot.start()
-    gripper = GripperRG2(simulation=simulation)
-    gripper.start()
+    # gripper = GripperRG2(simulation=simulation)
+    # gripper.start()
     # set the TCP of the RG2 gripper
     robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.195]), RotationMatrix(np.eye(3))))
 

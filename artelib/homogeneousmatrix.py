@@ -29,6 +29,8 @@ class HomogeneousMatrix():
             orientation = args[1]
             if isinstance(position, list):
                 position = np.array(position)
+            elif isinstance(position, np.ndarray):
+                position = np.array(position)
             elif isinstance(position, vector.Vector):
                 position = np.array(position.array)
             else:
