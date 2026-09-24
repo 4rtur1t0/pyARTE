@@ -4,7 +4,71 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8a98572-3f98-4262-921c-07f6e1c6487b" name="Changes" comment="full! repo!" />
+    <list default="true" id="d8a98572-3f98-4262-921c-07f6e1c6487b" name="Changes" comment="full! repo!">
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/practice2.3_ur5.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/practice3.2_kuka.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/practice3.3_kuka.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/practice3.4_kuka.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/practice3.5_kuka.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/practice4.1_kuka.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/practice4.2_kuka.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/practice4.3_kuka.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/solutions/practice2.3_kuka_sol_with_class.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/solutions/practice2.3_ur5_sol.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/solutions/practice3.1_kuka_sol.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/solutions/practice3.3_kuka_sol.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/solutions/practice3.4_kuka_sol.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/solutions/practice3.5_kuka_sol.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/solutions/practice4.1_kuka_sol.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/solutions/practice4.1_kuka_sol_with_class.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/solutions/practice4.2_kuka_sol.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/advanced_old/solutions/practice4.3_kuka_sol.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/applications/palletizing/solutions/irb140_palletizing_color_solution.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/applications/palletizing/solutions/irb140_palletizing_solution.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/applications/palletizing/solutions/irb140_palletizing_suction_pad.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/kinematics/solutions/irb140_ikine.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/kinematics/solutions/kuka_ikine_secondary.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/kinematics/solutions/kuka_pick_place.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/kinematics/solutions/ur5_ikine.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/kinematics/solutions/ur5_ikine_pick_place.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/kinematics/solutions/ur5_ikine_speed.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/kinematics/solutions/ur5_ikine_test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/null_space/solutions/kuka_null_space.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/path_planning/solutions/irb140_traj0.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/path_planning/solutions/irb140_traj1.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/path_planning/solutions/irb140_traj2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/path_planning/solutions/path_planning_line.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/path_planning/solutions/ur5_ikine_path.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/projects/old/irb140_project1.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/projects/old/irb140_project3.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/projects/year_2324_ARUCO/solution/irb140_project_ARUCO_2324_solution.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/projects/year_2425_ARUCO/solution/irb140_project_ARUCO_2425_solution.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/projects/year_2526_welding/solution/hershey.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/projects/year_2526_welding/solution/irb140_project_2526_welding.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/projects/year_2526_welding/solution/read_hershey.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/transformations/solutions/euler_angles2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/transformations/solutions/euler_angles3.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/runge_kutta/euler_example1.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/runge_kutta/euler_example2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/runge_kutta/rk4_example1.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/backup/install.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/backup/install_computers.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/backup/install_computers2.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/backup/remote_install_i.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/backup/run_all.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/backup/update.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/backup/update_computers.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/backup/update_computers_send_command.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/instrucciones.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/new_install/install.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/new_install/remote_install_i.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/new_install/remote_install_matlab_i.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/new_install/run_all.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/new_install/run_all_matlab.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/update_devices/install.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/update_devices/remote_install_i.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/update_devices/run_all.sh" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -39,24 +103,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.irb140_palletizing_color_solution.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/arturo/Applications/CoppeliaSim_Edu_V4_10_0_rev0_Ubuntu24_04/programming/zmqRemoteApi/clients/python/src&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.intellij.pycharm.community.ide.impl.configuration.PythonContentEntriesConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.irb140_palletizing_color_solution.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "public",
+    "last_opened_file_path": "/home/arturo/Applications/CoppeliaSim_Edu_V4_10_0_rev0_Ubuntu24_04/programming/zmqRemoteApi/clients/python/src",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.intellij.pycharm.community.ide.impl.configuration.PythonContentEntriesConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Python.irb140_palletizing_color_solution">
     <configuration name="irb140_palletizing_color_solution" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pyARTE_full" />
@@ -108,6 +172,8 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.irb140_palletizing_color_solution" />
+        <item itemvalue="Python.irb140_palletizing_color_solution" />
         <item itemvalue="Python.irb140_palletizing_color_solution" />
       </list>
     </recent_temporary>
