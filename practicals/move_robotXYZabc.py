@@ -117,7 +117,7 @@ def on_press(key):
             R = R*Ry(delta)
         elif command == 'C':
             R = R * Rz(delta)
-        robot.motveJ(target_position=pos, target_orientation=R, precision=False, speed_factor=3.0)
+        robot.moveJ(target_position=pos, target_orientation=R, precision=False, speed_factor=3.0)
         T = robot.directkinematics(q)
         Q = T.Q()
         # np.set_printoptions(precision=2, floatmode="fixed")
@@ -144,8 +144,8 @@ def on_release(key):
 if __name__ == "__main__":
     simulation = Simulation()
     simulation.start()
-    print('Use: 1, 2, 3, 4, 5, 6, 7 to increment q_i')
-    print('Use: q, w, e, r, t, y, u to decrement q_i')
+    print('Use: 1, 2, 3, 4, 5, 6, 7 to increment X, Y, Z, alpha, beta or gamma')
+    print('Use: q, w, e, r, t, y, u to decrement X, Y, Z, alpha, beta or gamma')
     print('Use: o, c to open/close gripper')
     print('Use ESC to exit')
     print("Robots:")
