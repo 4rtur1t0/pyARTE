@@ -17,6 +17,7 @@ USUARIO="usuario"
 CONTRASENA=usuario
 LIBRERIAS="git python3 python3-virtualenv"
 
+echo "INTENTANDO CONECTAR con IP" $SERVIDOR
 # POR SIMPLICIDAD, SALIMOS SI EL SERVIDOR NO RESPONDE
 nc -z -w 5 "$SERVIDOR" 22 || exit 1
 
@@ -29,6 +30,7 @@ sshpass -p "$CONTRASENA" ssh -o StrictHostKeyChecking=no "$USUARIO@$SERVIDOR" "
     echo "$CONTRASENA" | sudo -S apt install -y git python3 python3-virtualenv
     echo "$CONTRASENA" | sudo -S apt install -y libavcodec-dev libavformat-dev libswscale-dev
     echo "$CONTRASENA" | sudo -S apt install -y net-tools
+    echo "$CONTRASENA" | sudo -S apt install -y swig
 
     # repositories
     echo "CLONANDO ARTE"
@@ -39,16 +41,16 @@ sshpass -p "$CONTRASENA" ssh -o StrictHostKeyChecking=no "$USUARIO@$SERVIDOR" "
     cd ~/Escritorio/
     git clone https://github.com/4rtur1t0/pyARTE
 
+    echo "CLONANDO INTRO2AI"
+    cd ~/Escritorio/
+    git clone https://github.com/4rtur1t0/Intro2AI
+
     echo "INSTALANDO VIRTUALENV Y LIBRERÍAS PARA PYARTE"
     # install virtualenv and python libraries
     cd ~/Escritorio/
     virtualenv venv
     cd ~/Escritorio/venv/bin
     ./pip install -r ../../pyARTE/requirements.txt
-
-    echo "CLONANDO INTRO2AI"
-    cd ~/Escritorio/
-    git clone https://github.com/4rtur1t0/Intro2AI
 
     echo "INSTALANDO VIRTUALENV Y LIBRERÍAS PARA INTRO2AI"
     # install virtualenv and python libraries
