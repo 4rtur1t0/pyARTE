@@ -18,7 +18,7 @@ echo "=== Procés global finalitzat ==="
 #      continue
 #    fi
 #    echo "Valor de i: $i"
-#    ./remote_install_i.sh $i
+#    ./restart_repo_i.sh $i
 #done
 
 
