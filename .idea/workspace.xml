@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d8a98572-3f98-4262-921c-07f6e1c6487b" name="Changes" comment="Minor mods in move_robotXYZabc.py" />
+    <list default="true" id="d8a98572-3f98-4262-921c-07f6e1c6487b" name="Changes" comment="Utils not in public branch">
+      <change afterPath="$PROJECT_DIR$/practicals/teach.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -39,26 +42,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.irb140_palletizing_color_solution.executor&quot;: &quot;Run&quot;,
-    &quot;Python.move_robotXYZabc.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/arturo/Applications/CoppeliaSim_Edu_V4_10_0_rev0_Ubuntu24_04/programming/zmqRemoteApi/clients/python/src&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.intellij.pycharm.community.ide.impl.configuration.PythonContentEntriesConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.irb140_palletizing_color_solution.executor": "Run",
+    "Python.move_robotXYZabc.executor": "Run",
+    "Python.teach.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "develop",
+    "last_opened_file_path": "/home/arturo/Escriptori/pyARTE_full/practicals",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.intellij.pycharm.community.ide.impl.configuration.PythonContentEntriesConfigurable"
   }
-}</component>
-  <component name="RunManager" selected="Python.move_robotXYZabc">
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/practicals" />
+      <recent name="$PROJECT_DIR$/utils" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.teach">
     <configuration name="irb140_palletizing_color_solution" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pyARTE_full" />
       <option name="ENV_FILES" value="" />
@@ -131,12 +141,36 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="teach" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="pyARTE_full" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/practicals" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="false" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/practicals/teach.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.teach" />
         <item itemvalue="Python.move_robotXYZabc" />
         <item itemvalue="Python.irb140_palletizing_color_solution" />
         <item itemvalue="Python.move_robotXYZabc" />
-        <item itemvalue="Python.irb140_palletizing_color_solution" />
         <item itemvalue="Python.irb140_palletizing_color_solution" />
       </list>
     </recent_temporary>
@@ -180,7 +214,31 @@
       <option name="project" value="LOCAL" />
       <updated>1790595483035</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Minor mods in move_robotXYZabc.py">
+      <option name="closed" value="true" />
+      <created>1790616333972</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1790616333972</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Utils not in public branch">
+      <option name="closed" value="true" />
+      <created>1790616428086</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1790616428086</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Utils not in public branch">
+      <option name="closed" value="true" />
+      <created>1790677748015</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1790677748016</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -200,7 +258,9 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="full! repo!" />
     <MESSAGE value="added projects!" />
-    <option name="LAST_COMMIT_MESSAGE" value="added projects!" />
+    <MESSAGE value="Minor mods in move_robotXYZabc.py" />
+    <MESSAGE value="Utils not in public branch" />
+    <option name="LAST_COMMIT_MESSAGE" value="Utils not in public branch" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
