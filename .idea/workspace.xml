@@ -5,15 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d8a98572-3f98-4262-921c-07f6e1c6487b" name="Changes" comment="Added teaching pendant">
-      <change beforePath="$PROJECT_DIR$/practicals/backup_move_robot/move_robot.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/practicals/backup_move_robot/move_robotXYZabc.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/new_install/remote_install_all.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/new_install/remote_install_i.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/restart_repos/restart_repo_i.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/restart_repos/restart_repos_all.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/update_devices/remote_update_all.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/update_install/update_install_all.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/update_install/update_install_i.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/kinematics/irb140_ikine.py" beforeDir="false" afterPath="$PROJECT_DIR$/practicals/kinematics/irb140_ikine.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/teach.py" beforeDir="false" afterPath="$PROJECT_DIR$/practicals/teach.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,12 +28,12 @@
     &quot;assignee&quot;: &quot;4rtur1t0&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/4rtur1t0/pyARTE_full.git&quot;,
-    &quot;accountId&quot;: &quot;e0accdc1-0278-49dc-9341-8f80e510dded&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/4rtur1t0/pyARTE_full.git",
+    "accountId": "91c46523-b660-4bcd-a14e-54c8fb8de1b2"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 1,
   &quot;fromUser&quot;: false
@@ -52,6 +46,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.irb140_ikine.executor": "Run",
     "Python.irb140_palletizing_color_solution.executor": "Run",
     "Python.move_robotXYZabc.executor": "Run",
     "Python.teach.executor": "Run",
@@ -59,7 +54,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "public",
+    "git-widget-placeholder": "develop",
     "last_opened_file_path": "/home/arturo/Escriptori/pyARTE_full/utils",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -75,7 +70,31 @@
       <recent name="$PROJECT_DIR$/practicals" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.teach">
+  <component name="RunManager" selected="Python.irb140_ikine">
+    <configuration name="irb140_ikine" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="pyARTE_full" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/practicals/kinematics" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="false" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/practicals/kinematics/irb140_ikine.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="irb140_palletizing_color_solution" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pyARTE_full" />
       <option name="ENV_FILES" value="" />
@@ -174,18 +193,18 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.irb140_ikine" />
         <item itemvalue="Python.teach" />
         <item itemvalue="Python.move_robotXYZabc" />
         <item itemvalue="Python.irb140_palletizing_color_solution" />
-        <item itemvalue="Python.move_robotXYZabc" />
-        <item itemvalue="Python.irb140_palletizing_color_solution" />
+        <item itemvalue="Python.teach" />
       </list>
     </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-c59985aa861c-c2ffad84badb-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.24374.152" />
+        <option value="bundled-python-sdk-024ed6589d45-c2ffad84badb-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.23567.174" />
       </set>
     </attachedChunks>
   </component>

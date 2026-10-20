@@ -87,7 +87,7 @@ def move_robot(robot, q):
     for i in range(n_solutions):
         print(i)
         qi = q[:, i]
-        robot.moveAbsJ(q_target=qi, precision=True, speed_factor=3.0)
+        robot.moveAbsJ(q_target=qi, precision=True, speed_factor=10.0)
 
 
 def irb140_ikine():
@@ -102,9 +102,9 @@ def irb140_ikine():
     # set initial joint position
     q0 = np.array([0, 0, 0, 0, 0, 0])
     robot.moveAbsJ(q_target=q0, precision=True)
-    # set a workspace target point
-    target_position = Vector([1.5, 0.3, 0.8])
-    target_orientation = Euler([np.pi/8, np.pi/8, 0])
+    # set a workspace VALID target point
+    target_position = Vector([0.5, 0.4, 0.7])
+    target_orientation = Euler([np.pi/2, np.pi/4, 0])
 
     # si se desea mostrar en la simulación la posicion y orientacion
     frame.show_target_point(target_position=target_position,

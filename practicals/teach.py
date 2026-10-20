@@ -90,6 +90,15 @@ class ControlRobotApp:
         )
         self.btn_pinza.pack(side="left", padx=20)
 
+        # Botón de la Pinza
+        self.btn_wait5 = ttk.Button(
+            frame_controles,
+            text="Wait",
+            command=self.wait_seconds,
+            width=20
+        )
+        self.btn_wait5.pack(side="left", padx=20)
+
     def crear_fila_eje(self, i):
         frame = ttk.Frame(self.root)
         frame.pack(fill="x", padx=15, pady=3)
@@ -293,6 +302,16 @@ class ControlRobotApp:
         val_float = float(valor)
         self.valores_q[indice].set(val_float)
         self.mover_robot()
+
+    def wait_seconds(self):
+        # Wait .3 seconds in real simulation time so that you can zoom in the piece in Coppelia
+        seconds = 0.1
+        t1 = self.simulation.sim.getSimulationTime()
+        while True:
+            t2 = self.simulation.sim.getSimulationTime()
+            if (t2 - t1) >= seconds:
+                break
+            self.mover_robot()
 
     def mover_robot(self):
         """Punto de integración para enviar datos al robot (Puerto Serie, ROS, Wifi, etc.)"""
