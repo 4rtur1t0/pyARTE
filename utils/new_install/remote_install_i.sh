@@ -31,6 +31,7 @@ sshpass -p "$CONTRASENA" ssh -o StrictHostKeyChecking=no "$USUARIO@$SERVIDOR" "
     echo "$CONTRASENA" | sudo -S apt install -y libavcodec-dev libavformat-dev libswscale-dev
     echo "$CONTRASENA" | sudo -S apt install -y net-tools
     echo "$CONTRASENA" | sudo -S apt install -y swig
+    echo "$CONTRASENA" | sudo -S apt install -y python3-tk
 
     # repositories
     echo "CLONANDO ARTE"

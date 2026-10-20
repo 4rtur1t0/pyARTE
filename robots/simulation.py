@@ -48,6 +48,9 @@ class Simulation():
         print('STOPPING SIMULATION!')
         self.sim.stopSimulation()
 
+    def step(self):
+        self.client.step()
+
     def wait(self, steps=1):
         """
         Wait n simulation steps.
