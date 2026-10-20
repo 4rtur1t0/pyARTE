@@ -5,13 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d8a98572-3f98-4262-921c-07f6e1c6487b" name="Changes" comment="Added teaching pendant">
-      <change afterPath="$PROJECT_DIR$/utils/update_install/update_install_all.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/update_install/update_install_i.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/practicals/teach.py" beforeDir="false" afterPath="$PROJECT_DIR$/practicals/teach.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/robots/simulation.py" beforeDir="false" afterPath="$PROJECT_DIR$/robots/simulation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/new_install/remote_install_i.sh" beforeDir="false" afterPath="$PROJECT_DIR$/utils/new_install/remote_install_i.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/update_devices/remote_update_all.sh" beforeDir="false" afterPath="$PROJECT_DIR$/utils/update_devices/remote_update_all.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/backup_move_robot/move_robot.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/backup_move_robot/move_robotXYZabc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/new_install/remote_install_all.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/new_install/remote_install_i.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/restart_repos/restart_repo_i.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/restart_repos/restart_repos_all.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/update_devices/remote_update_all.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/update_install/update_install_all.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/update_install/update_install_i.sh" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,7 +23,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="public" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -32,12 +34,12 @@
     &quot;assignee&quot;: &quot;4rtur1t0&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/4rtur1t0/pyARTE_full.git",
-    "accountId": "e0accdc1-0278-49dc-9341-8f80e510dded"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/4rtur1t0/pyARTE_full.git&quot;,
+    &quot;accountId&quot;: &quot;e0accdc1-0278-49dc-9341-8f80e510dded&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 1,
   &quot;fromUser&quot;: false
@@ -57,7 +59,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "develop",
+    "git-widget-placeholder": "public",
     "last_opened_file_path": "/home/arturo/Escriptori/pyARTE_full/utils",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -275,21 +277,5 @@
     <MESSAGE value="Utils not in public branch" />
     <MESSAGE value="Added teaching pendant" />
     <option name="LAST_COMMIT_MESSAGE" value="Added teaching pendant" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/practicals/move_robotXYZabc.py</url>
-          <line>157</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/practicals/move_robotXYZabc.py</url>
-          <line>98</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>
