@@ -3,7 +3,6 @@
 import tkinter as tk
 from tkinter import ttk
 import numpy as np
-
 from robots.abbirb140.abbirb140 import RobotABBIRB140
 from robots.grippers import GripperRG2
 from robots.simulation import Simulation
