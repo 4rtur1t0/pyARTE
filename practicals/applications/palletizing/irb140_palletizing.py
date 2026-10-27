@@ -29,16 +29,16 @@ def pick_and_place():
     conveyor_sensor.start(name='/conveyor/prox_sensor')
 
     # Connect to the gripper
-    gripper = GripperRG2(simulation=simulation)
-    gripper.start()
+    # gripper = GripperRG2(simulation=simulation)
+    # gripper.start()
     # set the TCP of the RG2 gripper
-    robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
+    # robot.set_TCP(HomogeneousMatrix(Vector([0, 0, 0.19]), RotationMatrix(np.eye(3))))
 
     # para usar la ventosa
-    # gripper = SuctionPad(simulation=simulation)
-    # gripper.start()
+    gripper = SuctionPad(simulation=simulation)
+    gripper.start()
     # set the TCP of the suction pad
-    # robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.11]), Euler([-np.pi/2, 0, 0])))
+    robot.set_TCP(HomogeneousMatrix(Vector([0, 0.065, 0.105]), Euler([-np.pi/2, 0, 0])))
 
     # MOVEMOS AL ROBOT A UNA POSICIÓN INICIAL
     q0 = np.array([0, 0, 0, 0, np.pi / 2, 0])
@@ -51,16 +51,27 @@ def pick_and_place():
             if conveyor_sensor.is_activated():
                 break
             robot.wait()
+        ##########################################################################################################
+        # EJERCICIO: se debe completar el código para completar la aplicación de paletizado.
+        ##########################################################################################################
 
-        # COGEMOS UNA PIEZA
-        # ....
-        # CALCULAMOS LA POSICIÓN EN EL SISTEMA DE COORDENADAS DEL PALLET
-        # ....
-        # CALCULAMOS SU POSICIÓN/ORIENTACIÓN EN EL SISTEMA DE COORDENADAS DEL ROBOT
-        # ....
-        # LA PALETIZAMOS
-        # ....
-        # REPETIMOS SINE DIE
+        ##########################################################################################################
+        # A) función pick
+        # COGEMOS UNA PIEZA: . --> necesitamos conocer la posición y orientación de la pieza en el
+        # sistema de coordenadas de la base del robot.
+        ##########################################################################################################
+        ##########################################################################################################
+        # B) función place
+        # AHORA DESEAMOS DEJAR LA PIEZA sobre el PALLET. Primero calculamos la posición y orientación
+        # de la pieza en el sistema de coordenadas del pallet. Después la transformamos al sistema de coordenadas
+        # de la base del robot.
+        ##########################################################################################################
+
+        ##########################################################################################################
+        # C) REPETIMOS SINE DIE o hasta que se acaben las piezas.
+        ##########################################################################################################
+
+
     # Stop arm and simulation
     simulation.stop()
 
