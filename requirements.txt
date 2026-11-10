@@ -4,4 +4,5 @@ pynput
 pyzmq
 cbor
 open3d
+opencv-python
 opencv-contrib-python

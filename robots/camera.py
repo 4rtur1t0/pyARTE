@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-
 Classes to manage a camera in Coppelia simulations (a vision sensor)
 
 @Authors: Arturo Gil
 @Time: April 2021
-
 """
 from PIL import Image, ImageOps
 import numpy as np
@@ -94,14 +92,18 @@ class Camera():
         del image
         print('Image saved!')
 
-    def detect_arucos(self, show=False, aruco_size=0.1):
+    def detect_arucos(self, show=True, aruco_size=0.1):
+        # Versión de OpenCV como tupla de enteros
+        version = tuple(int(x) for x in cv2.__version__.split(".")[:3])
+        if version >= (4, 7, 0):
+            return self.detect_arucos_new(show=show, aruco_size=aruco_size)
+        else:
+            return self.detect_arucos_old(show=show, aruco_size=aruco_size)
+
+    def detect_arucos_old(self, show=False, aruco_size=0.1):
         """
         Returns the transformation to the detected arucos
         """
-        # ARUCO_SIZE = 0.078  # in meters, size of the ARUCO marker in simulation
-        # CAUTION: this is true for the simulations in this particular library
-        # ARUCO_SIZE = 0.07  # in meters, size of the ARUCO marker in simulation
-        # ARUCO_SIZE = 0.0695  # in meters, size of the ARUCO marker in simulation
         gray_image = self.get_image()
         # gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         # The dictionary should be defined as the one used in demos/aruco_markers/aruco_creation.py
@@ -114,14 +116,15 @@ class Camera():
                                  [0.0, self.fxy, (self.wh-1)/2],
                                  [0.0, 0.0, 1.0]])
         distCoeffs = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+        parameters = cv2.aruco.DetectorParameters()
+        detector = cv2.aruco.ArucoDetector(dictionary=aruco_dict, detectorParams=parameters)
 
-        corners, ids, rejectedImgPoints = cv2.aruco.detectMarkers(gray_image, aruco_dict)
+        corners, ids, rejectedImgPoints = detector.detectMarkers(gray_image)
         if len(corners) > 0:
             rvecs, tvecs, _objPoints = cv2.aruco.estimatePoseSingleMarkers(corners,
                                                                            aruco_size,
                                                                            cameraMatrix,
                                                                            distCoeffs)
-
         if show:
             cv2.imshow('aruco_detect', gray_image)
             cv2.waitKey(1000)
@@ -137,7 +140,6 @@ class Camera():
                     dispimage = cv2.drawFrameAxes(dispimage, cameraMatrix, distCoeffs, rvecs[i], tvecs[i],
                                                   length=0.2,
                                                   thickness=2)
-
             cv2.imshow('aruco_detect', dispimage)
             cv2.waitKey(1000)
 
@@ -152,8 +154,73 @@ class Camera():
                                      rotation)
                 tranformations.append(Trel)
             return ids, tranformations
-
         return None, None
+
+    def detect_arucos_new(self, show=True, aruco_size=0.1):
+        """
+        Returns the transformation to the detected arucos
+        """
+        # Imagen RGB devuelta por Coppelia
+        rgb_image = self.get_image()
+        gray_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY)
+        # The dictionary should be the one used in demos/aruco_markers/aruco_creation.py
+        aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+        parameters = cv2.aruco.DetectorParameters()
+        detector = cv2.aruco.ArucoDetector(aruco_dict, parameters)
+        # Intrinsics computed from Coppelia's FOV and resolution
+        cameraMatrix = np.array([[self.fxy, 0.0, (self.wh - 1) / 2],
+                                 [0.0, self.fxy, (self.wh - 1) / 2],
+                                 [0.0, 0.0, 1.0]], dtype=np.float64)
+        distCoeffs = np.zeros((5, 1), dtype=np.float64)
+        corners, ids, rejected = detector.detectMarkers(gray_image)
+        if ids is None:
+            print('No aruco markers detected')
+            return None, None
+        if show:
+            cv2.imshow('aruco_detect', cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR))
+            cv2.waitKey(1000)
+        # Puntos 3D del marcador en su propio sistema (origen en el centro, z=0).
+        # Orden de OpenCV: sup-izq, sup-der, inf-der, inf-izq
+        h = aruco_size / 2.0
+        obj_points = np.array([[-h, h, 0.0],
+                               [h, h, 0.0],
+                               [h, -h, 0.0],
+                               [-h, -h, 0.0]], dtype=np.float32)
+        rvecs = []
+        tvecs = []
+        for c in corners:
+            img_points = c.reshape(4, 2).astype(np.float32)
+            ok, rvec, tvec = cv2.solvePnP(obj_points, img_points, cameraMatrix, distCoeffs,
+                                          flags=cv2.SOLVEPNP_IPPE_SQUARE)
+            if not ok:
+                rvec = np.zeros((3, 1))
+                tvec = np.zeros((3, 1))
+            rvecs.append(rvec)
+            tvecs.append(tvec)
+
+        if show:
+            dispimage = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
+            cv2.aruco.drawDetectedMarkers(dispimage, corners, ids, borderColor=(0, 0, 255))
+            # display corner order
+            for item in corners:
+                for i in range(4):
+                    pt = tuple(int(v) for v in item[0, i])
+                    cv2.putText(dispimage, str(i), pt, cv2.FONT_HERSHEY_DUPLEX, 0.4,
+                                (255, 0, 0), 1, cv2.LINE_AA)
+            # Draw axis for each marker
+            for rvec, tvec in zip(rvecs, tvecs):
+                cv2.drawFrameAxes(dispimage, cameraMatrix, distCoeffs, rvec, tvec,
+                                  aruco_size, 2)
+            cv2.imshow('aruco_detect', dispimage)
+            cv2.waitKey(1000)
+        # compute homogeneous matrices
+        transformations = []
+        for rvec, tvec in zip(rvecs, tvecs):
+            translation = Vector(tvec.flatten())
+            rotation, _ = cv2.Rodrigues(rvec)
+            rotation = RotationMatrix(rotation)
+            transformations.append(HomogeneousMatrix(translation, rotation))
+        return ids, transformations
 
     def detect_closer_aruco(self, show=False, aruco_size=0.1):
         """
@@ -169,7 +236,7 @@ class Camera():
         closer_index = np.argmin(d)
         # Encontramos ahora la transformación total hasta todas la ARUCO más cercana
         # print('ID: ', ids[closer_index][0])
-        id = ids[closer_index][0]
+        id = int(ids[closer_index])
         # transformations[closer_index].print_nice()
         Tca = transformations[closer_index]
         return id, Tca
