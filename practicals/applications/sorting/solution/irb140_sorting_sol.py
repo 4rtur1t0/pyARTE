@@ -52,12 +52,11 @@ def detect_arucos(robot, camera, area):
     elif area == 'weighing':
         to = Euler([0, np.pi, 0])
         tp = Vector([-0.4, -0.35, 0.65])
-
     delta = 0.05
     for j in range(6):
         for i in range(6):
-            robot.moveJ(target_position=tp+Vector([i*delta, -j*delta, 0]),
-                        target_orientation=to, speed_factor=3.0)
+            robot.moveJ(target_position= tp + Vector([i*delta, -j*delta, 0]),
+                        target_orientation= to, speed_factor=3.0)
             id, Tpick = detect_two_stages(robot, camera)
             if id is not None:
                 return id, Tpick
@@ -67,22 +66,28 @@ def detect_arucos(robot, camera, area):
 def detect_two_stages(robot, camera):
     # a continuación, se calcula la transformación total T de la marca
     aruco_size = 0.015
-    id, T = detect_ARUCO_transform(robot=robot, camera=camera, show=True, aruco_size=aruco_size)
+    # Ta es la pos/orient de la ARUCO en el sistema de la base
+    id, Ta = detect_ARUCO_transform(robot=robot, camera=camera, show=True, aruco_size=aruco_size)
     if id is None:
         return None, None
-    # el eje Z de la marca apunta hacia fuera, se necesita una transformación relativa para poderla asir
+    # El eje Z de la marca apunta hacia fuera, se necesita una transformación relativa para poderla asir
     Trel = HomogeneousMatrix(Vector([0, 0, 0]), Euler([0, np.pi, 0]))
     # robot.frame.show_target_point(target_position=T.pos(), target_orientation=T.R())
     Tao = HomogeneousMatrix(Vector([0, 0, -0.1]), Euler([0, 0, 0]))
-    Tobs = T*Trel*Tao
+    # Tobs és la posició i orientació on desitgem col·locar la càmera
+    Tobs = Ta*Trel*Tao
+    # SEGUIDAMENT, necessitem calcular la pos/orientació de l'extrem per a colocar la càmera en Tobs
+    # ha d'ocòrrer: Tobs =Tc = T0e*Tec --> T0e = Tc*Tec.inv()
+    # Transformació ventosa (extrem) càmera pero sense rotar sobre Z
     Tec = HomogeneousMatrix(Vector([0, -0.05, 0.0]), Euler([0, 0, 0]))
-    Trobot = Tobs*Tec.inv()
+    Te = Tobs*Tec.inv()
     # now make a second observation on top of the ARUCO, but at a fixed orientation
-    robot.moveJ(target_position=Trobot.pos(), target_orientation=Trobot.R(),
+    robot.moveJ(target_position=Te.pos(), target_orientation=Te.R(),
                 speed_factor=3.0, precision=True)
     id, T = detect_ARUCO_transform(robot=robot, camera=camera, show=False, aruco_size=aruco_size)
     if id is None:
         return None, None
+    # FINALLY! detect_two_stages returns a transformation that can be directed to be picked by the robot.
     Tpick = T * Trel
     return id, Tpick
 

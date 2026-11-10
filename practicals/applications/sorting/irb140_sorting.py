@@ -37,6 +37,13 @@ def sorting_operation():
     conveyor_sensor = ProxSensor(simulation=simulation)
     conveyor_sensor.start(name='/conveyor/prox_sensor')
 
+    ##################################################################################
+    # COM A AJUDA ES DÓNA LA TRANSFORMACIÓ ENTRE LA VENTOSA Y L'EXTREM (EFECTOR FINAL)
+    # Te --> transformació de l'extrem del robot
+    # Transformacion ventosa--> càmera (coneguda)
+    # Tec = HomogeneousMatrix(Vector([0, -0.05, 0.0]), Euler([0, 0, -np.pi / 2]))
+    ##################################################################################
+
     # Se mueve el robot a una posición articular q inicial
     q = np.array([0, 0, 0, 0, 0, 0])
     robot.moveAbsJ(q_target=q, precision=False, speed_factor=3.0)
