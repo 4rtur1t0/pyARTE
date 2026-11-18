@@ -162,7 +162,7 @@ class Camera():
         """
         # Imagen RGB devuelta por Coppelia
         rgb_image = self.get_image()
-        gray_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY)
+        #gray_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY)
         # The dictionary should be the one used in demos/aruco_markers/aruco_creation.py
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
         parameters = cv2.aruco.DetectorParameters()
@@ -172,7 +172,7 @@ class Camera():
                                  [0.0, self.fxy, (self.wh - 1) / 2],
                                  [0.0, 0.0, 1.0]], dtype=np.float64)
         distCoeffs = np.zeros((5, 1), dtype=np.float64)
-        corners, ids, rejected = detector.detectMarkers(gray_image)
+        corners, ids, rejected = detector.detectMarkers(rgb_image)
         if ids is None:
             print('No aruco markers detected')
             return None, None
@@ -220,6 +220,7 @@ class Camera():
             rotation, _ = cv2.Rodrigues(rvec)
             rotation = RotationMatrix(rotation)
             transformations.append(HomogeneousMatrix(translation, rotation))
+        ids = ids.flatten()
         return ids, transformations
 
     def detect_closer_aruco(self, show=False, aruco_size=0.1):
@@ -227,7 +228,7 @@ class Camera():
         Returns the ARUCO marker closer to the camera frame
         """
         ids, transformations = self.detect_arucos(show=show, aruco_size=aruco_size)
-        if ids is None:
+        if ids is None or len(ids)==0:
             return None, None
         # find the ARUCO that is closer to the camera
         d = []
