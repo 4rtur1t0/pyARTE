@@ -37,7 +37,7 @@ def pick_and_place_arucos():
     q = np.array([0, 0, 0, 0, np.pi / 2, 0])
     robot.moveAbsJ(q)
     # Dos movimientos con MoveJ y MoveL
-    robot.moveJ(target_position=Vector([0.4, 0.0, 0.5]),
+    robot.moveJ(target_position=Vector([0.4, -0.0, 0.5]),
                 target_orientation=Euler([0, np.pi, 0]))
     robot.moveL(target_position=Vector([0.5, 0.0, 0.45]),
                 target_orientation=Euler([0, np.pi, 0]))
