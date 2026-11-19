@@ -67,7 +67,7 @@ def detect_two_stages(robot, camera):
     # a continuación, se calcula la transformación total T de la marca
     aruco_size = 0.015
     # Ta es la pos/orient de la ARUCO en el sistema de la base
-    id, Ta = detect_ARUCO_transform(robot=robot, camera=camera, show=True, aruco_size=aruco_size)
+    id, Ta = detect_ARUCO_transform(robot=robot, camera=camera, show=False, aruco_size=aruco_size)
     if id is None:
         return None, None
     # El eje Z de la marca apunta hacia fuera, se necesita una transformación relativa para poderla asir

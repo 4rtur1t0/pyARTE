@@ -6,8 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="d8a98572-3f98-4262-921c-07f6e1c6487b" name="Changes" comment="Added teaching pendant">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/practicals/kinematics/irb140_ikine.py" beforeDir="false" afterPath="$PROJECT_DIR$/practicals/kinematics/irb140_ikine.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/practicals/teach.py" beforeDir="false" afterPath="$PROJECT_DIR$/practicals/teach.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practicals/applications/sorting/solution/irb140_sorting_sol.py" beforeDir="false" afterPath="$PROJECT_DIR$/practicals/applications/sorting/solution/irb140_sorting_sol.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/robots/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/robots/camera.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,7 +17,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="public" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -28,12 +28,12 @@
     &quot;assignee&quot;: &quot;4rtur1t0&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/4rtur1t0/pyARTE_full.git",
-    "accountId": "91c46523-b660-4bcd-a14e-54c8fb8de1b2"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/4rtur1t0/pyARTE_full.git&quot;,
+    &quot;accountId&quot;: &quot;91c46523-b660-4bcd-a14e-54c8fb8de1b2&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 1,
   &quot;fromUser&quot;: false
@@ -46,8 +46,12 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.irb140_example_instructions.executor": "Run",
     "Python.irb140_ikine.executor": "Run",
     "Python.irb140_palletizing_color_solution.executor": "Run",
+    "Python.irb140_palletizing_solution.executor": "Run",
+    "Python.irb140_project_ARUCO_2425.executor": "Run",
+    "Python.irb140_sorting_sol.executor": "Run",
     "Python.move_robotXYZabc.executor": "Run",
     "Python.teach.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -55,7 +59,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "git-widget-placeholder": "develop",
-    "last_opened_file_path": "/home/arturo/Escriptori/pyARTE_full/utils",
+    "last_opened_file_path": "/home/arturo/Escriptori/pyARTE_full/practicals/path_planning",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -66,36 +70,13 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/practicals/path_planning" />
       <recent name="$PROJECT_DIR$/utils" />
       <recent name="$PROJECT_DIR$/practicals" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.irb140_ikine">
-    <configuration name="irb140_ikine" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="pyARTE_full" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/practicals/kinematics" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="DEBUG_JUST_MY_CODE" value="false" />
-      <option name="RUN_TOOL" value="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/practicals/kinematics/irb140_ikine.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="irb140_palletizing_color_solution" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.irb140_sorting_sol">
+    <configuration name="irb140_palletizing_solution" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pyARTE_full" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -110,7 +91,55 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="DEBUG_JUST_MY_CODE" value="false" />
       <option name="RUN_TOOL" value="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/practicals/applications/palletizing/solutions/irb140_palletizing_color_solution.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/practicals/applications/palletizing/solutions/irb140_palletizing_solution.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="irb140_project_ARUCO_2425" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="pyARTE_full" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/practicals/projects/year_2425_ARUCO" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="false" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/practicals/projects/year_2425_ARUCO/irb140_project_ARUCO_2425.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="irb140_sorting_sol" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="pyARTE_full" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/practicals/applications/sorting/solution" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="false" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/practicals/applications/sorting/solution/irb140_sorting_sol.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -193,11 +222,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.irb140_ikine" />
+        <item itemvalue="Python.irb140_sorting_sol" />
+        <item itemvalue="Python.irb140_project_ARUCO_2425" />
         <item itemvalue="Python.teach" />
         <item itemvalue="Python.move_robotXYZabc" />
-        <item itemvalue="Python.irb140_palletizing_color_solution" />
-        <item itemvalue="Python.teach" />
+        <item itemvalue="Python.irb140_palletizing_solution" />
       </list>
     </recent_temporary>
   </component>
@@ -272,7 +301,55 @@
       <option name="project" value="LOCAL" />
       <updated>1791306747292</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Added teaching pendant">
+      <option name="closed" value="true" />
+      <created>1792508738827</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1792508738827</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Added teaching pendant">
+      <option name="closed" value="true" />
+      <created>1793126359346</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1793126359346</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Added teaching pendant">
+      <option name="closed" value="true" />
+      <created>1794320986124</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1794320986124</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Added teaching pendant">
+      <option name="closed" value="true" />
+      <created>1794321137528</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1794321137528</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Added teaching pendant">
+      <option name="closed" value="true" />
+      <created>1794322849937</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1794322849937</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Added teaching pendant">
+      <option name="closed" value="true" />
+      <created>1794323004487</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1794323004487</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -296,5 +373,36 @@
     <MESSAGE value="Utils not in public branch" />
     <MESSAGE value="Added teaching pendant" />
     <option name="LAST_COMMIT_MESSAGE" value="Added teaching pendant" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/practicals/path_planning/irb140_example_instructions.py</url>
+          <line>41</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/practicals/applications/palletizing/solutions/irb140_palletizing_solution.py</url>
+          <line>77</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/practicals/applications/palletizing/solutions/irb140_palletizing_solution.py</url>
+          <line>131</line>
+          <option name="timeStamp" value="11" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/robots/camera.py</url>
+          <line>188</line>
+          <option name="timeStamp" value="13" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/robots/camera.py</url>
+          <line>175</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
