@@ -104,7 +104,7 @@ class Camera():
         """
         Returns the transformation to the detected arucos
         """
-        gray_image = self.get_image()
+        rgb_image = self.get_image()
         # gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         # The dictionary should be defined as the one used in demos/aruco_markers/aruco_creation.py
         # aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
@@ -119,16 +119,16 @@ class Camera():
         parameters = cv2.aruco.DetectorParameters()
         detector = cv2.aruco.ArucoDetector(dictionary=aruco_dict, detectorParams=parameters)
 
-        corners, ids, rejectedImgPoints = detector.detectMarkers(gray_image)
+        corners, ids, rejectedImgPoints = detector.detectMarkers(rgb_image)
         if len(corners) > 0:
             rvecs, tvecs, _objPoints = cv2.aruco.estimatePoseSingleMarkers(corners,
                                                                            aruco_size,
                                                                            cameraMatrix,
                                                                            distCoeffs)
         if show:
-            cv2.imshow('aruco_detect', gray_image)
+            cv2.imshow('aruco_detect', rgb_image)
             cv2.waitKey(1000)
-            dispimage = cv2.aruco.drawDetectedMarkers(gray_image, corners, ids, borderColor=(0, 0, 255))
+            dispimage = cv2.aruco.drawDetectedMarkers(rgb_image, corners, ids, borderColor=(0, 0, 255))
             # display corner order (Board file)
             for item in corners:
                 for i in range(4):
