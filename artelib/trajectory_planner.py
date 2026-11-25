@@ -51,8 +51,7 @@ class TrajectoryPlanner():
         # cauition, if precision is set, a number of samples are added to the output, so that
         # the controller may have enough time to get a full control of the joints
         for i in range(len(s0)):
-            [st_, sdt_, sddt_, time] = self.caseB(s0[i], sf[i], t_coord, a_max[i],
-                                                  precision)
+            [st_, sdt_, sddt_, time] = self.caseB(s0[i], sf[i], t_coord, a_max[i], precision)
             # append to the total output
             st.append(st_)
             sdt.append(sdt_)
@@ -341,6 +340,54 @@ class TrajectoryPlanner():
         qd = np.array(qd)
         qdd = np.array(qdd)
         return q, qd, qdd, t
+
+    def linear_approximation(self, s0, sf, v_max, a_max, precision=False, plot=False):
+        """
+            Compute a linear approximation to interpolate joints.
+            Only used to illustrate the inconveniencies of this approach. Id est, inf accelerations, torques, etc.
+        """
+        ttotal = []
+        st = []
+        sdt = []
+        sddt = []
+        # Plan a path in joint or task space
+        for i in range(len(s0)):
+            # find the time that each joint needs, considering that it may work at max speed and acceleration
+            ttotal_i = (sf[i] - s0[i])/v_max[i]
+            ttotal.append(ttotal_i)
+        # find  the  max  time:  the total coordinated time is chosen as the time corresponding to the slowest joint
+        t_coord = np.max(ttotal)
+        # aim for an exact match above
+        n_samples = np.ceil(t_coord/self.delta_time)
+        n_samples = int(n_samples)
+        t_coord = n_samples*self.delta_time
+        # now, plan   all   the   joints    using    the  coordinated  time for a isochronous movement.
+        # caution, a very simple linear planner is used
+        for i in range(len(s0)):
+            # no movement needs to be performed, just add the last values
+            if t_coord == 0.0:
+                st_ = np.linspace(s0[i], sf[i], 1)
+                sdt_ = np.zeros(1)
+                sddt_ = np.zeros(1)
+            else:
+                # linear plan
+                st_ = np.linspace(s0[i], sf[i], n_samples)
+                sdi = (sf[i] - s0[i])/t_coord
+                sdt_ = sdi*np.ones(n_samples)
+                sddt_ = np.zeros(n_samples)
+            # append to the total output
+            st.append(st_)
+            sdt.append(sdt_)
+            sddt.append(sddt_)
+        time = np.arange(0.0, t_coord, self.delta_time)
+        # convert to a numpy array
+        st = np.array(st)
+        sdt = np.array(sdt)
+        sddt = np.array(sddt)
+        if plot:
+            self.plot_planned_trajectories(st, sdt, sddt, time, len(s0))
+        return st, sdt, sddt, time
+
 
     def plot_planned_trajectories(self, qt, qdt, qddt, t, n_joints):
         plt.figure()

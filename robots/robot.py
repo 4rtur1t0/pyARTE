@@ -167,7 +167,7 @@ class Robot(ABC):
         """
         self.Ttcp = Ttcp
 
-    def moveAbsJ(self, q_target, precision=True, plot=False, true_trapezoidal=False, speed_factor=1.0):
+    def moveAbsJ(self, q_target, precision=True, plot=False, traj_type = 'true_trapezoidal', speed_factor=1.0):
         """
         Commands the robot to the specified joint target positions.
         The targets are filtered and the robot is not commanded whenever a single joint is out of range.
@@ -190,20 +190,29 @@ class Robot(ABC):
         v_max = speed_factor*self.joint_parameters.max_joint_speeds
         a_max = speed_factor*self.joint_parameters.max_joint_accelerations
         # plan a true trapezoidal path
-        if true_trapezoidal:
+        if traj_type=='true_trapezoidal':
             qt, qdt, qddt, time = self.planner.trapezoidal_coordinated(s0=q_current,
                                                                        sf=q_target,
                                                                        v_max=v_max,
                                                                        a_max=a_max,
                                                                        precision=precision,
                                                                        plot=plot)
-        else:
+        elif traj_type=='trapezoidal_approximation':
             qt, qdt, qddt, time = self.planner.trapezoidal_coordinated_approx(s0=q_current,
                                                                               sf=q_target,
                                                                               v_max=v_max,
                                                                               a_max=a_max,
                                                                               precision=precision,
                                                                               plot=plot)
+        elif traj_type=='linear_approximation':
+            qt, qdt, qddt, time = self.planner.linear_approximation(s0=q_current,
+                                                                              sf=q_target,
+                                                                              v_max=v_max,
+                                                                              a_max=a_max,
+                                                                              precision=precision,
+                                                                              plot=plot)
+        else:
+            raise NotImplementedError('traj_type should be: true_trapezoidal, trapezoidal_approximation or linear_approximation')
         # perform control!
         self.controller.control(qt, qdt, qddt, plot=plot)
         # save last pose
