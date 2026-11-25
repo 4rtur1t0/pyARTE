@@ -28,7 +28,7 @@ def sorting_operation():
     frame.start()
     robot = RobotABBIRB140(simulation=simulation, frame=frame)
     robot.start()
-    camera = Camera(simulation=simulation, resolution=1200, fov_degrees=45)
+    camera = Camera(simulation=simulation, resolution=1200, fov_degrees=25)
     camera.start(name='/IRB140/camera')
     suction = SuctionPad(simulation=simulation)
     suction.start()
@@ -47,7 +47,7 @@ def sorting_operation():
     # Se mueve el robot a una posición articular q inicial
     q = np.array([0, 0, 0, 0, 0, 0])
     robot.moveAbsJ(q_target=q, precision=False, speed_factor=3.0)
-    aruco_size = 0.05
+    aruco_size = 0.015
     id, Tca = camera.detect_closer_aruco(show=True, aruco_size=aruco_size)
     if id is None:
         print('could not find piece')
